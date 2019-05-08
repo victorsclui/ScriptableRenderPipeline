@@ -1405,11 +1405,13 @@ namespace UnityEditor.ShaderGraph
 
             var duplicateNumber = 1;
             existingDuplicateNumbers.Sort();
-            if (existingDuplicateNumbers.Any() && existingDuplicateNumbers.First() == 1)
+
+            if (existingDuplicateNumbers.Any())
             {
                 duplicateNumber = existingDuplicateNumbers.Last() + 1;
                 for (var i = 1; i < existingDuplicateNumbers.Count; i++)
                 {
+
                     if (existingDuplicateNumbers[i - 1] != existingDuplicateNumbers[i] - 1)
                     {
                         duplicateNumber = existingDuplicateNumbers[i - 1] + 1;

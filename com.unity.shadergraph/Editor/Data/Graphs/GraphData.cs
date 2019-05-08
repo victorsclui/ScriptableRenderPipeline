@@ -610,7 +610,7 @@ namespace UnityEditor.ShaderGraph
         public string SanitizePropertyName(string displayName, Guid guid = default(Guid))
         {
             displayName = displayName.Trim();
-            return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Select(p => p.displayName), "{0} ({1})", displayName);
+            return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Select(p => p.displayName), "{0}{1}", displayName);
         }
 
         public string SanitizePropertyReferenceName(string referenceName, Guid guid = default(Guid))
