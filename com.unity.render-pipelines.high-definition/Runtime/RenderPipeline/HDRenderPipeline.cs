@@ -1184,7 +1184,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             var visibleInRenderRequest = renderRequests[visibleInIndices[i]];
                             var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
 
-                            AddHDProbeRenderRequests(visibleProbe, viewerTransform, Enumerable.Repeat(visibleInIndex, 1));
+                            AddHDProbeRenderRequests(
+                                visibleProbe,
+                                viewerTransform,
+                                Enumerable.Repeat(visibleInIndex, 1),
+                                visibleInRenderRequest.hdCamera.camera.fieldOfView
+                            );
                         }
                     }
                     else
@@ -1198,7 +1203,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 void AddHDProbeRenderRequests(
                     HDProbe visibleProbe,
                     Transform viewerTransform,
-                    IEnumerable<int> visibleInIndices
+                    IEnumerable<int> visibleInIndices,
+                    float referenceFieldOfView = 90
                 )
                 {
                     var position = ProbeCapturePositionSettings.ComputeFrom(
@@ -1209,7 +1215,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cameraPositionSettings.Clear();
                     HDRenderUtilities.GenerateRenderingSettingsFor(
                         visibleProbe.settings, position,
-                        cameraSettings, cameraPositionSettings
+                        cameraSettings, cameraPositionSettings,
+                        referenceFieldOfView: referenceFieldOfView
                     );
 
                     switch (visibleProbe.type)
@@ -1289,7 +1296,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 camera.worldToCameraMatrix,
                                 camera.projectionMatrix,
                                 camera.transform.position,
-                                camera.transform.rotation
+                                camera.transform.rotation,
+                                cameraSettings[j].frustum.fieldOfView
                             )
                         );
 
