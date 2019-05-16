@@ -156,6 +156,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
     float  shadowMask = 1.0;
+    float  sunVxShadow   = IsVxShadowsEnabled(light.vxShadowsBitset) ? lightLoopContext.sunVxShadowValue : 1.0;
 
     color       = light.color;
     attenuation = 1.0;
@@ -185,7 +186,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
         shadow = lightLoopContext.shadowValue;
-        shadow = min(shadow, lightLoopContext.vxShadowValue); //seongdae;vxsm
+        shadow = min(shadow, sunVxShadow); //seongdae;vxsm
 
     #ifdef SHADOWS_SHADOWMASK
         // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
@@ -216,7 +217,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     //seongdae;vxsm
     else if (light.shadowDimmer > 0)
     {
-        shadow = lerp(shadowMask, lightLoopContext.vxShadowValue, light.shadowDimmer);
+        shadow = lerp(shadowMask, sunVxShadow, light.shadowDimmer);
     }
     //seongdae;vxsm
 

@@ -89,8 +89,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     LightLoopContext context;
 
     context.shadowContext    = InitShadowContext();
-    context.vxShadowValue    = 1; //seongdae;vxsm
     context.shadowValue      = 1;
+    context.sunVxShadowValue = 1; //seongdae;vxsm
     context.sampleReflection = 0;
 
     // With XR single-pass instancing and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
@@ -140,12 +140,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             if (evaluateShadows)
             {
                 context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
-                context.vxShadowValue = GetSunVxShadow(posInput, light); //seongdae;vxsm
+                context.sunVxShadowValue = GetSunVxShadow(posInput); //seongdae;vxsm
             }
 #else
-        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex]; //seongdae;vxsm
         context.shadowValue = GetScreenSpaceShadow(posInput);
-        context.vxShadowValue = GetSunVxShadow(posInput, light); //seongdae;vxsm
+        context.sunVxShadowValue = GetSunVxShadow(posInput); //seongdae;vxsm
 #endif
         }
     }

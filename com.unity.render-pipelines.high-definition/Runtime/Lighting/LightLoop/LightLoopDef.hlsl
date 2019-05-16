@@ -12,7 +12,7 @@ struct LightLoopContext
 
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     float contactShadowFade;    // combined fade factor of all contact shadows
-    float vxShadowValue;        //seongdae;vxsm Stores the value of the voxelized shadow map
+    float sunVxShadowValue;     //seongdae;vxsm Stores the value of the voxelized shadow map from sun light
     float shadowValue;          // Stores the value of the cascade shadow map
 };
 
@@ -365,11 +365,8 @@ float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask)
 }
 
 //seongdae;vxsm
-float GetSunVxShadow(PositionInputs posInput, DirectionalLightData light)
+float GetSunVxShadow(PositionInputs posInput)
 {
-    if (light.vxShadowsBitset == 0)
-        return 1.0;
-
     return LOAD_TEXTURE2D_X(_VxShadowTexture, posInput.positionSS).x;
 }
 //seongdae;vxsm
