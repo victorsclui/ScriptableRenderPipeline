@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty supportRuntimeDebugDisplay;
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportRayTracing;
+        public SerializedProperty supportedRaytracingTier;
         public SerializedProperty supportDistortion;
         public SerializedProperty supportTransparentBackface;
         public SerializedProperty supportTransparentDepthPrepass;
@@ -68,6 +69,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
+            supportedRaytracingTier         = root.Find((RenderPipelineSettings s) => s.supportedRaytracingTier);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));
