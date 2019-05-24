@@ -807,8 +807,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 needsRefreshingCameraFreezeList = true;
             }
 
-            var history = FrameSettingsHistory.RegisterDebug(camera, additionalData);
-            DebugManager.instance.RegisterData(history);
+            if (!FrameSettingsHistory.IsRegistered(camera))
+            {
+                var history = FrameSettingsHistory.RegisterDebug(camera, additionalData);
+                DebugManager.instance.RegisterData(history);
+            }
         }
 
         public static void UnRegisterCamera(Camera camera, HDAdditionalCameraData additionalData)
@@ -821,8 +824,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 needsRefreshingCameraFreezeList = true;
             }
 
-            DebugManager.instance.UnregisterData(FrameSettingsHistory.GetPersistantDebugDataCopy(camera));
-            FrameSettingsHistory.UnRegisterDebug(camera);
+            if (FrameSettingsHistory.IsRegistered(camera))
+            {
+                DebugManager.instance.UnregisterData(FrameSettingsHistory.GetPersistantDebugDataCopy(camera));
+                FrameSettingsHistory.UnRegisterDebug(camera);
+            }
         }
     }
 }
