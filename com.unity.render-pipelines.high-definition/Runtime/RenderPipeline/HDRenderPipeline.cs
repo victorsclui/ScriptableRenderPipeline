@@ -1864,14 +1864,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         void VxShadowStartCallback(CommandBuffer asyncCmd)
                         {
-                            m_LightLoop.RenderVxShadows(hdCamera, m_VxShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), asyncCmd);
+                            RenderVxShadows(hdCamera, m_VxShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), asyncCmd);
                         }
                     }
                     else
                     {
                         HDUtils.CheckRTCreated(m_VxShadowBuffer);
 
-                        m_LightLoop.RenderVxShadows(hdCamera, m_VxShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), cmd);
+                        RenderVxShadows(hdCamera, m_VxShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), cmd);
 
                         PushFullScreenDebugTexture(hdCamera, cmd, m_VxShadowBuffer, FullScreenDebugMode.VxShadows);
                     }
@@ -1929,13 +1929,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     void Callback()
                     {
-                        m_LightLoop.SetVxShadowsTexture(hdCamera, m_VxShadowBuffer, cmd);
+                        SetVxShadowsTexture(hdCamera, m_VxShadowBuffer, cmd);
                         PushFullScreenDebugTexture(hdCamera, cmd, m_VxShadowBuffer, FullScreenDebugMode.VxShadows);
                     }
                 }
                 else
                 {
-                    m_LightLoop.SetVxShadowsTexture(hdCamera, m_VxShadowBuffer, cmd);
+                    SetVxShadowsTexture(hdCamera, m_VxShadowBuffer, cmd);
                 }
                 //seongdae;vxsm
 
