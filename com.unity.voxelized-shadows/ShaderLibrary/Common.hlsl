@@ -1,7 +1,7 @@
 #ifndef UNITY_VX_SHADOWMAPS_COMMON_INCLUDED
 #define UNITY_VX_SHADOWMAPS_COMMON_INCLUDED
 
-#define USE_EMULATE_COUNTBITS
+//#define USE_EMULATE_COUNTBITS
 #define OFFSET_DIR 15
 #define OFFSET_POINT 15 // TODO : define it for point light
 #define OFFSET_SPOT 15 // TODO : define it for spot light
@@ -111,57 +111,96 @@ void TraverseVxShadowMapPosQ2x2(uint begin, uint typeOffset, uint3 posQ_0, out u
     uint3 posQ_2 = posQ_0 + uint3(0, 1, 0);
     uint3 posQ_3 = posQ_0 + uint3(1, 1, 0);
 
-    uint4 nodeIndex4 = 0;
-    uint scale = dagScale;
+    uint scale = dagScale - 1;
 
-    bool4 lit4 = false;
-    bool4 shadowed4 = false;
-    bool4 intersected4 = true;
+    // calculate where to go to child
+    uint3 childDet_0 = ((posQ_0 >> scale) & 0x00000001) << uint3(1, 2, 3);
+    uint3 childDet_1 = ((posQ_1 >> scale) & 0x00000001) << uint3(1, 2, 3);
+    uint3 childDet_2 = ((posQ_2 >> scale) & 0x00000001) << uint3(1, 2, 3);
+    uint3 childDet_3 = ((posQ_3 >> scale) & 0x00000001) << uint3(1, 2, 3);
+    uint4 cellShift4 = uint4(
+        childDet_0.x + childDet_0.y + childDet_0.z,
+        childDet_1.x + childDet_1.y + childDet_1.z,
+        childDet_2.x + childDet_2.y + childDet_2.z,
+        childDet_3.x + childDet_3.y + childDet_3.z);
+    uint4 cellbit4 = 0x00000003 << cellShift4;
+
+    // initial access
+    uint4 vxsmAccess4 = vxsmOffset;
+
+    // calculate bit
+    uint4 childmask4 = uint4(
+        _VxShadowMapsBuffer[vxsmAccess4.x],
+        _VxShadowMapsBuffer[vxsmAccess4.y],
+        _VxShadowMapsBuffer[vxsmAccess4.z],
+        _VxShadowMapsBuffer[vxsmAccess4.w]) >> 16;
+    uint4 shadowbit4 = (childmask4 & cellbit4) >> cellShift4;
+
+    // determine whether it is intersected or not
+    bool4 intersected4 = shadowbit4 == 0x00000003;
+
+    uint4 mask4 = 0;
+    uint4 childrenbit4 = 0;
+    uint4 childIndex4 = 0;
 
     for (; scale > 3 && any(intersected4); --scale)
     {
+        // find next child node
+        mask4 = ~(0xFFFFFFFF << cellShift4);
+        childrenbit4 = childmask4 & ((childmask4 & 0x0000AAAA) >> 1);
+        childIndex4 = countBits(childrenbit4 & mask4);
+
+        // update access
+        vxsmAccess4 = vxsmAccess4 + 1 + childIndex4;
+        vxsmAccess4 = vxsmOffset + uint4(
+            _VxShadowMapsBuffer[vxsmAccess4.x],
+            _VxShadowMapsBuffer[vxsmAccess4.y],
+            _VxShadowMapsBuffer[vxsmAccess4.z],
+            _VxShadowMapsBuffer[vxsmAccess4.w]);
+
         // calculate where to go to child
-        uint3 childDet_0 = (posQ_0 >> (scale - 1)) & 0x00000001;
-        uint3 childDet_1 = (posQ_1 >> (scale - 1)) & 0x00000001;
-        uint3 childDet_2 = (posQ_2 >> (scale - 1)) & 0x00000001;
-        uint3 childDet_3 = (posQ_3 >> (scale - 1)) & 0x00000001;
-
-        uint4 cellShift4 = uint4(
-            (childDet_0.x << 1) + (childDet_0.y << 2) + (childDet_0.z << 3),
-            (childDet_1.x << 1) + (childDet_1.y << 2) + (childDet_1.z << 3),
-            (childDet_2.x << 1) + (childDet_2.y << 2) + (childDet_2.z << 3),
-            (childDet_3.x << 1) + (childDet_3.y << 2) + (childDet_3.z << 3));
-
-        uint4 cellbit4 = 0x00000003 << cellShift4;
+        uint scaleShift = scale - 1;
+        childDet_0 = ((posQ_0 >> scaleShift) & 0x00000001) << uint3(1, 2, 3);
+        childDet_1 = ((posQ_1 >> scaleShift) & 0x00000001) << uint3(1, 2, 3);
+        childDet_2 = ((posQ_2 >> scaleShift) & 0x00000001) << uint3(1, 2, 3);
+        childDet_3 = ((posQ_3 >> scaleShift) & 0x00000001) << uint3(1, 2, 3);
+        cellShift4.x = dot(childDet_0, 1);
+        cellShift4.y = dot(childDet_1, 1);
+        cellShift4.z = dot(childDet_2, 1);
+        cellShift4.w = dot(childDet_3, 1);
+        cellbit4 = 0x00000003 << cellShift4;
 
         // calculate bit
-        uint4 header4 = uint4(
-            _VxShadowMapsBuffer[vxsmOffset + nodeIndex4.x],
-            _VxShadowMapsBuffer[vxsmOffset + nodeIndex4.y],
-            _VxShadowMapsBuffer[vxsmOffset + nodeIndex4.z],
-            _VxShadowMapsBuffer[vxsmOffset + nodeIndex4.w]);
-        uint4 childmask4 = header4 >> 16;
-        uint4 shadowbit4 = (childmask4 & cellbit4) >> cellShift4;
+        childmask4 = uint4(
+            _VxShadowMapsBuffer[vxsmAccess4.x],
+            _VxShadowMapsBuffer[vxsmAccess4.y],
+            _VxShadowMapsBuffer[vxsmAccess4.z],
+            _VxShadowMapsBuffer[vxsmAccess4.w]) >> 16;
+        shadowbit4 = intersected4 ? (childmask4 & cellbit4) >> cellShift4 : shadowbit4;
 
-        // determine whether it is lit or shadowed.
-        lit4      = intersected4 ? shadowbit4 & 0x00000001 : lit4;
-        shadowed4 = intersected4 ? shadowbit4 & 0x00000002 : shadowed4;
-
-        // if it has lit and shadowed, it is not decided yet(need to traverse more)
-        intersected4 = lit4 && shadowed4;
-
-        // find next child node
-        uint4 mask4 = ~(0xFFFFFFFF << cellShift4);
-        uint4 childrenbit4 = childmask4 & ((childmask4 & 0x0000AAAA) >> 1);
-        uint4 childIndex4 = countBits(childrenbit4 & mask4);
-        uint4 nextIndex4 = vxsmOffset + nodeIndex4 + 1 + childIndex4;
-
-        // go down to the next node
-        nodeIndex4.x = intersected4.x ? _VxShadowMapsBuffer[nextIndex4.x] : nodeIndex4.x;
-        nodeIndex4.y = intersected4.y ? _VxShadowMapsBuffer[nextIndex4.y] : nodeIndex4.y;
-        nodeIndex4.z = intersected4.z ? _VxShadowMapsBuffer[nextIndex4.z] : nodeIndex4.z;
-        nodeIndex4.w = intersected4.w ? _VxShadowMapsBuffer[nextIndex4.w] : nodeIndex4.w;
+        // determine whether it is intersected or not
+        intersected4 = shadowbit4 == 0x00000003;
     }
+
+    uint4 nodeIndex4 = 0;
+
+    // go further the rest of computation
+    if (any(intersected4))
+    {
+        mask4 = ~(0xFFFFFFFF << cellShift4);
+        childrenbit4 = childmask4 & ((childmask4 & 0x0000AAAA) >> 1);
+        childIndex4 = countBits(childrenbit4 & mask4);
+
+        vxsmAccess4 = vxsmAccess4 + 1 + childIndex4;
+        nodeIndex4 = uint4(
+            _VxShadowMapsBuffer[vxsmAccess4.x],
+            _VxShadowMapsBuffer[vxsmAccess4.y],
+            _VxShadowMapsBuffer[vxsmAccess4.z],
+            _VxShadowMapsBuffer[vxsmAccess4.w]);
+    }
+
+    bool4 lit4      = shadowbit4 & 0x00000001;
+    bool4 shadowed4 = shadowbit4 & 0x00000002;
 
     results[0] = uint4(nodeIndex4.x, lit4.x, shadowed4.x, intersected4.x);
     results[1] = uint4(nodeIndex4.y, lit4.y, shadowed4.y, intersected4.y);
@@ -285,10 +324,9 @@ float TraverseNearestSampleVxShadowMap(uint begin, uint typeOffset, uint3 posQ, 
 
     uint3 leaf = posQ % uint3(8, 8, 8);
     uint leafIndex = _VxShadowMapsBuffer[vxsmOffset + nodeIndex + leaf.z];
+    if (leaf.y >= 4) leafIndex++;
 
-    uint bitmask0 = _VxShadowMapsBuffer[vxsmOffset + leafIndex];
-    uint bitmask1 = _VxShadowMapsBuffer[vxsmOffset + leafIndex + 1];
-    uint bitmask = leaf.y < 4 ? bitmask0 : bitmask1;
+    uint bitmask = _VxShadowMapsBuffer[vxsmOffset + leafIndex];
 
     uint maskShift = leaf.x + 8 * (leaf.y % 4);
     uint mask = 0x00000001 << maskShift;
@@ -311,47 +349,29 @@ float TraverseBilinearSampleVxShadowMap(uint begin, uint typeOffset, uint3 posQ_
     uint3 posQ_2 = posQ_0 + uint3(0, 1, 0);
     uint3 posQ_3 = posQ_0 + uint3(1, 1, 0);
 
-    uint4 leaf4_x = uint4(posQ_0.x % 8, posQ_1.x % 8, posQ_2.x % 8, posQ_3.x % 8);
-    uint4 leaf4_y = uint4(posQ_0.y % 8, posQ_1.y % 8, posQ_2.y % 8, posQ_3.y % 8);
-    uint4 leaf4_z = uint4(posQ_0.z % 8, posQ_1.z % 8, posQ_2.z % 8, posQ_3.z % 8);
+    uint4 leaf4_x = uint4(posQ_0.x, posQ_1.x, posQ_2.x, posQ_3.x) % 8;
+    uint4 leaf4_y = uint4(posQ_0.y, posQ_1.y, posQ_2.y, posQ_3.y) % 8;
+    uint4 leaf4_z = uint4(posQ_0.z, posQ_1.z, posQ_2.z, posQ_3.z) % 8;
 
     uint4 leafIndex = vxsmOffset + uint4(
         _VxShadowMapsBuffer[nodeIndex4.x + leaf4_z.x],
         _VxShadowMapsBuffer[nodeIndex4.y + leaf4_z.y],
         _VxShadowMapsBuffer[nodeIndex4.z + leaf4_z.z],
         _VxShadowMapsBuffer[nodeIndex4.w + leaf4_z.w]);
+    leafIndex = leaf4_y < 4 ? leafIndex : (leafIndex + 1);
 
-    uint4 bitmask04 = uint4(
+    uint4 bitmask4 = uint4(
         innerResults[0].y ? 0x00000000 : 0xFFFFFFFF,
         innerResults[1].y ? 0x00000000 : 0xFFFFFFFF,
         innerResults[2].y ? 0x00000000 : 0xFFFFFFFF,
         innerResults[3].y ? 0x00000000 : 0xFFFFFFFF);
-    uint4 bitmask14 = bitmask04;
 
-    if (innerResults[0].w)
-    {
-        bitmask04.x = _VxShadowMapsBuffer[leafIndex.x];
-        bitmask14.x = _VxShadowMapsBuffer[leafIndex.x + 1];
-    }
-    if (innerResults[1].w)
-    {
-        bitmask04.y = _VxShadowMapsBuffer[leafIndex.y];
-        bitmask14.y = _VxShadowMapsBuffer[leafIndex.y + 1];
-    }
-    if (innerResults[2].w)
-    {
-        bitmask04.z = _VxShadowMapsBuffer[leafIndex.z];
-        bitmask14.z = _VxShadowMapsBuffer[leafIndex.z + 1];
-    }
-    if (innerResults[3].w)
-    {
-        bitmask04.w = _VxShadowMapsBuffer[leafIndex.w];
-        bitmask14.w = _VxShadowMapsBuffer[leafIndex.w + 1];
-    }
+    if (innerResults[0].w) bitmask4.x = _VxShadowMapsBuffer[leafIndex.x];
+    if (innerResults[1].w) bitmask4.y = _VxShadowMapsBuffer[leafIndex.y];
+    if (innerResults[2].w) bitmask4.z = _VxShadowMapsBuffer[leafIndex.z];
+    if (innerResults[3].w) bitmask4.w = _VxShadowMapsBuffer[leafIndex.w];
 
-    uint4 bitmask4 = leaf4_y < 4 ? bitmask04 : bitmask14;
-
-    uint4 maskShift4 = leaf4_x + 8 * (leaf4_y % 4);
+    uint4 maskShift4 = mad(leaf4_y % 4, 8, leaf4_x);
     uint4 mask4 = uint4(1, 1, 1, 1) << maskShift4;
 
     float4 attenuation4 = (bitmask4 & mask4) == 0 ? 1.0 : 0.0;
