@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -7,19 +8,36 @@ namespace UnityEditor.ShaderGraph
     abstract class GeometryNode : AbstractMaterialNode
     {
         [SerializeField]
-        private CoordinateSpace m_Space = CoordinateSpace.World;
+        private PopupList m_SpacePopup = new PopupList(new string[] {"Object", "View", "World", "Tangent"}, 2);
+        public CoordinateSpace space = CoordinateSpace.World;
 
-        [EnumControl("Space")]
-        public CoordinateSpace space
+        [PopupControl("Space")]
+        public virtual PopupList spacePopup 
         {
-            get { return m_Space; }
+            get { return m_SpacePopup; }
             set
             {
-                if (m_Space == value)
+                if (m_SpacePopup.selectedEntry == value.selectedEntry)
                     return;
 
-                m_Space = value;
+                switch (m_SpacePopup.selectedEntry)
+                {
+                    case 0:
+                        space = CoordinateSpace.Object;
+                        break;
+                    case 1:
+                        space = CoordinateSpace.View;
+                        break;
+                    case 2:
+                        space = CoordinateSpace.World;
+                        break;  
+                    case 3:
+                        space = CoordinateSpace.Tangent;
+                        break;
+                }
+
                 Dirty(ModificationScope.Graph);
+                m_SpacePopup.selectedEntry = value.selectedEntry;
             }
         }
 
