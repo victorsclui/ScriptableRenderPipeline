@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
     abstract class GeometryNode : AbstractMaterialNode
     {
         public virtual string[] spaceEntries => new string[] {"Object", "View", "World", "Tangent"};
+        public virtual int defaultEntry => 2;
 
         [SerializeField]
         private PopupList m_SpacePopup;        
@@ -29,7 +30,7 @@ namespace UnityEditor.ShaderGraph
 
         public GeometryNode()
         {
-            m_SpacePopup = new PopupList(spaceEntries, 2);  
+            m_SpacePopup = new PopupList(spaceEntries, defaultEntry);  
         }
         public override bool hasPreview
         {

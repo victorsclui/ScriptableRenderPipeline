@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     {
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
-        public override string[] spaceEntries => new string[] {"Custom", "Override", "Space", "Popup"};
+        public override string[] spaceEntries => new string[] {"Object", "View", "World", "Tangent", "Relative World"};
 
         public PositionNode()
         {

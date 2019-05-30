@@ -9,7 +9,8 @@ namespace UnityEditor.ShaderGraph
         Object = 1 << 0,
         View = 1 << 1,
         World = 1 << 2,
-        Tangent = 1 << 3
+        Tangent = 1 << 3,
+        RelativeWorld = 1 << 4
     }
 
     enum CoordinateSpace
@@ -17,7 +18,8 @@ namespace UnityEditor.ShaderGraph
         Object,
         View,
         World,
-        Tangent
+        Tangent,
+        RelativeWorld
     }
 
     enum InterpolatorType
@@ -55,6 +57,8 @@ namespace UnityEditor.ShaderGraph
                     return NeededCoordinateSpace.World;
                 case CoordinateSpace.Tangent:
                     return NeededCoordinateSpace.Tangent;
+                case CoordinateSpace.RelativeWorld:
+                    return NeededCoordinateSpace.RelativeWorld;
                 default:
                     throw new ArgumentOutOfRangeException("space", space, null);
             }
