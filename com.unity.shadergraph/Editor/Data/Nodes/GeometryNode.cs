@@ -7,40 +7,30 @@ namespace UnityEditor.ShaderGraph
 {
     abstract class GeometryNode : AbstractMaterialNode
     {
+        public virtual string[] spaceEntries => new string[] {"Object", "View", "World", "Tangent"};
+
         [SerializeField]
-        private PopupList m_SpacePopup = new PopupList(new string[] {"Object", "View", "World", "Tangent"}, 2);
-        public CoordinateSpace space = CoordinateSpace.World;
+        private PopupList m_SpacePopup;        
 
         [PopupControl("Space")]
-        public virtual PopupList spacePopup 
+        public PopupList spacePopup 
         {
             get { return m_SpacePopup; }
             set
             {
                 if (m_SpacePopup.selectedEntry == value.selectedEntry)
-                    return;
-
-                switch (m_SpacePopup.selectedEntry)
-                {
-                    case 0:
-                        space = CoordinateSpace.Object;
-                        break;
-                    case 1:
-                        space = CoordinateSpace.View;
-                        break;
-                    case 2:
-                        space = CoordinateSpace.World;
-                        break;  
-                    case 3:
-                        space = CoordinateSpace.Tangent;
-                        break;
-                }
+                    return;                
 
                 Dirty(ModificationScope.Graph);
                 m_SpacePopup.selectedEntry = value.selectedEntry;
             }
         }
+        public CoordinateSpace space => (CoordinateSpace)m_SpacePopup.selectedEntry;
 
+        public GeometryNode()
+        {
+            m_SpacePopup = new PopupList(spaceEntries, 2);  
+        }
         public override bool hasPreview
         {
             get { return true; }
