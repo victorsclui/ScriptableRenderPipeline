@@ -133,6 +133,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector3 ViewSpacePosition;
             [Optional] Vector3 WorldSpacePosition;
             [Optional] Vector3 TangentSpacePosition;
+            [Optional] Vector3 RelativeWorldSpacePosition;
 
             [Optional] Vector4 ScreenPosition;
             [Optional] Vector4 uv0;
@@ -157,6 +158,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceBiTangent",        "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
 
                 new Dependency("SurfaceDescriptionInputs.WorldSpacePosition",        "FragInputs.positionRWS"),
+                new Dependency("SurfaceDescriptionInputs.RelativeWorldSpacePosition","FragInputs.positionRWS"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpacePosition",       "FragInputs.positionRWS"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpacePosition",         "FragInputs.positionRWS"),
 
@@ -207,6 +209,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector3 ViewSpacePosition;
             [Optional] Vector3 WorldSpacePosition;
             [Optional] Vector3 TangentSpacePosition;
+            [Optional] Vector3 RelativeWorldSpacePosition;
 
             [Optional] Vector4 ScreenPosition;
             [Optional] Vector4 uv0;
@@ -232,6 +235,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new Dependency("VertexDescriptionInputs.ObjectSpacePosition",       "AttributesMesh.positionOS"),
                 new Dependency("VertexDescriptionInputs.WorldSpacePosition",        "AttributesMesh.positionOS"),
+                new Dependency("VertexDescriptionInputs.RelativeWorldSpacePosition","AttributesMesh.positionOS"),
                 new Dependency("VertexDescriptionInputs.ViewSpacePosition",         "VertexDescriptionInputs.WorldSpacePosition"),
 
                 new Dependency("VertexDescriptionInputs.WorldSpaceViewDirection",   "VertexDescriptionInputs.WorldSpacePosition"),
@@ -337,6 +341,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
                     activeFields.Add("VertexDescriptionInputs.TangentSpacePosition");
+
+                if ((requirements.requiresPosition & NeededCoordinateSpace.RelativeWorld) > 0)
+                    activeFields.Add("VertexDescriptionInputs.RelativeWorldSpacePosition");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
@@ -436,6 +443,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
                     activeFields.Add("SurfaceDescriptionInputs.TangentSpacePosition");
+                
+                if ((requirements.requiresPosition & NeededCoordinateSpace.RelativeWorld) > 0)
+                    activeFields.Add("SurfaceDescriptionInputs.RelativeWorldSpacePosition");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())

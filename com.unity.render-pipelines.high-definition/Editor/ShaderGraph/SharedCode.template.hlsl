@@ -49,6 +49,7 @@
         $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         TransformWorldToObject(input.positionRWS);
         $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(input.positionRWS);
         $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
+        $SurfaceDescriptionInputs.RelativeWorldSpacePosition:output.RelativeWorldSpacePosition =  input.positionRWS;
         $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
         $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         input.texCoord0;
         $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         input.texCoord1;
