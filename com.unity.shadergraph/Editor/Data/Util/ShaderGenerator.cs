@@ -792,10 +792,10 @@ namespace UnityEditor.ShaderGraph
                     DimensionToSwizzle(dimension));
 
             if ((neededSpaces & NeededCoordinateSpace.RelativeWorld) > 0 && from != CoordinateSpace.RelativeWorld)
-                pixelShader.AppendLine("float{0} {1} = {2}.{3};", DimensionToString(dimension),
-                    CoordinateSpace.RelativeWorld.ToVariableName(type),
-                    ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.RelativeWorld, inputType, from),
-                    DimensionToSwizzle(dimension));
+               pixelShader.AppendLine("float{0} {1} = {2}.{3} - _WorldSpaceCameraPos;", DimensionToString(dimension),
+                   CoordinateSpace.RelativeWorld.ToVariableName(type),
+                   CoordinateSpace.World.ToVariableName(type),
+                   DimensionToSwizzle(dimension));
         }
 
         public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)

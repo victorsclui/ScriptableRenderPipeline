@@ -20,7 +20,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          GetAbsolutePositionWS(TransformObjectToWorld(input.positionOS));
     $VertexDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(output.WorldSpacePosition);
     $VertexDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
-    $VertexDescriptionInputs.RelativeWorldSpacePosition:output.RelativeWorldSpacePosition =  TransformObjectToWorld(input.positionOS)
+    $VertexDescriptionInputs.RelativeWorldSpacePosition:output.RelativeWorldSpacePosition =  TransformObjectToWorld(input.positionOS);
     $VertexDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     GetWorldSpaceNormalizeViewDir(output.WorldSpacePosition);
     $VertexDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
     $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
