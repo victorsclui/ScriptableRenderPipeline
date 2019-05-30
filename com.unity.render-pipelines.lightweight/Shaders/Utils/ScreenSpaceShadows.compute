@@ -128,12 +128,12 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     }
 
 #if NEAREST_SAMPLE
-    uint4 result;
+    uint2 result;
     TraverseVxShadowMapPosQ(_BeginOffset, OFFSET_DIR, posQ, result);
 
-    if (result.w == 0)
+    if (result.y != VX_SHADOWS_INTERSECTED)
     {
-        attenuation = result.z ? attenuation : 0.0;
+        attenuation = (result.y & 0x000000001) ? attenuation : 0.0;
         attenuation = LerpWhiteTo(attenuation, shadowStrength);
         _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
         return;
@@ -142,16 +142,12 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     float attenuationVxsm = TraverseNearestSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, result);
     attenuation = min(attenuation, attenuationVxsm);
 #elif BILINEAR_SAMPLE
-    uint4 results[4];
+    uint4 results[2];
     TraverseVxShadowMapPosQ2x2(_BeginOffset, OFFSET_DIR, posQ, results);
 
-    if (results[0].w == 0 && results[1].w == 0 && results[2].w == 0 && results[3].w == 0)
+    if (all(results[1] != VX_SHADOWS_INTERSECTED))
     {
-        float4 attenuation4 = float4(
-            results[0].z ? attenuation : 0.0,
-            results[1].z ? attenuation : 0.0,
-            results[2].z ? attenuation : 0.0,
-            results[3].z ? attenuation : 0.0);
+        float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
         attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
 
         attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
@@ -163,22 +159,13 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
     attenuation = min(attenuation, attenuationVxsm);
 #elif TRILINEAR_SAMPLE
-    uint4 results[8];
+    uint4 results[4];
     TraverseVxShadowMapPosQ2x2x2(_BeginOffset, OFFSET_DIR, posQ, results);
 
-    if (results[0].w == 0 && results[1].w == 0 && results[2].w == 0 && results[3].w == 0 &&
-        results[4].w == 0 && results[5].w == 0 && results[6].w == 0 && results[7].w == 0)
+    if (all(results[2] != VX_SHADOWS_INTERSECTED) && all(results[3] != VX_SHADOWS_INTERSECTED))
     {
-        float4 attenuation4_0 = float4(
-            results[0].z ? attenuation : 0.0,
-            results[2].z ? attenuation : 0.0,
-            results[4].z ? attenuation : 0.0,
-            results[6].z ? attenuation : 0.0);
-        float4 attenuation4_1 = float4(
-            results[1].z ? attenuation : 0.0,
-            results[3].z ? attenuation : 0.0,
-            results[5].z ? attenuation : 0.0,
-            results[7].z ? attenuation : 0.0);
+        float4 attenuation4_0 = results[2] & 0x000000001 ? attenuation : 0.0;
+        float4 attenuation4_1 = results[3] & 0x000000001 ? attenuation : 0.0;
 
         attenuation4_0    = lerp(attenuation4_0, attenuation4_1, lerpWeight.x);
         attenuation4_0.xy = lerp(attenuation4_0.xz, attenuation4_0.yw, lerpWeight.y);
