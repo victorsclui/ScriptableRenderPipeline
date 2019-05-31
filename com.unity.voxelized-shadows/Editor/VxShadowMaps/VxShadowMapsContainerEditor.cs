@@ -1,4 +1,6 @@
 using UnityEditor;
+using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.VoxelizedShadows
 {
@@ -26,6 +28,18 @@ namespace UnityEngine.Experimental.VoxelizedShadows
 
                 EditorGUILayout.LabelField(vxsmInfo0 + ", " + vxsmInfo1 + ", " + vxsmInfo2);
             }
+        }
+
+        [MenuItem("GameObject/Rendering/VxShadowMaps Container", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreateVxShadowMapsContainer(MenuCommand menuCommand)
+        {
+            var parent = menuCommand.context as GameObject;
+            var containerGameObject = CoreEditorUtils.CreateGameObject(parent, "VxShadowMaps Container");
+            GameObjectUtility.SetParentAndAlign(containerGameObject, menuCommand.context as GameObject);
+            Undo.RegisterCreatedObjectUndo(containerGameObject, "Create " + containerGameObject.name);
+            Selection.activeObject = containerGameObject;
+
+            containerGameObject.AddComponent<VxShadowMapsContainer>();
         }
     }
 }

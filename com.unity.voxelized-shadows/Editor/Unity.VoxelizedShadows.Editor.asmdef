@@ -1,6 +1,8 @@
 {
     "name": "Unity.VoxelizedShadows.Editor",
     "references": [
+        "Unity.RenderPipelines.Core.Editor",
+        "Unity.RenderPipelines.Core.Runtime",
         "Unity.VoxelizedShadows.Runtime"
     ],
     "includePlatforms": [
