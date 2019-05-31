@@ -278,15 +278,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         int GetShadowRequestCount()
         {
-            //seongdae;vxsm
-            if (m_WillRenderVxShadows)
-            {
-                var vxsm = GetComponent<VxShadowMap>();
-                bool vxsmIsValid = vxsm != null && vxsm.IsValid();
-                if (vxsmIsValid && vxsm.ShadowsBlend == ShadowsBlendMode.OnlyVxShadows)
-                    return 0;
-            }
-            //seongdae;vxsm
             return (legacyLight.type == LightType.Point && lightTypeExtent == LightTypeExtent.Punctual) ? 6 : (legacyLight.type == LightType.Directional) ? m_ShadowSettings.cascadeShadowSplitCount.value : 1;
         }
 
@@ -308,6 +299,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
             m_WillRenderShadows &= !(lightTypeExtent == LightTypeExtent.Rectangle && useRayTracedShadows);
 #endif
+            //seongdae;vxsm
+            if (m_WillRenderVxShadows)
+            {
+                var vxsm = GetComponent<VxShadowMap>();
+                bool vxsmIsValid = vxsm != null && vxsm.IsValid();
+
+                if (vxsmIsValid && vxsm.ShadowsBlend == ShadowsBlendMode.OnlyVxShadows)
+                    m_WillRenderShadows = false;
+            }
+            //seongdae;vxsm
 
             if (!m_WillRenderShadows)
                 return;
@@ -358,6 +359,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (int index = 0; index < count; index++)
                 m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType);
         }
+
+        //seongdae;vxsm
+        public bool WillRenderVxShadows()
+        {
+            return m_WillRenderVxShadows;
+        }
+        //seongdae;vxsm
 
         public bool WillRenderShadows()
         {

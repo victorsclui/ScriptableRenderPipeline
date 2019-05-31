@@ -70,10 +70,7 @@ namespace UnityEngine.Experimental.VoxelizedShadows
 
         public override bool IsValid()
         {
-            return
-                VxShadowMapsManager.Instance.ValidVxShadowMapsBuffer &&
-                VxShadowMapsManager.Instance.Container != null &&
-                enabled;
+            return enabled && VxShadowMapsManager.Instance.ValidVxShadowMaps;
         }
     }
 }

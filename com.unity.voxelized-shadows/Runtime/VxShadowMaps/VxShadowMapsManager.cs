@@ -67,33 +67,6 @@ namespace UnityEngine.Experimental.VoxelizedShadows
             _vxShadowMapsNullBuffer.SetData(nullData);
         }
 
-        public bool RegisterVxShadowMapsContainer(VxShadowMapsContainer container)
-        {
-            if (_container != null)
-            {
-                Debug.LogError("Failed to register container, VxShadowMapsContainer must be single one.");
-                return false;
-            }
-
-            //Debug.Log("Try to register VxShadowMapsContainer");
-            _container = container;
-
-            return true;
-        }
-        public bool UnregisterVxShadowMapsContainer(VxShadowMapsContainer container)
-        {
-            if (_container != container)
-            {
-                Debug.LogError("Failed to unregister container, Are there VxShadowMapsContainers more than one?");
-                return false;
-            }
-
-            //Debug.Log("Try to unregister VxShadowMapsContainer");
-            _container = null;
-
-            return true;
-        }
-
         public void RegisterVxShadowMapComponent(DirectionalVxShadowMap dirVxsm)
         {
 #if UNITY_EDITOR
@@ -191,6 +164,12 @@ namespace UnityEngine.Experimental.VoxelizedShadows
             {
                 if (vxsm.enabled && _spotVxShadowMapList.Contains(vxsm) == false)
                     _spotVxShadowMapList.Add(vxsm);
+            }
+
+            _container = Object.FindObjectOfType<VxShadowMapsContainer>();
+            if (_container != null)
+            {
+                LoadResources(_container.Resources);
             }
         }
         public void Cleanup()
@@ -328,11 +307,11 @@ namespace UnityEngine.Experimental.VoxelizedShadows
             }
         }
 
-        public bool ValidVxShadowMapsBuffer
+        public bool ValidVxShadowMaps
         {
             get
             {
-                return _vxShadowMapsBuffer != null;
+                return _container != null && _container.enabled && _vxShadowMapsBuffer != null;
             }
         }
     }
