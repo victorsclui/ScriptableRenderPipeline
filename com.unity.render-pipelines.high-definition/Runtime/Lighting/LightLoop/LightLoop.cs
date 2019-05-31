@@ -792,7 +792,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ContactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
             m_EnableContactShadow = m_FrameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_ContactShadows.enable.value && m_ContactShadows.length.value > 0;
-            m_EnableVxShadows = m_FrameSettings.IsEnabled(FrameSettingsField.Shadow) && m_FrameSettings.IsEnabled(FrameSettingsField.VxShadows) && VxShadowMapsManager.Instance.Container != null; //seongdae;vxsm
+            m_EnableVxShadows = m_FrameSettings.IsEnabled(FrameSettingsField.Shadow) && m_FrameSettings.IsEnabled(FrameSettingsField.VxShadows) && VxShadowMapsManager.Instance.ValidVxShadowMaps; //seongdae;vxsm
             m_indirectLightingController = VolumeManager.instance.stack.GetComponent<IndirectLightingController>();
 
             m_ContactShadowIndex = 0;

@@ -8,12 +8,12 @@ namespace UnityEngine.Experimental.VoxelizedShadows
     {
         public VxShadowMapsResources Resources = null;
 
-        public void VerifyResources()
+        public void AssignResourcesToManager()
         {
             if (enabled && Resources != null)
                 VxShadowMapsManager.Instance.LoadResources(Resources);
             else
-                VxShadowMapsManager.Instance.UnloadResources();
+                Debug.Log("Invalid Resources or VxShadowMapsContainer");
         }
     }
 }

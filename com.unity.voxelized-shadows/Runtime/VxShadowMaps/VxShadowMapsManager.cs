@@ -14,8 +14,6 @@ namespace UnityEngine.Experimental.VoxelizedShadows
     {
         private RenderPipelineType _renderPipelineType = RenderPipelineType.Unknown;
 
-        private VxShadowMapsContainer _container = null;
-
         private List<DirectionalVxShadowMap> _dirVxShadowMapList = new List<DirectionalVxShadowMap>();
         private List<PointVxShadowMap> _pointVxShadowMapList = new List<PointVxShadowMap>();
         private List<SpotVxShadowMap> _spotVxShadowMapList = new List<SpotVxShadowMap>();
@@ -165,12 +163,6 @@ namespace UnityEngine.Experimental.VoxelizedShadows
                 if (vxsm.enabled && _spotVxShadowMapList.Contains(vxsm) == false)
                     _spotVxShadowMapList.Add(vxsm);
             }
-
-            _container = Object.FindObjectOfType<VxShadowMapsContainer>();
-            if (_container != null)
-            {
-                LoadResources(_container.Resources);
-            }
         }
         public void Cleanup()
         {
@@ -226,21 +218,6 @@ namespace UnityEngine.Experimental.VoxelizedShadows
 
             // todo : deallocate resources.VxShadowMapList?
         }
-        public void UnloadResources()
-        {
-            foreach (var vxsm in _dirVxShadowMapList)
-                vxsm.ResetData();
-            foreach (var vxsm in _pointVxShadowMapList)
-                vxsm.ResetData();
-            foreach (var vxsm in _spotVxShadowMapList)
-                vxsm.ResetData();
-
-            if (_vxShadowMapsBuffer != null)
-            {
-                _vxShadowMapsBuffer.Release();
-                _vxShadowMapsBuffer = null;
-            }
-        }
         public uint GetSizeInBytes()
         {
             return _vxShadowMapsBuffer != null ? (uint)_vxShadowMapsBuffer.count * 4 : 0;
@@ -282,8 +259,6 @@ namespace UnityEngine.Experimental.VoxelizedShadows
             return null;
         }
 
-        public VxShadowMapsContainer Container { get { return _container; } }
-
         public List<DirectionalVxShadowMap> DirVxShadowMaps { get { return _dirVxShadowMapList; } }
         public List<PointVxShadowMap> PointVxShadowMaps { get { return _pointVxShadowMapList; } }
         public List<SpotVxShadowMap> SpotVxShadowMaps { get { return _spotVxShadowMapList; } }
@@ -311,7 +286,7 @@ namespace UnityEngine.Experimental.VoxelizedShadows
         {
             get
             {
-                return _container != null && _container.enabled && _vxShadowMapsBuffer != null;
+                return _vxShadowMapsBuffer != null;
             }
         }
     }
