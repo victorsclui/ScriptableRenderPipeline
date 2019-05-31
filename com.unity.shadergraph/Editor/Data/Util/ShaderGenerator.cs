@@ -323,7 +323,7 @@ namespace UnityEditor.ShaderGraph
                 m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.View] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.World, (int)CoordinateSpace.World] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.Tangent, (int)CoordinateSpace.Tangent] = new TransformDesc[] {};
-                m_transforms[(int)CoordinateSpace.RelativeWorld, (int)CoordinateSpace.RelativeWorld] = new TransformDesc[] {};
+                m_transforms[(int)CoordinateSpace.AbsoluteWorld, (int)CoordinateSpace.AbsoluteWorld] = new TransformDesc[] {};
                 m_transforms[(int)CoordinateSpace.Object, (int)CoordinateSpace.World]
                     = new TransformDesc[] {new TransformDesc(MatrixNames.Model)};
                 m_transforms[(int)CoordinateSpace.View, (int)CoordinateSpace.World]
@@ -437,8 +437,8 @@ namespace UnityEditor.ShaderGraph
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
                 builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
             
-            if ((neededSpaces & NeededCoordinateSpace.RelativeWorld) > 0)
-                builder.AppendLine(format, CoordinateSpace.RelativeWorld.ToVariableName(interpolatorType));
+            if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
+                builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }
 
         public static void GenerateStandardTransforms(
@@ -791,9 +791,9 @@ namespace UnityEditor.ShaderGraph
                     ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from),
                     DimensionToSwizzle(dimension));
 
-            if ((neededSpaces & NeededCoordinateSpace.RelativeWorld) > 0 && from != CoordinateSpace.RelativeWorld)
-               pixelShader.AppendLine("float{0} {1} = {2}.{3} - _WorldSpaceCameraPos;", DimensionToString(dimension),
-                   CoordinateSpace.RelativeWorld.ToVariableName(type),
+            if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0 && from != CoordinateSpace.AbsoluteWorld)
+               pixelShader.AppendLine("float{0} {1} = GetAbsolutePositionWS({2}).{3};", DimensionToString(dimension),
+                   CoordinateSpace.AbsoluteWorld.ToVariableName(type),
                    CoordinateSpace.World.ToVariableName(type),
                    DimensionToSwizzle(dimension));
         }
