@@ -189,12 +189,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     UpdateSettingsExpandedState();
                 }));
 
-            //Override the base Node class's node-expansion button
-            m_CollapseButton.AddManipulator(new Clickable(() =>
-                {
-                    SetNodeExpandedStateOnSelection(!expanded);
-                }));
-
             if(m_Settings.childCount > 0)
             {
                 m_ButtonContainer = new VisualElement { name = "button-container" };
@@ -431,7 +425,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 m_Settings.RemoveFromHierarchy();
-
+                SetSelfSelected();
                 m_NodeSettingsView.visible = false;
                 m_SettingsButton.RemoveFromClassList("clicked");
                 UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
