@@ -2,9 +2,9 @@
     "name": "Unity.RenderPipelines.Lightweight.Runtime",
     "references": [
         "Unity.Postprocessing.Runtime",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.VoxelizedShadows.Runtime"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
