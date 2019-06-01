@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.VoxelizedShadows; //seongdae;vxsm
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -105,6 +106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_CameraSssDiffuseLightingBuffer;
 
         RTHandleSystem.RTHandle m_ContactShadowBuffer;
+        RTHandleSystem.RTHandle m_VxShadowBuffer; //seongdae;vxsm
         RTHandleSystem.RTHandle m_ScreenSpaceShadowsBuffer;
         RTHandleSystem.RTHandle m_DistortionBuffer;
 
@@ -291,6 +293,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
             m_DbufferManager = new DBufferManager();
 
+            VxShadowMapsManager.Instance.Build(); //seongdae;vxsm
+
             m_SSSBufferManager.Build(asset);
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset);
@@ -444,6 +448,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), xrInstancing: true, useDynamicScale: true, name: "Distortion");
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "ContactShadowsBuffer");
+            m_VxShadowBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "VxShadowsBuffer"); //seongdae;vxsm
             m_ScreenSpaceShadowsBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: false, xrInstancing: true, useDynamicScale: true, name: "ScreenSpaceShadowsBuffer");
 
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
@@ -486,6 +491,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_DistortionBuffer);
             RTHandles.Release(m_ContactShadowBuffer);
+            RTHandles.Release(m_VxShadowBuffer); //seongdae;vxsm
             RTHandles.Release(m_ScreenSpaceShadowsBuffer);
 
             RTHandles.Release(m_LowResTransparentBuffer);
@@ -691,6 +697,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_DownsampleDepthMaterial);
             CoreUtils.Destroy(m_UpsampleTransparency);
+
+            VxShadowMapsManager.Instance.Cleanup(); //seongdae;vxsm
 
             m_SSSBufferManager.Cleanup();
             m_SharedRTManager.Cleanup();
@@ -1685,7 +1693,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
                 {
                     HDUtils.SetRenderTarget(cmd, m_ContactShadowBuffer, ClearFlag.Color, Color.clear);
-                }
+                    }
+                    //seongdae;vxsm
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VxShadows) && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.VxShadows)
+                    {
+                        HDUtils.SetRenderTarget(cmd, m_VxShadowBuffer, ClearFlag.Color, Color.clear);
+                    }
+                    //seongdae;vxsm
 
 #if ENABLE_RAYTRACING
                 // Update the light clusters that we need to update
@@ -1708,8 +1722,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 #endif
 
-                // Evaluate raytraced area shadows if required
-                bool areaShadowsRendered = false;
+                    // Evaluate raytraced area shadows if required
+                    bool areaShadowsRendered = false;
 #if ENABLE_RAYTRACING
                 areaShadowsRendered = m_RaytracingShadows.RenderAreaShadows(hdCamera, cmd, renderContext, m_FrameCount);
 #endif
@@ -1724,6 +1738,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var SSRTask = new HDGPUAsyncTask("Screen Space Reflection", ComputeQueueType.Background);
                 var SSAOTask = new HDGPUAsyncTask("SSAO", ComputeQueueType.Background);
                 var contactShadowsTask = new HDGPUAsyncTask("Screen Space Shadows", ComputeQueueType.Background);
+                var vxShadowsTask = new HDGPUAsyncTask("Vx Shadows", ComputeQueueType.Background); //seongdae;vxsm
 
                 var haveAsyncTaskWithShadows = false;
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
@@ -1787,6 +1802,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Run the contact shadow as they now need the light list
                         RenderContactShadows();
+                        // Run the vx shadow as they now need the light list //seongdae;vxsm
+                        RenderVxShadows(); //seongdae;vxsm
                     }
                 }
                 else
@@ -1797,6 +1814,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     RenderContactShadows();
+                    RenderVxShadows(); //seongdae;vxsm
                 }
 
                 // Contact shadows needs the light loop so we do them after the build light list
@@ -1824,6 +1842,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
                     }
                 }
+
+                //seongdae;vxsm
+                void RenderVxShadows()
+                {
+                    if (hdCamera.frameSettings.VxShadowsRunAsync())
+                    {
+                        vxShadowsTask.Start(cmd, renderContext, VxShadowStartCallback, !haveAsyncTaskWithShadows);
+
+                        haveAsyncTaskWithShadows = true;
+
+                        void VxShadowStartCallback(CommandBuffer asyncCmd)
+                        {
+                            RenderVxShadows(hdCamera, m_VxShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), asyncCmd);
+                        }
+                    }
+                    else
+                    {
+                        HDUtils.CheckRTCreated(m_VxShadowBuffer);
+
+                        RenderVxShadows(hdCamera, m_VxShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), cmd);
+
+                        PushFullScreenDebugTexture(hdCamera, cmd, m_VxShadowBuffer, FullScreenDebugMode.VxShadows);
+                    }
+                }
+                //seongdae;vxsm
 
                 {
                     // Set fog parameters for volumetric lighting.
@@ -1869,7 +1912,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_LightLoop.SetContactShadowsTexture(hdCamera, m_ContactShadowBuffer, cmd);
                 }
+                //seongdae;vxsm
+                if (hdCamera.frameSettings.VxShadowsRunAsync())
+                {
+                    vxShadowsTask.EndWithPostWork(cmd, Callback);
 
+                    void Callback()
+                    {
+                        SetVxShadowsTexture(hdCamera, m_VxShadowBuffer, cmd);
+                        PushFullScreenDebugTexture(hdCamera, cmd, m_VxShadowBuffer, FullScreenDebugMode.VxShadows);
+                    }
+                }
+                else
+                {
+                    SetVxShadowsTexture(hdCamera, m_VxShadowBuffer, cmd);
+                }
+                //seongdae;vxsm
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
                 {

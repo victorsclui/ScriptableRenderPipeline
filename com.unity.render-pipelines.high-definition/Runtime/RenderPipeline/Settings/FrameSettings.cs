@@ -132,6 +132,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [FrameSettingsField(1, autoName: ExposureControl, customOrderInGroup: 32)]
         ExposureControl = 32,
         SpecularLighting = 33,
+        [FrameSettingsField(1, autoName: VxShadows)] //seongdae;vxsm
+        VxShadows = 34, //seongdae;vxsm
 
         //async settings from 40 to 59
         [FrameSettingsField(2, autoName: AsyncCompute)]
@@ -200,6 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.Shadow,
                 (uint)FrameSettingsField.ContactShadows,
                 (uint)FrameSettingsField.ShadowMask,
+                (uint)FrameSettingsField.VxShadows, //seongdae;vxsm
                 (uint)FrameSettingsField.SSR,
                 (uint)FrameSettingsField.SSAO,
                 (uint)FrameSettingsField.SubsurfaceScattering,
@@ -294,6 +297,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.Shadow,
                 (uint)FrameSettingsField.ContactShadows,
                 (uint)FrameSettingsField.ShadowMask,
+                (uint)FrameSettingsField.VxShadows, //seongdae;vxsm
                 //(uint)FrameSettingsField.SSR,
                 (uint)FrameSettingsField.SSAO,
                 (uint)FrameSettingsField.SubsurfaceScattering,
@@ -375,6 +379,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal bool SSRRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSRAsync];
         internal bool SSAORunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSAOAsync];
         internal bool ContactShadowsRunAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
+        // todo : seongdae
+        internal bool VxShadowsRunAsync() => false;//SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VxShadowsAsync]; //seongdae;vxsm
         internal bool VolumeVoxelizationRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
 
         /// <summary>Override a frameSettings according to a mask.</summary>
@@ -437,6 +443,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.VxShadows] &= renderPipelineSettings.supportVxShadows && !preview; //seongdae;vxsm
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
 
             //MSAA only supported in forward

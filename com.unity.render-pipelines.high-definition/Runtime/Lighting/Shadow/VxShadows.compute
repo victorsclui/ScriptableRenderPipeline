@@ -1,0 +1,152 @@
+//seongdae;vxsm
+#pragma kernel DeferredVxShadowNearest              DEFERRED_VX_SHADOW_GENERIC=DeferredVxShadowNearest                VX_SHADOWS NEAREST_SAMPLE
+#pragma kernel DeferredVxShadowBilinear             DEFERRED_VX_SHADOW_GENERIC=DeferredVxShadowBilinear               VX_SHADOWS BILINEAR_SAMPLE
+#pragma kernel DeferredVxShadowTrilinear            DEFERRED_VX_SHADOW_GENERIC=DeferredVxShadowTrilinear              VX_SHADOWS TRILINEAR_SAMPLE
+#pragma kernel DeferredVxShadowNearestMSAA          DEFERRED_VX_SHADOW_GENERIC=DeferredVxShadowNearestMSAA            VX_SHADOWS NEAREST_SAMPLE   ENABLE_MSAA
+#pragma kernel DeferredVxShadowBilinearMSAA         DEFERRED_VX_SHADOW_GENERIC=DeferredVxShadowBilinearMSAA           VX_SHADOWS BILINEAR_SAMPLE  ENABLE_MSAA
+#pragma kernel DeferredVxShadowTrilinearMSAA        DEFERRED_VX_SHADOW_GENERIC=DeferredVxShadowTrilinearMSAA          VX_SHADOWS TRILINEAR_SAMPLE ENABLE_MSAA
+
+#ifdef SHADER_API_PSSL
+#   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
+#endif
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.voxelized-shadows/ShaderLibrary/Common.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+// #pragma enable_d3d11_debug_symbols
+
+#ifdef ENABLE_MSAA
+    TEXTURE2D_X(_CameraDepthValues);
+#endif
+
+RW_TEXTURE2D_X(float, _VxShadowTextureUAV);
+
+#define DEFERRED_SHADOW_TILE_SIZE 16
+
+
+[numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
+void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
+    uint2 tileCoord = groupId;
+
+#ifdef ENABLE_MSAA
+    float depth = LOAD_TEXTURE2D_X(_CameraDepthValues, pixelCoord.xy).z;
+#else
+    float depth = LoadCameraDepth(pixelCoord.xy);
+#endif
+
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1;
+        return;
+    }
+
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+    float3 positionWS = posInput.positionWS + _WorldSpaceCameraPos;
+
+    NormalData normalData;
+    DecodeFromNormalBuffer(posInput.positionSS, normalData);
+
+    DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+    uint begin = MaskBitsetVxShadowMapBegin(light.vxShadowsBitset);
+
+    float volumeScale = asfloat(_VxShadowMapsBuffer[begin + 1]);
+    uint dagScale = _VxShadowMapsBuffer[begin + 2];
+    float4x4 worldToShadowMatrix =
+    {
+        asfloat(_VxShadowMapsBuffer[begin +  3]),
+        asfloat(_VxShadowMapsBuffer[begin +  4]),
+        asfloat(_VxShadowMapsBuffer[begin +  5]),
+        asfloat(_VxShadowMapsBuffer[begin +  6]),
+
+        asfloat(_VxShadowMapsBuffer[begin +  7]),
+        asfloat(_VxShadowMapsBuffer[begin +  8]),
+        asfloat(_VxShadowMapsBuffer[begin +  9]),
+        asfloat(_VxShadowMapsBuffer[begin + 10]),
+
+        asfloat(_VxShadowMapsBuffer[begin + 11]),
+        asfloat(_VxShadowMapsBuffer[begin + 12]),
+        asfloat(_VxShadowMapsBuffer[begin + 13]),
+        asfloat(_VxShadowMapsBuffer[begin + 14]),
+
+        0.0, 0.0, 0.0, 1.0,
+    };
+
+    uint voxelResolution = 1 << dagScale;
+    float normalBias = 2.0 * (volumeScale / voxelResolution);
+
+    positionWS += (normalData.normalWS * normalBias);
+
+    float3 posNDC = mul(worldToShadowMatrix, float4(positionWS, 1.0)).xyz;
+    float3 posP = posNDC * (float)voxelResolution;
+    float3 posF = floor(posP);
+    float3 lerpWeight = posP - posF;
+
+    uint3 posQ = (uint3)posP;
+
+    if (any(posQ >= (voxelResolution.xxx - 1)))
+    {
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1;
+        return;
+    }
+
+    float shadowing = 1.0;
+
+#if NEAREST_SAMPLE
+    uint2 result;
+    TraverseVxShadowMapPosQ(begin, OFFSET_DIR, posQ, result);
+
+    if (result.y != VX_SHADOWS_INTERSECTED)
+    {
+        shadowing = (result.y & 0x000000001) ? 1.0 : 0.0;
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = shadowing;
+        return;
+    }
+
+    shadowing = TraverseNearestSampleVxShadowMap(begin, OFFSET_DIR, posQ, result);
+#elif BILINEAR_SAMPLE
+    uint4 results[2];
+    TraverseVxShadowMapPosQ2x2(begin, OFFSET_DIR, posQ, results);
+
+    if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    {
+        float4 shadowing4 = results[1] & 0x000000001 ? 1.0 : 0.0;
+        shadowing4.xy = lerp(shadowing4.xz, shadowing4.yw, lerpWeight.x);
+
+        shadowing = lerp(shadowing4.x, shadowing4.y, lerpWeight.y);
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = shadowing;
+        return;
+    }
+
+    shadowing = TraverseBilinearSampleVxShadowMap(begin, OFFSET_DIR, posQ, results, lerpWeight.xy);
+#elif TRILINEAR_SAMPLE
+    uint4 results[4];
+    TraverseVxShadowMapPosQ2x2x2(begin, OFFSET_DIR, posQ, results);
+
+    if (all(results[2] != VX_SHADOWS_INTERSECTED) && all(results[3] != VX_SHADOWS_INTERSECTED))
+    {
+        float4 shadowing4_0 = results[2] & 0x000000001 ? 1.0 : 0.0;
+        float4 shadowing4_1 = results[3] & 0x000000001 ? 1.0 : 0.0;
+
+        shadowing4_0    = lerp(shadowing4_0,    shadowing4_1,    lerpWeight.x);
+        shadowing4_0.xy = lerp(shadowing4_0.xz, shadowing4_0.yw, lerpWeight.y);
+
+        shadowing = lerp(shadowing4_0.x, shadowing4_0.y, lerpWeight.z);
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = shadowing;
+        return;
+    }
+
+    shadowing = TravereTrilinearSampleVxShadowMap(begin, OFFSET_DIR, posQ, results, lerpWeight);
+#endif
+
+    _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = shadowing;
+}
+//seongdae;vxsm

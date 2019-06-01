@@ -39,7 +39,12 @@ namespace UnityEngine.Rendering.LWRP
 
             [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
-        
+
+            //seongdae;vxsm
+            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.compute")]
+            public ComputeShader screenSpaceShadowCS;
+            //seongdae;vxsm
+
             [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
         }

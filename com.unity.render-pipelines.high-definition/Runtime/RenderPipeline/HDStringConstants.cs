@@ -237,12 +237,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ScreenSpaceShadowsTexture = Shader.PropertyToID("_ScreenSpaceShadowsTexture");
         public static readonly int _ContactShadowTexture = Shader.PropertyToID("_ContactShadowTexture");
         public static readonly int _ContactShadowTextureUAV = Shader.PropertyToID("_ContactShadowTextureUAV");
+        public static readonly int _VxShadowTexture = Shader.PropertyToID("_VxShadowTexture"); //seongdae;vxsm
+        public static readonly int _VxShadowTextureUAV = Shader.PropertyToID("_VxShadowTextureUAV"); //seongdae;vxsm
         public static readonly int _DirectionalShadowIndex = Shader.PropertyToID("_DirectionalShadowIndex");
         public static readonly int _ContactShadowParamsParameters = Shader.PropertyToID("_ContactShadowParamsParameters");
         public static readonly int _ContactShadowParamsParameters2 = Shader.PropertyToID("_ContactShadowParamsParameters2");
         public static readonly int _DirectionalContactShadowSampleCount = Shader.PropertyToID("_SampleCount");
         public static readonly int _MicroShadowingOpacity = Shader.PropertyToID("_MicroShadowOpacity");
         public static readonly int _ShadowClipPlanes = Shader.PropertyToID("_ShadowClipPlanes");
+
+        public static readonly int _VxShadowMapsBuffer = Shader.PropertyToID("_VxShadowMapsBuffer"); //seongdae;vxsm
 
         public static readonly int _StencilMask = Shader.PropertyToID("_StencilMask");
         public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");

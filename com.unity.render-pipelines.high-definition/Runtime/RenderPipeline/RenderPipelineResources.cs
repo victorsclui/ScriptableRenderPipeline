@@ -63,6 +63,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader deferredCS;
             [Reload("Runtime/Lighting/Shadow/ContactShadows.compute")]
             public ComputeShader contactShadowCS;
+            [Reload("Runtime/Lighting/Shadow/VxShadows.compute")] //seongdae;vxsm
+            public ComputeShader vxShadowCS; //seongdae;vxsm
             [Reload("Runtime/Lighting/VolumetricLighting/VolumeVoxelization.compute")]
             public ComputeShader volumeVoxelizationCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLighting.compute")]
