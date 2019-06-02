@@ -156,6 +156,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
     float  shadowMask = 1.0;
+    float  sunVxShadow = IsVxShadowsEnabled(light.vxShadowsBitset) ? lightLoopContext.sunVxShadowValue : 1.0; //seongdae;vxsm
 
     color       = light.color;
     attenuation = 1.0;
