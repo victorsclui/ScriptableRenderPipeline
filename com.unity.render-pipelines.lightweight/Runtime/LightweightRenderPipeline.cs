@@ -225,6 +225,7 @@ namespace UnityEngine.Rendering.LWRP
 
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
             {
+#if ENABLE_VR
                 bool msaaSampleCountHasChanged = false;
                 int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
                 if (currentQualitySettingsSampleCount != msaaSamples &&
@@ -241,6 +242,9 @@ namespace UnityEngine.Rendering.LWRP
 
                 if (cameraData.isStereoEnabled && msaaSampleCountHasChanged)
                     XR.XRDevice.UpdateEyeTextureMSAASetting();
+#else
+                QualitySettings.antiAliasing = msaaSamples;
+#endif//ENABLE_VR
             }
 
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
