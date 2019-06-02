@@ -35,6 +35,9 @@
     // Contact shadows
     TEXTURE2D_X_UINT(_ContactShadowTexture);
 
+    // Vx shadows
+    TEXTURE2D_X(_VxShadowTexture); //seongdae;vxsm
+
     // Screen space shadows
     TEXTURE2D_X(_ScreenSpaceShadowsTexture);
 
