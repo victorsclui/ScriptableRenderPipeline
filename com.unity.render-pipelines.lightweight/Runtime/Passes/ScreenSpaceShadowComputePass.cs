@@ -1,3 +1,4 @@
+//seongdae;vxsm
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.VoxelizedShadows;
@@ -209,3 +210,4 @@ namespace UnityEngine.Rendering.LWRP
         }
     }
 }
+//seongdae;vxsm
