@@ -72,6 +72,7 @@ struct DirectionalLightData
     float4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
+    uint vxShadowsBitset;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
@@ -105,6 +106,7 @@ struct LightData
     float2 size;
     float diffuseDimmer;
     float specularDimmer;
+    uint vxShadowsBitset;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
