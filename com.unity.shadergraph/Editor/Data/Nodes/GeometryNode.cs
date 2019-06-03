@@ -2,16 +2,19 @@ using System;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph
 {
     abstract class GeometryNode : AbstractMaterialNode
     {
-        public virtual string[] spaceEntries => new string[] {"Object", "View", "World", "Tangent"};
+        public virtual List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent};
         public virtual int defaultEntry => 2;
+        private PopupList m_SpacePopup;
 
         [SerializeField]
-        private PopupList m_SpacePopup;        
+        private CoordinateSpace m_Space = CoordinateSpace.World;
 
         [PopupControl("Space")]
         public PopupList spacePopup 
@@ -20,17 +23,19 @@ namespace UnityEditor.ShaderGraph
             set
             {
                 if (m_SpacePopup.selectedEntry == value.selectedEntry)
-                    return;                
+                    return;
 
                 Dirty(ModificationScope.Graph);
                 m_SpacePopup.selectedEntry = value.selectedEntry;
+                m_Space = (CoordinateSpace)m_SpacePopup.selectedEntry;
             }
         }
-        public CoordinateSpace space => (CoordinateSpace)m_SpacePopup.selectedEntry;
+        public CoordinateSpace space => m_Space;
 
         public GeometryNode()
         {
-            m_SpacePopup = new PopupList(spaceEntries, defaultEntry);  
+            var names = validSpaces.Select(cs => cs.ToString()).ToArray();
+            m_SpacePopup = new PopupList(names, defaultEntry);
         }
         public override bool hasPreview
         {

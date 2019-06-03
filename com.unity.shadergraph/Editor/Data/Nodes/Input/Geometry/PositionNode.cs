@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     {
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
-        public override string[] spaceEntries => new string[] {"Object", "View", "World", "Tangent", "Absolute World"};
+        public override List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent, CoordinateSpace.AbsoluteWorld};
 
         public PositionNode()
         {
