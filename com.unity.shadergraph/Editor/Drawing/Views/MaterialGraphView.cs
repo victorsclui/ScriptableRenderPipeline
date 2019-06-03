@@ -166,7 +166,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete Blackboard Property", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
-                evt.menu.AppendAction("Duplicate", (e) => DuplicateSelectionImplementation(), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Duplicate", (e) => DuplicateSelection(), (e) => canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
             if (evt.target is MaterialGraphView)
             {
@@ -230,6 +230,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                 graph.SetNodeGroup(shaderNodeView.node, groupData);
             }
+        }
+
+        public AbstractShaderProperty DuplicateProperty(AbstractShaderProperty original)
+        {
+            string propertyName = graph.SanitizePropertyName(original.displayName);
+            AbstractShaderProperty copy = original.Copy();
+            copy.displayName = propertyName;
+            graph.AddShaderProperty(copy);
+            return copy;
         }
 
         void RemoveFromGroupNode(DropdownMenuAction action)
@@ -433,7 +442,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             selection.Clear();
         }
 
-        void DuplicateSelectionImplementation()
+        void DuplicateSelection()
         {
             graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Property");
 

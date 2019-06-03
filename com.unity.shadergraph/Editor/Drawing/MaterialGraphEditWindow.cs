@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_PrevPath == null || m_PrevPath.Length == 0) m_PrevPath = Application.dataPath; 
 
-            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "", m_PrevPath);
+            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Sub Graph", ShaderSubGraphImporter.Extension, "", m_PrevPath);
 
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
