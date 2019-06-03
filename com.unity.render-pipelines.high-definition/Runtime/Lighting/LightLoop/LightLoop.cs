@@ -2870,6 +2870,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Inject the texture in the adequate slot
                 cmd.SetComputeTextureParam(vxShadowComputeShader, kernel, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);
 
+                cmd.SetComputeVectorParam(vxShadowComputeShader, HDShaderIDs._ScreenSize, hdCamera.screenSize);
                 cmd.SetComputeTextureParam(vxShadowComputeShader, kernel, HDShaderIDs._VxShadowTextureUAV, deferredShadowRT);
 
                 int deferredShadowTileSize = 16; // Must match VxShadows.compute
