@@ -74,6 +74,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_ControlItems.childCount > 0)
                 contents.Add(controlsContainer);
 
+            // Node Base class toggles the 'expanded' variable already, this is on top of that call
+            m_CollapseButton.RegisterCallback<MouseUpEvent>(SetNodeExpandedStateOnSelection);
+
             if (node.hasPreview)
             {
                 // Add actual preview which floats on top of the node
@@ -439,19 +442,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.AddToSelection(this);
         }
 
-        void SetNodeExpandedStateOnSelection(bool state)
+        void SetNodeExpandedStateOnSelection(MouseUpEvent evt)
         {
             if (!selected)
-            {
                 SetSelfSelected();
-                expanded = state;
-            }
             else
             {
                 if (m_GraphView is MaterialGraphView)
                 {
                     var matGraphView = m_GraphView as MaterialGraphView;
-                    matGraphView.SetNodeExpandedOnSelection(state);
+                    matGraphView.SetNodeExpandedOnSelection(expanded);
                 }
             }
         }
