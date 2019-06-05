@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -39,7 +40,7 @@ namespace UnityEditor.ShaderGraph
             if (from == 0 && to == 1 && space == CoordinateSpace.World)
             {
                 var names = validSpaces.Select(cs => cs.ToString()).ToArray();
-                spacePopup = new PopupList(names, CoordinateSpace.AbsoluteWorld);
+                spacePopup = new PopupList(names, (int)CoordinateSpace.AbsoluteWorld);
             }
         }
 

@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var names = validSpaces.Select(cs => cs.ToString()).ToArray();
                 return new PopupList(names, (int)m_Space);
-             }
+            }
             set
             {
                 if (m_Space == (CoordinateSpace)value.selectedEntry)
