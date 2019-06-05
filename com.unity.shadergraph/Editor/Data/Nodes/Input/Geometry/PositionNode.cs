@@ -32,6 +32,17 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
+        public override int GetCompiledNodeVersion() => 1;
+
+        public override void UpgradeNodeWithVersion(int from, int to)
+        {
+            if (from == 0 && to == 1 && space == CoordinateSpace.World)
+            {
+                var names = validSpaces.Select(cs => cs.ToString()).ToArray();
+                spacePopup = new PopupList(names, CoordinateSpace.AbsoluteWorld);
+            }
+        }
+
         public override string GetVariableNameForSlot(int slotId)
         {
             return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
