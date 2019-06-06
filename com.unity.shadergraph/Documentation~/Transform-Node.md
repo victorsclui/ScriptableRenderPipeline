@@ -19,7 +19,7 @@ Returns the result of transforming the value of input **In** from one coordinate
 | To      | Dropdown | Object, View, World, Tangent, Absolute World | Selects the space to convert to |
 
 ## World and Absolute World
-The **World** and **Absolute World** space options are for transforming the coordinate space of [Position]() values. The **World** space option converts position values using the Scriptable Render Pipeline default world space. The **Absolute World** space option converts position values using absolute world space in all Scriptable Render Pipelines.
+The **World** and **Absolute World** space options are for transforming the coordinate space of [Position](Position-Node.md) values. The **World** space option converts position values using the Scriptable Render Pipeline default world space. The **Absolute World** space option converts position values using absolute world space in all Scriptable Render Pipelines.
 
 If you are using the **Transform Node** to convert coordinate spaces that are not position, it is reccommended to use the **World** space option. Using **Absolute World** on values not representing position may result in unexpected behavior. 
 
