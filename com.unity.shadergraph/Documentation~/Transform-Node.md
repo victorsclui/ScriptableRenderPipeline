@@ -2,7 +2,7 @@
 
 ## Description
 
-Returns the result of transforming the value of input **In** from one coordinate space to another. The spaces to transform from and to are defined the values of the dropdowns on the node.
+Returns the result of transforming the input value (**In**) from one coordinate space to another. Select drop-down options on the node to define which spaces to transform from and to.
 
 ## Ports
 
@@ -19,9 +19,9 @@ Returns the result of transforming the value of input **In** from one coordinate
 | To      | Dropdown | Object, View, World, Tangent, Absolute World | Selects the space to convert to |
 
 ## World and Absolute World
-The **World** and **Absolute World** space options are for transforming the coordinate space of [Position](Position-Node.md) values. The **World** space option converts position values using the Scriptable Render Pipeline default world space. The **Absolute World** space option converts position values using absolute world space in all Scriptable Render Pipelines.
+Use the **World** and **Absolute World** space options to transform the coordinate space of [position](Position-Node.md) values. The **World** space option uses the Scriptable Render Pipeline default world space to convert position values. The **Absolute World** space option uses absolute world space to convert position values in all Scriptable Render Pipelines.
 
-If you are using the **Transform Node** to convert coordinate spaces that are not position, it is reccommended to use the **World** space option. Using **Absolute World** on values not representing position may result in unexpected behavior. 
+If you use the **Transform Node** to convert coordinate spaces that are not for position values, Unity recommends that you use the **World** space option. Using **Absolute World** on values that do not represent position might result in unexpected behavior.
 
 ## Generated Code Example
 
