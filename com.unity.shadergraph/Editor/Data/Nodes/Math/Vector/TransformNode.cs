@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 if (conversion.to == CoordinateSpace.AbsoluteWorld)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "GetAbsolutePositionWS(TransformObjectToWorldDir({0}))" : "GetAbsolutePositionWS(TransformObjectToWorld({0}))", inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformObjectToWorldDir({0})" : "GetAbsolutePositionWS(TransformObjectToWorld({0}))", inputValue);
                 }
             }
             else if (conversion.from == CoordinateSpace.Tangent)
@@ -223,7 +223,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (conversion.to == CoordinateSpace.View)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir({0})" : "TransformWorldToView({0})", inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "GetCameraRelativePositionWS(TransformWorldToViewDir({0}))" : "GetCameraRelativePositionWS(TransformWorldToView({0}))", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.AbsoluteWorld)
                 {
