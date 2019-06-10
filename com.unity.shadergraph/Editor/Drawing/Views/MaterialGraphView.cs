@@ -130,6 +130,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return DropdownMenuAction.Status.Disabled;
                 });
 
+                InitializeViewSubMenu(evt);
+
                 var editorView = GetFirstAncestorOfType<GraphEditorView>();
                 if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
                 {
@@ -163,16 +165,60 @@ namespace UnityEditor.ShaderGraph.Drawing
                     evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, (a) => DropdownMenuAction.Status.Normal);
                 }
             }
-            else if (evt.target is BlackboardField)
+
+            if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
             if (evt.target is MaterialGraphView)
             {
-                evt.menu.AppendAction("Collapse Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
-                evt.menu.AppendAction("Expand Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
+                foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
+                {
+                    if (node.hasPreview && node.previewExpanded == true)
+                        evt.menu.AppendAction("Collapse All Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
+                    if (node.hasPreview && node.previewExpanded == false)
+                        evt.menu.AppendAction("Expand All Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
+                }
                 evt.menu.AppendSeparator();
             }
+        }
+
+        private void InitializeViewSubMenu(ContextualMenuPopulateEvent evt)
+        {
+            DropdownMenuAction.Status expandPreviewAction = DropdownMenuAction.Status.Disabled;
+            DropdownMenuAction.Status collapsePreviewAction = DropdownMenuAction.Status.Disabled;
+            string expandPreviewText = "View/Expand Previews";
+            string collapsePreviewText = "View/Collapse Previews";
+            if (selection.Count == 1)
+            {
+                collapsePreviewText = "View/Collapse Preview";
+                expandPreviewText = "View/Expand Preview";
+            }
+
+            DropdownMenuAction.Status minimizeAction = DropdownMenuAction.Status.Disabled;
+            DropdownMenuAction.Status maximizeAction = DropdownMenuAction.Status.Disabled;
+
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                if (selectedNode.node.hasPreview)
+                {
+                    if (selectedNode.node.previewExpanded)
+                        collapsePreviewAction = DropdownMenuAction.Status.Normal;
+                    else
+                        expandPreviewAction = DropdownMenuAction.Status.Normal;
+                }
+
+                if (selectedNode.expanded)
+                    minimizeAction = DropdownMenuAction.Status.Normal;
+                else
+                    maximizeAction = DropdownMenuAction.Status.Normal;
+            }
+
+            evt.menu.AppendAction("View/Minimize", _ => SetNodeExpandedOnSelection(false), (a) => minimizeAction);
+            evt.menu.AppendAction("View/Maximize", _ => SetNodeExpandedOnSelection(true), (a) => maximizeAction);
+
+            evt.menu.AppendAction(expandPreviewText, _ => SetPreviewExpandedOnSelection(true), (a) => expandPreviewAction);
+            evt.menu.AppendAction(collapsePreviewText, _ => SetPreviewExpandedOnSelection(false), (a) => collapsePreviewAction);
         }
 
         void ChangeCustomNodeColor(DropdownMenuAction menuAction)
@@ -245,6 +291,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     group.RemoveElement(node);
                 }
+            }
+        }
+
+        public void SetNodeExpandedOnSelection(bool state)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Toggle Expansion");
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                selectedNode.expanded = state;
+            }
+        }
+
+        public void SetPreviewExpandedOnSelection(bool state)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Toggle Preview Visibility");
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                selectedNode.node.previewExpanded = state;
             }
         }
 

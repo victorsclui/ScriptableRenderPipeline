@@ -74,6 +74,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_ControlItems.childCount > 0)
                 contents.Add(controlsContainer);
 
+            // Node Base class toggles the 'expanded' variable already, this is on top of that call
+            m_CollapseButton.RegisterCallback<MouseUpEvent>(SetNodeExpandedStateOnSelection);
+
             if (node.hasPreview)
             {
                 // Add actual preview which floats on top of the node
@@ -97,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
                         {
                             node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
-                            UpdatePreviewExpandedState(false);
+                            SetPreviewExpandedStateOnSelection(false);
                         }));
                     m_PreviewImage.Add(collapsePreviewButton);
                 }
@@ -121,13 +124,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     expandPreviewButton.AddManipulator(new Clickable(() =>
                         {
                             node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
-                            UpdatePreviewExpandedState(true);
+                            SetPreviewExpandedStateOnSelection(true);
                         }));
                     m_PreviewFiller.Add(expandPreviewButton);
                 }
                 contents.Add(m_PreviewFiller);
 
-                UpdatePreviewExpandedState(node.previewExpanded);
+                SetPreviewExpandedStateOnSelection(node.previewExpanded);
             }
 
             // Add port input container, which acts as a pixel cache for all port inputs
@@ -410,7 +413,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_NodeSettingsView.Add(m_Settings);
         }
 
-
         void UpdateSettingsExpandedState()
         {
             m_ShowSettings = !m_ShowSettings;
@@ -418,9 +420,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_NodeSettingsView.Add(m_Settings);
                 m_NodeSettingsView.visible = true;
-                m_GraphView.ClearSelection();
-                m_GraphView.AddToSelection(this);
-
+                SetSelfSelected();
                 m_SettingsButton.AddToClassList("clicked");
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
                 OnGeometryChanged(null);
@@ -428,10 +428,48 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 m_Settings.RemoveFromHierarchy();
-
+                SetSelfSelected();
                 m_NodeSettingsView.visible = false;
                 m_SettingsButton.RemoveFromClassList("clicked");
                 UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+        }
+
+
+        private void SetSelfSelected()
+        {
+            m_GraphView.ClearSelection();
+            m_GraphView.AddToSelection(this);
+        }
+
+        void SetNodeExpandedStateOnSelection(MouseUpEvent evt)
+        {
+            if (!selected)
+                SetSelfSelected();
+            else
+            {
+                if (m_GraphView is MaterialGraphView)
+                {
+                    var matGraphView = m_GraphView as MaterialGraphView;
+                    matGraphView.SetNodeExpandedOnSelection(expanded);
+                }
+            }
+        }
+
+        void SetPreviewExpandedStateOnSelection(bool state)
+        {
+            if (!selected)
+            {
+                SetSelfSelected();
+                UpdatePreviewExpandedState(state);
+            }
+            else
+            {
+                if(m_GraphView is MaterialGraphView)
+                {
+                    var matGraphView = m_GraphView as MaterialGraphView;
+                    matGraphView.SetPreviewExpandedOnSelection(state);
+                }
             }
         }
 
