@@ -223,7 +223,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (conversion.to == CoordinateSpace.View)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "GetCameraRelativePositionWS(TransformWorldToViewDir({0}))" : "GetCameraRelativePositionWS(TransformWorldToView({0}))", inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir(GetCameraRelativePositionWS({0}))" : "TransformWorldToView(GetCameraRelativePositionWS({0}))", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.AbsoluteWorld)
                 {
