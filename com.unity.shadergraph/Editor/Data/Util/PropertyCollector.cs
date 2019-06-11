@@ -22,21 +22,6 @@ namespace UnityEditor.ShaderGraph
             properties.Add(chunk);
         }
 
-        public string GetPropertiesBlock(int baseIndentLevel)
-        {
-            var sb = new StringBuilder();
-            foreach (var prop in properties.Where(x => x.generatePropertyBlock))
-            {
-                for (var i = 0; i < baseIndentLevel; i++)
-                {
-                    //sb.Append("\t");
-                    sb.Append("    "); // unity convention use space instead of tab...
-                }
-                sb.AppendLine(prop.GetPropertyBlockString());
-            }
-            return sb.ToString();
-        }
-
         public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
         {
             foreach (var prop in properties)
