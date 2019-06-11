@@ -163,6 +163,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
+        internal bool GetMirrorViewDesc(RenderTexture mirrorRt, out XRDisplaySubsystem.XRMirrorViewBlitDesc outDesc)
+        {
+            if (display != null)
+            {
+                outDesc = default(XRDisplaySubsystem.XRMirrorViewBlitDesc);
+                bool result = display.GetMirrorViewBlitDesc(mirrorRt, out outDesc);
+                return result;
+            }
+            else
+            {
+                outDesc = default(XRDisplaySubsystem.XRMirrorViewBlitDesc);
+                return true;
+            }
+        }
+
+        internal bool AddGraphicsThreadMirrorViewBlit(CommandBuffer cmd, bool invalidateGfxStates)
+        {
+            if (display != null)
+            {
+                bool result = display.AddGraphicsThreadMirrorViewBlit(cmd, invalidateGfxStates);
+                return result;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         internal bool GetCullingParameters(Camera camera, XRPass xrPass, out ScriptableCullingParameters cullingParams)
         {
 #if USE_XR_SDK

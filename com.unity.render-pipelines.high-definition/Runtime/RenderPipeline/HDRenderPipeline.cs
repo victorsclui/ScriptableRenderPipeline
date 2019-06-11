@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -1988,7 +1989,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // XR mirror view and blit do device
             hdCamera.xr.StopLegacyStereo(camera, cmd, renderContext);
-            hdCamera.xr.EndCamera(hdCamera, renderContext, cmd);
+            hdCamera.xr.EndCamera(hdCamera, renderContext, cmd, m_XRSystem);
 
             // Send all required graphics buffer to client systems.
             SendGraphicsBuffers(cmd, hdCamera);

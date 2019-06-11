@@ -222,42 +222,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal void EndCamera(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        internal void EndCamera(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd, XRSystem system)
         {
             if (!enabled)
                 return;
 
             if (xrSdkEnabled)
             {
-                // XRTODO(2019.3) : remove once XRE-445 is done
-                if (tempRenderTexture && hdCamera.camera.targetTexture == null)
+                // null render texture is the backbuffer by default
+                bool shouldDoMirror = system.GetMirrorViewDesc(null, out var mirrorBlitDesc);
+
+                if (!shouldDoMirror)
                 {
-                    // Multipass only for now
-                    if (viewCount == 1)
-                    {
-                        // Blit to device
-                        cmd.SetRenderTarget(renderTarget);
-                        cmd.SetViewport(hdCamera.finalViewport);
-                        HDUtils.BlitQuad(cmd, tempRenderTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), 0, false);
+                    // This might happend when XR display is initializing, skip mirror blit if that's the case
+                    // TODO: fancier logic kills the job here
+                }
+                else
+                {
+                    // Blit to backbuffer here
+                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                    cmd.SetViewport(hdCamera.camera.pixelRect);
 
-                        // Mirror view (only works with stereo for now)
-                        if (multipassId < 2)
-                        {
-                            cmd.SetRenderTarget(new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget));
-                            cmd.SetViewport(hdCamera.camera.pixelRect);
+                    HDUtils.BlitQuad(cmd, /*mirrorBlitDesc.blitParams[0].srcTex*/tempRenderTexture,
+                        new Vector4(mirrorBlitDesc.blitParams[0].srcRect.width, mirrorBlitDesc.blitParams[0].srcRect.height, mirrorBlitDesc.blitParams[0].srcRect.x, mirrorBlitDesc.blitParams[0].srcRect.y),
+                        new Vector4(mirrorBlitDesc.blitParams[0].destRect.width, mirrorBlitDesc.blitParams[0].destRect.height, mirrorBlitDesc.blitParams[0].destRect.x, mirrorBlitDesc.blitParams[0].destRect.y),
+                        0, false);
 
-                            Vector4 scaleBiasRT = new Vector4(0.5f, 1, multipassId * 0.5f, 0);
-                            HDUtils.BlitQuad(cmd, tempRenderTexture, new Vector4(1, 1, 0, 0), scaleBiasRT, 0, true);
-                        }
-                        else
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                    else
-                    {
-                        throw new NotImplementedException();
-                    }
+                    /*
+                    /*  Here is the xr.sdk display sample related callback code. For ur convinience
+                    /*    static UnitySubsystemErrorCode UNITY_INTERFACE_API GfxThread_FinalBlitToGameViewBackBuffer(UnitySubsystemHandle handle, void* userData, const UnityXRMirrorViewRenderTargetDescriptor * gameViewBackBufferDesc)
+                    /*    {
+                    /*    #if XR_DX11
+	                /*        ID3D11Device* dxDevice = s_UnityInterfaces->Get<IUnityGraphicsD3D11>()->GetDevice();
+	                /*        ID3D11RenderTargetView* rtv = s_UnityInterfaces->Get<IUnityGraphicsD3D11>()->RTVFromRenderBuffer(gameViewBackBufferDesc->rtNative);
+	                /*        ID3D11DeviceContext* immContext;
+	                /*        dxDevice->GetImmediateContext(&immContext);
+	                /*        immContext->OMSetRenderTargets(1, &rtv, NULL);
+	                /*        // clear to blue
+	                /*        const FLOAT clrColor[4] = { 0,0,1,1 };
+	                /*        immContext->ClearRenderTargetView(rtv, clrColor);
+                    /*    #endif
+	                /*        return UnitySubsystemErrorCode::kUnitySubsystemErrorCodeSuccess;
+                    /*    }
+                    */
+                    system.AddGraphicsThreadMirrorViewBlit(cmd, false);
                 }
             }
             else
