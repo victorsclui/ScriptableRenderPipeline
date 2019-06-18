@@ -373,7 +373,7 @@ float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask)
 //seongdae;vxsm
 float GetSunVxShadow(PositionInputs posInput)
 {
-    return LOAD_TEXTURE2D_X(_VxShadowTexture, posInput.positionSS).x;
+    return 1.0 - LOAD_TEXTURE2D_X(_VxShadowTexture, posInput.positionSS).x;
 }
 //seongdae;vxsm
 

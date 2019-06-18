@@ -218,6 +218,22 @@ namespace UnityEngine.Experimental.VoxelizedShadows
 
             // todo : deallocate resources.VxShadowMapList?
         }
+        public void UnloadResources()
+        {
+            foreach (var vxsm in _dirVxShadowMapList)
+                vxsm.ResetData();
+            foreach (var vxsm in _pointVxShadowMapList)
+                vxsm.ResetData();
+            foreach (var vxsm in _spotVxShadowMapList)
+                vxsm.ResetData();
+
+            if (_vxShadowMapsBuffer != null)
+            {
+                _vxShadowMapsBuffer.Release();
+                _vxShadowMapsBuffer = null;
+            }
+        }
+
         public uint GetSizeInBytes()
         {
             return _vxShadowMapsBuffer != null ? (uint)_vxShadowMapsBuffer.count * 4 : 0;

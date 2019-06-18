@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.VoxelizedShadows
         }
         private void OnDisable()
         {
-            
+            VxShadowMapsManager.Instance.UnloadResources();
         }
 
         public void AssignResourcesToManager()

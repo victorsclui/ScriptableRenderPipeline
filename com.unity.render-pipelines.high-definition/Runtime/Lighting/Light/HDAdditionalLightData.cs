@@ -292,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float cameraDistance = Vector3.Distance(hdCamera.camera.transform.position, transform.position);
 
             m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow);
-            m_WillRenderVxShadows = m_WillRenderShadows && frameSettings.IsEnabled(FrameSettingsField.VxShadows); //seongdae;vxsm
+            m_WillRenderVxShadows = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && frameSettings.IsEnabled(FrameSettingsField.VxShadows); //seongdae;vxsm
 
             m_WillRenderShadowMap &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
@@ -306,6 +306,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
             m_WillRenderRayTracedShadow = false;
 #endif
+            //seongdae;vxsm
+            if (m_WillRenderVxShadows)
+            {
+                var vxsm = GetComponent<VxShadowMap>();
+                bool vxsmIsValid = vxsm != null && vxsm.IsValid();
+
+                if (vxsmIsValid && vxsm.ShadowsBlend == ShadowsBlendMode.OnlyVxShadows)
+                    m_WillRenderShadowMap = false;
+            }
+            //seongdae;vxsm
 
             // If this camera does not allow screen space shadows we are done, set the target parameters to false and leave the function
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !m_WillRenderShadowMap)
@@ -326,16 +336,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_WillRenderRayTracedShadow = true;
             }
 #endif
-            //seongdae;vxsm
-            if (m_WillRenderVxShadows)
-            {
-                var vxsm = GetComponent<VxShadowMap>();
-                bool vxsmIsValid = vxsm != null && vxsm.IsValid();
-
-                if (vxsmIsValid && vxsm.ShadowsBlend == ShadowsBlendMode.OnlyVxShadows)
-                    m_WillRenderShadows = false;
-            }
-            //seongdae;vxsm
         }
 
         public void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters)

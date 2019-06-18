@@ -963,9 +963,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         //seongdae;vxsm
-        bool CanRenderVxShadows(Light lightComponent, out VxShadowMap vxsm)
+        bool CanRenderVxShadows(HDCamera hdCamera, Light lightComponent, out VxShadowMap vxsm)
         {
-            if (m_FrameSettings.IsEnabled(FrameSettingsField.VxShadows) == false)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VxShadows) == false)
             {
                 vxsm = null;
                 return false;
@@ -1049,7 +1049,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //}
             //seongdae;vxsm;origin
             //seongdae;vxsm
-            bool canRenderVxShadows = CanRenderVxShadows(lightComponent, out VxShadowMap vxsm);
+            bool canRenderVxShadows = CanRenderVxShadows(hdCamera, lightComponent, out VxShadowMap vxsm);
 
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
@@ -2941,14 +2941,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, contactShadowsRT);
         }
         //seongdae;vxsm
-        public void SetVxShadowsTexture(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, CommandBuffer cmd)
+        public void SetVxShadowsTexture(HDCamera hdCamera, RTHandleSystem.RTHandle vxShadowsRT, CommandBuffer cmd)
         {
             if (!WillRenderVxShadows())
             {
                 cmd.SetGlobalTexture(HDShaderIDs._VxShadowTexture, TextureXR.GetBlackTexture());
                 return;
             }
-            cmd.SetGlobalTexture(HDShaderIDs._VxShadowTexture, deferredShadowRT);
+            cmd.SetGlobalTexture(HDShaderIDs._VxShadowTexture, vxShadowsRT);
         }
         //seongdae;vxsm
 
@@ -3022,7 +3022,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowManager.BindResources(cmd);
 
                 cmd.SetComputeBufferParam(vxShadowComputeShader, kernel, HDShaderIDs._VxShadowMapsBuffer, VxShadowMapsManager.Instance.VxShadowMapsBuffer);
-                cmd.SetComputeBufferParam(vxShadowComputeShader, kernel, HDShaderIDs._DirectionalLightDatas, m_DirectionalLightDatas);
+                cmd.SetComputeBufferParam(vxShadowComputeShader, kernel, HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
 
                 // Inject the texture in the adequate slot
                 cmd.SetComputeTextureParam(vxShadowComputeShader, kernel, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);

@@ -44,7 +44,7 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
 
     if (depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1;
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0.0;
         return;
     }
 
@@ -94,7 +94,7 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
 
     if (any(posQ >= (voxelResolution.xxx - 1)))
     {
-        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1;
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0.0;
         return;
     }
 
@@ -107,7 +107,7 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     if (result.y != VX_SHADOWS_INTERSECTED)
     {
         shadowing = (result.y & 0x000000001) ? 1.0 : 0.0;
-        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = shadowing;
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1.0 - shadowing;
         return;
     }
 
@@ -122,7 +122,7 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
         shadowing4.xy = lerp(shadowing4.xz, shadowing4.yw, lerpWeight.x);
 
         shadowing = lerp(shadowing4.x, shadowing4.y, lerpWeight.y);
-        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = shadowing;
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1.0 - shadowing;
         return;
     }
 
@@ -140,13 +140,13 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
         shadowing4_0.xy = lerp(shadowing4_0.xz, shadowing4_0.yw, lerpWeight.y);
 
         shadowing = lerp(shadowing4_0.x, shadowing4_0.y, lerpWeight.z);
-        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = shadowing;
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1.0 - shadowing;
         return;
     }
 
     shadowing = TravereTrilinearSampleVxShadowMap(begin, OFFSET_DIR, posQ, results, lerpWeight);
 #endif
 
-    _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = shadowing;
+    _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1.0 - shadowing;
 }
 //seongdae;vxsm

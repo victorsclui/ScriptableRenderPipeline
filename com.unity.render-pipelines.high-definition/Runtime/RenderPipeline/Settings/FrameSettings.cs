@@ -113,6 +113,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Shadow = 20,
         [FrameSettingsField(1, autoName: ContactShadows)]
         ContactShadows = 21,
+        [FrameSettingsField(1, autoName: VxShadows)] //seongdae;vxsm
+        VxShadows = 35, //seongdae;vxsm
         [FrameSettingsField(1, autoName: ScreenSpaceShadows, customOrderInGroup: 22)]
         ScreenSpaceShadows = 34,
         [FrameSettingsField(1, autoName: ShadowMask, customOrderInGroup: 23)]
@@ -136,8 +138,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [FrameSettingsField(1, autoName: ExposureControl, customOrderInGroup: 32)]
         ExposureControl = 32,
         SpecularLighting = 33,
-        [FrameSettingsField(1, autoName: VxShadows)] //seongdae;vxsm
-        VxShadows = 34, //seongdae;vxsm
 
         //async settings from 40 to 59
         [FrameSettingsField(2, autoName: AsyncCompute)]

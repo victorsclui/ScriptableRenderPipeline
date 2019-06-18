@@ -188,6 +188,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
             // TODO: does it make sense?
             float3 shadowN = L;
 
+            context.sunVxShadowValue = 1; //seongdae;vxsm
             context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
                                                                   posInput.positionSS, posInput.positionWS, shadowN,
                                                                   light.shadowIndex, L);
@@ -195,8 +196,8 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
     }
     else
     {
-        context.shadowValue = 1;
         context.sunVxShadowValue = 1; //seongdae;vxsm
+        context.shadowValue = 1;
     }
 
     for (uint i = 0; i < _DirectionalLightCount; ++i)
