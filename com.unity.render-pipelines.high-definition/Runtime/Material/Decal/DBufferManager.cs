@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableDecals { get; set; }
 
         RTHandleSystem.RTHandle m_HTile;
+        ComputeBuffer           m_PropertyMaskBuffer;
 
         // because number of render targets is not passed explicitly to SetRenderTarget, but rather deduces it from array size
         RenderTargetIdentifier[] m_RTIDs4;
@@ -32,14 +33,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TextureShaderIDs[dbufferIndex] = HDShaderIDs._DBufferTexture[dbufferIndex];
             }
 
-            // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
+            // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.\
+//            new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8);
             m_HTile = RTHandles.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "DBufferHTile"); // Enable UAV
+        }
+
+        public void ReleaseResolutionDependentBuffers()
+        {
+            if(m_PropertyMaskBuffer != null)
+            {
+                m_PropertyMaskBuffer.Dispose();
+                m_PropertyMaskBuffer = null;
+            }
+        }
+
+        public void AllocResolutionDependentBuffers(HDCamera hdCamera)
+        {
+            int width = (int)hdCamera.screenSize.x;
+            int height = (int)hdCamera.screenSize.y;
+            m_PropertyMaskBuffer = new ComputeBuffer(((width + 7) / 8) * ((height + 7) / 8), 4);
         }
 
         override public void DestroyBuffers()
         {
             base.DestroyBuffers();
             RTHandles.Release(m_HTile);
+            ReleaseResolutionDependentBuffers();
         }
 
         public void ClearAndSetTargets(CommandBuffer cmd, HDCamera camera, bool rtCount4, RTHandleSystem.RTHandle cameraDepthStencilBuffer)

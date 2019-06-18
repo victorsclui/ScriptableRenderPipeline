@@ -755,6 +755,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 LightLoopAllocResolutionDependentBuffers(hdCamera);
             }
 
+            if (resolutionChanged)
+            {
+                if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
+                    m_DbufferManager.ReleaseResolutionDependentBuffers();
+
+                m_DbufferManager.AllocResolutionDependentBuffers(hdCamera);
+            }
+
             // update recorded window resolution
             m_CurrentWidth = hdCamera.actualWidth;
             m_CurrentHeight = hdCamera.actualHeight;
