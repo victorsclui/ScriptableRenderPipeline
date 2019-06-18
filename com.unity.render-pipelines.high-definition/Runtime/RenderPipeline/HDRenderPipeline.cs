@@ -2136,7 +2136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CustomSamplerId.HDRenderPipelineRender.GetSampler())
                 )
                 {
-                    TextureXR.Initialize(cmd);
+                    TextureXR.Initialize(cmd, m_Asset.renderPipelineResources.shaders.clearUIntTextureCS);
                 }
                 renderContext.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
