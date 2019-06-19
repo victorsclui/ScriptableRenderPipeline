@@ -9,5 +9,6 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/VxShadow.hlsl" //seongdae;vxsm
 
 #endif // UNITY_LIGHTING_INCLUDED

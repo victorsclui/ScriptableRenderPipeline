@@ -188,7 +188,7 @@ float EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInpu
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
         shadow = lightLoopContext.shadowValue;
-        shadow = min(shadow, lightLoopContext.sunVxShadowValue); //seongdae;vxsm
+        shadow = min(shadow, lightLoopContext.vxShadowValue); //seongdae;vxsm
 
     #ifdef SHADOWS_SHADOWMASK
         // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
@@ -219,7 +219,7 @@ float EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInpu
     //seongdae;vxsm
     else if (light.shadowDimmer > 0)
     {
-        shadow = lerp(shadowMask, lightLoopContext.sunVxShadowValue, light.shadowDimmer);
+        shadow = lerp(shadowMask, lightLoopContext.vxShadowValue, light.shadowDimmer);
     }
     //seongdae;vxsm
 

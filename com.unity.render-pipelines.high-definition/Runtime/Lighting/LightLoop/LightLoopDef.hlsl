@@ -18,7 +18,7 @@ struct LightLoopContext
 
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     float contactShadowFade;    // combined fade factor of all contact shadows
-    float sunVxShadowValue;     //seongdae;vxsm Stores the value of the voxelized shadow map from sun light
+    float vxShadowValue;        // Stores the value of the voxelized shadow map from sun light //seongdae;vxsm 
     float shadowValue;          // Stores the value of the cascade shadow map
 };
 

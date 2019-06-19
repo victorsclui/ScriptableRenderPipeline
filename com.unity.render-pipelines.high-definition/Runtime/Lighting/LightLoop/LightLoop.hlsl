@@ -108,7 +108,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1;
-    context.sunVxShadowValue = 1; //seongdae;vxsm
+    context.vxShadowValue    = 1; //seongdae;vxsm
     context.sampleReflection = 0;
 
     // With XR single-pass instancing and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
@@ -129,7 +129,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
             if(light.screenSpaceShadowIndex >= 0)
             {
-                context.sunVxShadowValue = GetSunVxShadow(posInput); //seongdae;vxsm
+                context.vxShadowValue = GetSunVxShadow(posInput); //seongdae;vxsm
                 context.shadowValue = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
             }
             else
@@ -143,7 +143,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
                     !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
                 {
-                    context.sunVxShadowValue = GetSunVxShadow(posInput); //seongdae;vxsm
+                    context.vxShadowValue = GetSunVxShadow(posInput); //seongdae;vxsm
                     context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
                                                                           posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
                                                                           light.shadowIndex, L);
