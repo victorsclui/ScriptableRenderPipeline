@@ -33,7 +33,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
         public HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
-        readonly HDRaytracingReflections m_RaytracingReflections = new HDRaytracingReflections();
         readonly HDRaytracingRenderer m_RaytracingRenderer = new HDRaytracingRenderer();
         readonly HDRaytracingIndirectDiffuse m_RaytracingIndirectDiffuse = new HDRaytracingIndirectDiffuse();
         public float GetRaysPerFrame(RayCountManager.RayCountValues rayValues) { return m_RayTracingManager.rayCountManager.GetRaysPerFrame(rayValues); }
@@ -79,6 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
         RTHandle m_CameraColorBuffer;
+        RTHandle m_OpaqueAtmosphericScatteringBuffer; // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
         RTHandle m_CameraSssDiffuseLightingBuffer;
 
         RTHandle m_ContactShadowBuffer;
@@ -93,6 +93,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandle m_SsrLightingTexture;
         // MSAA Versions of regular textures
         RTHandle m_CameraColorMSAABuffer;
+        RTHandle m_OpaqueAtmosphericScatteringMSAABuffer;  // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
         RTHandle m_CameraSssDiffuseLightingMSAABuffer;
 
         // The current MSAA count
@@ -349,7 +350,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 #if ENABLE_RAYTRACING
             m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_BlueNoise, this, m_SharedRTManager, m_DebugDisplaySettings);
-            m_RaytracingReflections.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager, m_GbufferManager);
+            InitRayTracedReflections();
+            InitRaytracingDeferred();
             m_RaytracingRenderer.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager);
             m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
             m_RaytracingIndirectDiffuse.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager, m_GbufferManager);
@@ -430,6 +432,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SharedRTManager.InitSharedBuffers(m_GbufferManager, m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources);
 
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "CameraColor");
+            m_OpaqueAtmosphericScatteringBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "OpaqueAtmosphericScattering");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite: true, useDynamicScale: true, name: "CameraSSSDiffuseLighting");
 
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
@@ -461,6 +464,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA)
             {
                 m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraColorMSAA");
+                m_OpaqueAtmosphericScatteringMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "OpaqueAtmosphericScatteringMSAA");
                 m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
             }
         }
@@ -473,6 +477,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_XRSystem.ClearAll();
 
             RTHandles.Release(m_CameraColorBuffer);
+            RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
 
             RTHandles.Release(m_DistortionBuffer);
@@ -490,6 +495,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
 
             RTHandles.Release(m_CameraColorMSAABuffer);
+            RTHandles.Release(m_OpaqueAtmosphericScatteringMSAABuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
         }
 
@@ -655,7 +661,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
             m_RaytracingIndirectDiffuse.Release();
             m_RaytracingRenderer.Release();
-            m_RaytracingReflections.Release();
+            ReleaseRayTracingDeferred();
+            ReleaseRayTracedReflections();
             m_RayTracingManager.Release();
 #endif
             m_DebugDisplaySettings.UnregisterDebug();
@@ -817,6 +824,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Off screen rendering is disabled for most of the frame by default.
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
                 cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting) ? 1 : 0);
+
+                m_SkyManager.SetGlobalSkyData(cmd);
             }
         }
 
@@ -916,6 +925,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
+
+            DefaultSettings.GetOrCreateDefaultVolume();
 
             UnityEngine.Rendering.RenderPipeline.BeginFrameRendering(renderContext, cameras);
 
@@ -2881,16 +2892,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+            // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
+            // We load from the color buffer, perform blending manually, and store to the atmospheric scattering buffer.
+            // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
             var colorBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+            var intermediateBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_OpaqueAtmosphericScatteringMSAABuffer : m_OpaqueAtmosphericScatteringBuffer;
             var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
 
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
             m_SkyManager.RenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_CurrentDebugDisplaySettings, cmd);
 
-            if (visualEnv.fogType.value != FogType.None)
+            if ((visualEnv.fogType.value != FogType.None) || (visualEnv.skyType.value == (int)SkyType.PhysicallyBased))
             {
                 var pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
             }
         }
 
@@ -3175,7 +3190,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
             if (settings.enableRaytracing.value)
             {
-                m_RaytracingReflections.RenderReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
+                RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
             }
             else
 #endif

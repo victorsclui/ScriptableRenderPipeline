@@ -95,7 +95,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                                                   light.shadowIndex, L);
         }
     }
-
     AggregateLighting aggregateLighting;
     ZERO_INITIALIZE(AggregateLighting, aggregateLighting); // LightLoop is in charge of initializing the structure
 
@@ -141,7 +140,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 			AccumulateDirectLighting(lighting, aggregateLighting);
 		}
     }
-
     #ifdef USE_LIGHT_CLUSTER
     // Let's loop through all the 
     GetLightCountAndStartCluster(actualWSPos, LIGHTCATEGORY_AREA, lightStart, lightEnd, cellIndex);
@@ -194,7 +192,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #endif
         }
     }
-
 #if !defined(_DISABLE_SSR)
     // Add the traced reflection
     {
