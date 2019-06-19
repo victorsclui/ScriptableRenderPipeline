@@ -14,6 +14,8 @@ RW_TEXTURE2D_X(uint, _DecalHTile);
 TEXTURE2D_X_UINT(_DecalHTileTexture);
 #endif
 
+RWBuffer<uint> _DecalPropertyMaskBuffer;
+
 UNITY_INSTANCING_BUFFER_START(Decal)
 UNITY_DEFINE_INSTANCED_PROP(float4x4, _NormalToWorld)
 UNITY_INSTANCING_BUFFER_END(Decal)

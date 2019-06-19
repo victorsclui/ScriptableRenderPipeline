@@ -151,6 +151,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Decal
             [Reload("Runtime/Material/Decal/DecalNormalBuffer.shader")]
             public Shader decalNormalBufferPS;
+            [Reload("Runtime/Material/Decal/ClearPropertyMaskBuffer.compute")]
+            public Shader decalClearPropertyMaskBufferCS;
 
             // Ambient occlusion
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
