@@ -69,13 +69,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.contactShadow    = 1.0;
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1.0;
+    context.vxShadowValue    = 1; //seongdae;vxsm
     context.sampleReflection = 0;
 
     // Initialize the contactShadow and contactShadowFade fields
     InitContactShadow(posInput, context);
-
-    // Initialize vx shadow //seongdae;vxsm
-    InitVxShadow(posInput, context); //seongdae;vxsm
     
     // Evaluate sun shadows.
     if (_DirectionalShadowIndex >= 0)
