@@ -1,15 +1,14 @@
-// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-//RWBuffer<uint> _DecalPropertyMaskBuffer;
-RWStructuredBuffer<uint> _DecalPropertyMaskBuffer;
+#pragma kernel CSMain
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    // TODO: insert actual code here!
-    _DecalPropertyMaskBuffer[id.x] = 0;
-    //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    int blockID = id.x / 8;
+    int blockX = id.x % 8;
+    int blockY = id.y;
+    int index = blockID * 64 + blockY * 8 + blockX;
+    _DecalPropertyMaskBuffer[index] = 0;
 }

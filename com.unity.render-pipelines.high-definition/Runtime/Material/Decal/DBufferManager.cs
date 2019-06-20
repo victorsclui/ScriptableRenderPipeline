@@ -7,7 +7,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableDecals { get; set; }
 
         RTHandleSystem.RTHandle m_HTile;
-        ComputeBuffer           m_PropertyMaskBuffer;
+        ComputeBuffer   m_PropertyMaskBuffer;
+        int m_PropertyMaskBufferSize;
+        ComputeShader   m_ClearPropertyMaskBufferShader;
+        int m_ClearPropertyMaskBufferKernel;
 
         // because number of render targets is not passed explicitly to SetRenderTarget, but rather deduces it from array size
         RenderTargetIdentifier[] m_RTIDs4;
@@ -38,6 +41,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_HTile = RTHandles.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "DBufferHTile"); // Enable UAV
         }
 
+        public void InitializeHDRPResouces(HDRenderPipelineAsset asset)
+        {
+            m_ClearPropertyMaskBufferShader = asset.renderPipelineResources.shaders.decalClearPropertyMaskBufferCS;
+            m_ClearPropertyMaskBufferKernel = m_ClearPropertyMaskBufferShader.FindKernel("CSMain");
+        }
+
         public void ReleaseResolutionDependentBuffers()
         {
             if(m_PropertyMaskBuffer != null)
@@ -51,7 +60,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             int width = (int)hdCamera.screenSize.x;
             int height = (int)hdCamera.screenSize.y;
-            m_PropertyMaskBuffer = new ComputeBuffer(((width + 7) / 8) * ((height + 7) / 8), 4);
+            m_PropertyMaskBufferSize = ((width + 7) / 8) * ((height + 7) / 8);
+            m_PropertyMaskBufferSize = ((m_PropertyMaskBufferSize + 63) / 64) * 64; // round off to nearest multiple of 64 for ease of use in CS
+            m_PropertyMaskBuffer = new ComputeBuffer(m_PropertyMaskBufferSize, 4);
         }
 
         override public void DestroyBuffers()
@@ -88,9 +99,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             HDUtils.SetRenderTarget(cmd, m_HTile, ClearFlag.Color, Color.clear);
 
+            // clear decal property mask buffer
+            cmd.SetComputeBufferParam(m_ClearPropertyMaskBufferShader, m_ClearPropertyMaskBufferKernel, HDShaderIDs._DecalPropertyMaskBuffer, m_PropertyMaskBuffer);
+            cmd.DispatchCompute(m_ClearPropertyMaskBufferShader, m_ClearPropertyMaskBufferKernel, m_PropertyMaskBufferSize / 64, 1, 1);
+
             // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
             HDUtils.SetRenderTarget(cmd, RTIDs, cameraDepthStencilBuffer); // do not clear anymore
             cmd.SetRandomWriteTarget(rtCount4 ? 4 : 3, m_HTile);
+            cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBuffer, m_PropertyMaskBuffer);
         }
 
         public void UnSetHTile(CommandBuffer cmd)
@@ -101,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SetHTileTexture(CommandBuffer cmd)
         {
             cmd.SetGlobalTexture(HDShaderIDs._DecalHTileTexture, m_HTile);
+            cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBuffer, m_PropertyMaskBuffer);
         }
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)

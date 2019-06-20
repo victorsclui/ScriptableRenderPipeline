@@ -269,6 +269,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
             m_DbufferManager = new DBufferManager();
+            m_DbufferManager.InitializeHDRPResouces(asset);
 
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset);
