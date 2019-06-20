@@ -118,9 +118,10 @@ void Frag(  PackedVaryingsToPS packedInput,
         }
     }
 #else // PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    InterlockedOr(_DecalHTile[COORD_TEXTURE2D_X(htileCoord)], mask);
-    int stride = (_ScreenSize.x + 7) / 8;
-    InterlockedOr(_DecalPropertyMaskBuffer[htileCoord.y * stride + htileCoord.x], mask);
+//    InterlockedOr(_DecalHTile[COORD_TEXTURE2D_X(htileCoord)], mask);
+//    int stride = (_ScreenSize.x + 7) / 8;
+//    InterlockedOr(_DecalPropertyMaskBuffer[htileCoord.y * stride + htileCoord.x], mask);
+    _DecalPropertyMaskBuffer[0] = 0xFFFFFFFF;
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
 #endif // ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_TEXTURE_ATOMICS)

@@ -105,8 +105,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
             HDUtils.SetRenderTarget(cmd, RTIDs, cameraDepthStencilBuffer); // do not clear anymore
-            cmd.SetRandomWriteTarget(rtCount4 ? 4 : 3, m_HTile);
-            cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBuffer, m_PropertyMaskBuffer);
+            //cmd.SetRandomWriteTarget(rtCount4 ? 4 : 3, m_HTile);
+            cmd.SetRandomWriteTarget(rtCount4 ? 4 : 3, m_PropertyMaskBuffer);
         }
 
         public void UnSetHTile(CommandBuffer cmd)
