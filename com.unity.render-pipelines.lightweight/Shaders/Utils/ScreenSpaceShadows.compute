@@ -117,15 +117,14 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     float3 posF = floor(posP);
     float3 lerpWeight = posP - posF;
 
-    uint3 posQ = (uint3)posP;
-    posQ.z -= 2;
-
-    if (any(posQ >= (voxelResolution.xxx - 1)))
+    if (any(posP < 0.0) || any(posP >= (voxelResolution.xxx - 1)))
     {
-        attenuation = LerpWhiteTo(attenuation, shadowStrength);
-        _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+        _ScreenSpaceShadowOutput[pixelCoord] = 1.0;
         return;
     }
+
+    uint3 posQ = (uint3)posP;
+    posQ.z -= 2;
 
 #if NEAREST_SAMPLE
     uint2 result;

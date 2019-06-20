@@ -90,13 +90,13 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     float3 posF = floor(posP);
     float3 lerpWeight = posP - posF;
 
-    uint3 posQ = (uint3)posP;
-
-    if (any(posQ >= (voxelResolution.xxx - 1)))
+    if (any(posP < 0.0) || any(posP >= (voxelResolution.xxx - 1)))
     {
-        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0.0;
+        _ScreenSpaceShadowOutput[pixelCoord] = 0.0;
         return;
     }
+
+    uint3 posQ = (uint3)posP;
 
     float shadowing = 1.0;
 
