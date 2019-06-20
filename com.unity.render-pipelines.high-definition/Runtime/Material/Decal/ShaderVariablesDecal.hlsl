@@ -13,8 +13,8 @@ SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 RW_TEXTURE2D_X(uint, _DecalHTile); 
 TEXTURE2D_X_UINT(_DecalHTileTexture);
 RWStructuredBuffer<uint> _DecalPropertyMaskBuffer;
+StructuredBuffer<uint> _DecalPropertyMaskBufferSRV;
 #endif
-
 
 UNITY_INSTANCING_BUFFER_START(Decal)
 UNITY_DEFINE_INSTANCED_PROP(float4x4, _NormalToWorld)

@@ -117,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SetHTileTexture(CommandBuffer cmd)
         {
             cmd.SetGlobalTexture(HDShaderIDs._DecalHTileTexture, m_HTile);
-            cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBuffer, m_PropertyMaskBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_PropertyMaskBuffer);
         }
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
