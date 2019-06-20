@@ -163,6 +163,10 @@ namespace UnityEngine.Experimental.VoxelizedShadows
                 if (vxsm.enabled && _spotVxShadowMapList.Contains(vxsm) == false)
                     _spotVxShadowMapList.Add(vxsm);
             }
+
+            var container = Object.FindObjectOfType<VxShadowMapsContainer>();
+            if (container != null && container.Resources != null)
+                LoadResources(container.Resources);
         }
         public void Cleanup()
         {

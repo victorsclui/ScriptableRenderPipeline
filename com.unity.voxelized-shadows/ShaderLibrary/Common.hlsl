@@ -263,7 +263,7 @@ float TraverseNearestSampleVxShadowMap(uint begin, uint typeOffset, uint3 posQ, 
 
     uint bitmask = _VxShadowMapsBuffer[vxsmOffset + leafIndex];
 
-    uint maskShift = leaf.x + 8 * (leaf.y % 4);
+    uint maskShift = mad(leaf.y % 4, 8, leaf.x);
     uint mask = 0x00000001 << maskShift;
 
     float attenuation = (bitmask & mask) == 0 ? 1.0 : 0.0;
