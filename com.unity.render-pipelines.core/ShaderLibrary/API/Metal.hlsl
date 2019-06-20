@@ -17,6 +17,7 @@
 
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING
 #define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER
+#define PLATFORM_SUPPORTS_TEXTURE_ATOMICS
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]
