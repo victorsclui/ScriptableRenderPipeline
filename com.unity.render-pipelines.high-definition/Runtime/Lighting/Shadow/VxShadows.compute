@@ -92,7 +92,7 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
 
     if (any(posP < 0.0) || any(posP >= (voxelResolution.xxx - 1)))
     {
-        _ScreenSpaceShadowOutput[pixelCoord] = 0.0;
+        _VxShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0.0;
         return;
     }
 
