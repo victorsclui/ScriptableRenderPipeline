@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.LWRP
             m_ForwardLights = new ForwardLights();
         }
 
-        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData, XRPass xrpass)
         {
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -151,6 +151,8 @@ namespace UnityEngine.Rendering.LWRP
                     activeRenderPassQueue.RemoveAt(i);
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+            // Enable after rendering when process xrpass. Need to blit from camera's rendertarget to eye texture
+            hasAfterRendering = hasAfterRendering || xrpass.enabled;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -210,8 +212,17 @@ namespace UnityEngine.Rendering.LWRP
                     EnqueuePass(m_PostProcessPass);
                 }
 
+                // now blit into eye texture if xr is enabled
+                if(xrpass.enabled)
+                {
+                    //TODO capture action: xr camera capture? redirect rendering to the capture texutre from mirror view
+                    RenderHandler eyeRt;
+                    eyeRt.id = xrpass.renderTarget;
+                    m_FinalBlitPass.Setup(xrpass.renderTargetDesc, eyeRt);
+                }
+
                 //now blit into the final target
-                if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {
                     if (renderingData.cameraData.captureActions != null)
                     {
