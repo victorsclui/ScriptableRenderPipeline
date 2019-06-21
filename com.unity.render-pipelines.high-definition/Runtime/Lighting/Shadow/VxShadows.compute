@@ -114,7 +114,7 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     shadowing = TraverseNearestSampleVxShadowMap(begin, OFFSET_DIR, posQ, result);
 #elif BILINEAR_SAMPLE
     uint4 results[2];
-    TraverseVxShadowMapPosQ2x2(begin, OFFSET_DIR, posQ, results);
+    TraverseVxShadowMapPosQ2x2(begin, OFFSET_DIR, uint2(0, 1), posQ, results);
 
     if (all(results[1] != VX_SHADOWS_INTERSECTED))
     {
@@ -129,7 +129,7 @@ void DEFERRED_VX_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     shadowing = TraverseBilinearSampleVxShadowMap(begin, OFFSET_DIR, posQ, results, lerpWeight.xy);
 #elif TRILINEAR_SAMPLE
     uint4 results[4];
-    TraverseVxShadowMapPosQ2x2x2(begin, OFFSET_DIR, posQ, results);
+    TraverseVxShadowMapPosQ2x2x2(begin, OFFSET_DIR, uint2(0, 1), posQ, results);
 
     if (all(results[2] != VX_SHADOWS_INTERSECTED) && all(results[3] != VX_SHADOWS_INTERSECTED))
     {

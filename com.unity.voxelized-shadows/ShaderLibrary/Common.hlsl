@@ -128,13 +128,13 @@ void TraverseVxShadowMapPosQ(uint begin, uint typeOffset, uint3 posQ, out uint2 
 #endif
 }
 
-void TraverseVxShadowMapPosQ2x2(uint begin, uint typeOffset, uint3 posQ, out uint4 results[2])
+void TraverseVxShadowMapPosQ2x2(uint begin, uint typeOffset, uint2 adjOffset, uint3 posQ, out uint4 results[2])
 {
     uint vxsmOffset = begin + typeOffset;
     uint dagScale = _VxShadowMapsBuffer[begin + 2];
 
-    uint4 posQ_01 = posQ.xyxy + uint4(0, 0, 1, 0);
-    uint4 posQ_23 = posQ.xyxy + uint4(0, 1, 1, 1);
+    uint4 posQ_01 = posQ.xyxy + adjOffset.xxyx; //uint4(0, 0, 1, 0);
+    uint4 posQ_23 = posQ.xyxy + adjOffset.xyyy; //uint4(0, 1, 1, 1);
 
     uint scaleShift = dagScale - 2;
     uint4 nodeIndex4 = 0;
@@ -179,14 +179,14 @@ void TraverseVxShadowMapPosQ2x2(uint begin, uint typeOffset, uint3 posQ, out uin
 #endif
 }
 
-void TraverseVxShadowMapPosQ2x2x2(uint begin, uint typeOffset, uint3 posQ, out uint4 results[4])
+void TraverseVxShadowMapPosQ2x2x2(uint begin, uint typeOffset, uint2 adjOffset, uint3 posQ, out uint4 results[4])
 {
     uint vxsmOffset = begin + typeOffset;
     uint dagScale = _VxShadowMapsBuffer[begin + 2];
 
-    uint4 posQ_01 = posQ.xyxy + uint4(0, 0, 1, 0);
-    uint4 posQ_23 = posQ.xyxy + uint4(0, 1, 1, 1);
-    uint2 posQ_zz = posQ.zz   + uint2(0, 1);
+    uint4 posQ_01 = posQ.xyxy + adjOffset.xxyx; //uint4(0, 0, 1, 0);
+    uint4 posQ_23 = posQ.xyxy + adjOffset.xyyy; //uint4(0, 1, 1, 1);
+    uint2 posQ_zz = posQ.zz   + adjOffset.xy;   //uint2(0, 1);
 
     uint scaleShift = dagScale - 2;
     uint4 nodeIndex4_0 = 0;
