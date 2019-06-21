@@ -32,6 +32,15 @@ TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
 TEXTURE2D_FLOAT(_CameraDepthTexture);
 #endif
 
+struct SharedResult
+{
+    int3 index;
+    uint nodeIndex;
+    uint shadowbit;
+};
+
+groupshared SharedResult sharedResults[TILE_SIZE * TILE_SIZE];
+
 SAMPLER(sampler_CameraDepthTexture);
 
 CBUFFER_START(_DirectionalVxShadowMap)
@@ -42,9 +51,121 @@ CBUFFER_END
 
 RW_TEXTURE2D(half, _ScreenSpaceShadowOutput);
 
+float TraversePCF9x9VxShadowMap(uint begin, uint typeOffset, uint2 adjOffset, uint3 posQ, uint4 innerResults[2])
+{
+    uint vxsmOffset = begin + typeOffset;
+    uint4 nodeIndex4 = vxsmOffset + innerResults[0];
+
+    uint4 posQ_x = posQ.xxxx + adjOffset.xyxy; //uint4(0, 1, 0, 1);
+    uint4 posQ_y = posQ.yyyy + adjOffset.xxyy; //uint4(0, 0, 1, 1);
+
+    uint4 leaf4_x = posQ_x % 8;
+    uint4 leaf4_y = posQ_y % 8;
+    uint  leaf4_z = posQ.z % 8;
+
+    uint4 leafIndex = vxsmOffset + uint4(
+        _VxShadowMapsBuffer[nodeIndex4.x + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.y + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.z + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.w + leaf4_z]);
+
+    uint4 bitmask4_0 = (innerResults[1] & VX_SHADOWS_LIT) ? 0x00000000 : 0xFFFFFFFF;
+    uint4 bitmask4_1 = bitmask4_0;
+
+    if (innerResults[1].x == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.x = _VxShadowMapsBuffer[leafIndex.x    ];
+        bitmask4_1.x = _VxShadowMapsBuffer[leafIndex.x + 1];
+    }
+    if (innerResults[1].y == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.y = _VxShadowMapsBuffer[leafIndex.y    ];
+        bitmask4_1.y = _VxShadowMapsBuffer[leafIndex.y + 1];
+    }
+    if (innerResults[1].z == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.z = _VxShadowMapsBuffer[leafIndex.z    ];
+        bitmask4_1.z = _VxShadowMapsBuffer[leafIndex.z + 1];
+    }
+    if (innerResults[1].w == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.w = _VxShadowMapsBuffer[leafIndex.w    ];
+        bitmask4_1.w = _VxShadowMapsBuffer[leafIndex.w + 1];
+    }
+
+    uint xshift0 = 8 - leaf4_x.x;
+    uint xshift1 = leaf4_x.y + 1;
+    uint yshift0 = leaf4_y.x;
+    uint yshift1 = leaf4_y.z;
+
+    uint maskx_0 = (0x0000FF00 >> xshift0) & 0x000000FF;
+    uint maskx_1 = (~(0xFFFFFFFF << xshift1)) & 0x000000FF;
+
+    uint mask00_0 = 0;
+    uint mask00_1 = 0;
+    uint mask10_0 = 0;
+    uint mask10_1 = 0;
+    uint mask01_0 = 0;
+    uint mask01_1 = 0;
+    uint mask11_0 = 0;
+    uint mask11_1 = 0;
+
+    mask00_0 |= yshift0 <= 0 ? (maskx_0      ) : 0;
+    mask00_0 |= yshift0 <= 1 ? (maskx_0 <<  8) : 0;
+    mask00_0 |= yshift0 <= 2 ? (maskx_0 << 16) : 0;
+    mask00_0 |= yshift0 <= 3 ? (maskx_0 << 24) : 0;
+    mask00_1 |= yshift0 <= 4 ? (maskx_0      ) : 0;
+    mask00_1 |= yshift0 <= 5 ? (maskx_0 <<  8) : 0;
+    mask00_1 |= yshift0 <= 6 ? (maskx_0 << 16) : 0;
+    mask00_1 |= yshift0 <= 7 ? (maskx_0 << 24) : 0;
+
+    mask10_0 |= yshift0 <= 0 ? (maskx_1      ) : 0;
+    mask10_0 |= yshift0 <= 1 ? (maskx_1 <<  8) : 0;
+    mask10_0 |= yshift0 <= 2 ? (maskx_1 << 16) : 0;
+    mask10_0 |= yshift0 <= 3 ? (maskx_1 << 24) : 0;
+    mask10_1 |= yshift0 <= 4 ? (maskx_1      ) : 0;
+    mask10_1 |= yshift0 <= 5 ? (maskx_1 <<  8) : 0;
+    mask10_1 |= yshift0 <= 6 ? (maskx_1 << 16) : 0;
+    mask10_1 |= yshift0 <= 7 ? (maskx_1 << 24) : 0;
+
+    mask01_0 |= yshift1 >= 0 ? (maskx_0      ) : 0;
+    mask01_0 |= yshift1 >= 1 ? (maskx_0 <<  8) : 0;
+    mask01_0 |= yshift1 >= 2 ? (maskx_0 << 16) : 0;
+    mask01_0 |= yshift1 >= 3 ? (maskx_0 << 24) : 0;
+    mask01_1 |= yshift1 >= 4 ? (maskx_0      ) : 0;
+    mask01_1 |= yshift1 >= 5 ? (maskx_0 <<  8) : 0;
+    mask01_1 |= yshift1 >= 6 ? (maskx_0 << 16) : 0;
+    mask01_1 |= yshift1 >= 7 ? (maskx_0 << 24) : 0;
+
+    mask11_0 |= yshift1 >= 0 ? (maskx_1      ) : 0;
+    mask11_0 |= yshift1 >= 1 ? (maskx_1 <<  8) : 0;
+    mask11_0 |= yshift1 >= 2 ? (maskx_1 << 16) : 0;
+    mask11_0 |= yshift1 >= 3 ? (maskx_1 << 24) : 0;
+    mask11_1 |= yshift1 >= 4 ? (maskx_1      ) : 0;
+    mask11_1 |= yshift1 >= 5 ? (maskx_1 <<  8) : 0;
+    mask11_1 |= yshift1 >= 6 ? (maskx_1 << 16) : 0;
+    mask11_1 |= yshift1 >= 7 ? (maskx_1 << 24) : 0;
+
+    uint countMasks =
+        countbits(bitmask4_0.x & mask00_0) + countbits(bitmask4_1.x & mask00_1) +
+        countbits(bitmask4_0.y & mask10_0) + countbits(bitmask4_1.y & mask10_1) +
+        countbits(bitmask4_0.z & mask01_0) + countbits(bitmask4_1.z & mask01_1) +
+        countbits(bitmask4_0.w & mask11_0) + countbits(bitmask4_1.w & mask11_1);
+
+    return 1.0 - ((float)countMasks / 81.0);
+}
+
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    SharedResult sharedResult;
+    sharedResult.index = -1;
+    sharedResult.nodeIndex = 0;
+    sharedResult.shadowbit = 0;
+
+    uint sharedIndex = groupThreadId.x + groupThreadId.y * TILE_SIZE;
+    sharedResults[sharedIndex] = sharedResult;
+
     uint2 pixelCoord = groupId * TILE_SIZE + groupThreadId;
     uint2 tileCoord = groupId;
 
@@ -126,7 +247,7 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     uint3 posQ = (uint3)posP;
     posQ.z -= 2;
 
-#if NEAREST_SAMPLE
+#if 0//NEAREST_SAMPLE
     uint2 result;
     TraverseVxShadowMapPosQ(_BeginOffset, OFFSET_DIR, posQ, result);
 
@@ -140,9 +261,11 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 
     float attenuationVxsm = TraverseNearestSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, result);
     attenuation = min(attenuation, attenuationVxsm);
-#elif BILINEAR_SAMPLE
+#elif 0//BILINEAR_SAMPLE
+
+#if 1 // TEST_USING_LDS
     uint4 results[2];
-    TraverseVxShadowMapPosQ2x2(_BeginOffset, OFFSET_DIR, posQ, results);
+    TraverseVxShadowMapPosQ2x2(_BeginOffset, OFFSET_DIR, uint2(0, 1), posQ, results);
 
     if (all(results[1] != VX_SHADOWS_INTERSECTED))
     {
@@ -157,9 +280,70 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 
     float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
     attenuation = min(attenuation, attenuationVxsm);
-#elif TRILINEAR_SAMPLE
+#else
+    uint2 groupThreadIdBase   = groupThreadId & 0xFFFFFFFE;
+    uint2 groupthreadIdOffset = groupThreadId.xy & 0x00000001;
+
+    uint3 posQs = posQ + float3(groupthreadIdOffset, 0);
+
+    uint2 result;
+    TraverseVxShadowMapPosQ(_BeginOffset, OFFSET_DIR, posQs, result);
+
+    sharedResult.index = posQs;
+    sharedResult.nodeIndex = result.x;
+    sharedResult.shadowbit = result.y;
+    sharedResults[sharedIndex] = sharedResult;
+
+    uint sharedIndex0 = (groupThreadIdBase.x    ) + (groupThreadIdBase.y    ) * TILE_SIZE;
+    uint sharedIndex1 = (groupThreadIdBase.x + 1) + (groupThreadIdBase.y    ) * TILE_SIZE;
+    uint sharedIndex2 = (groupThreadIdBase.x    ) + (groupThreadIdBase.y + 1) * TILE_SIZE;
+    uint sharedIndex3 = (groupThreadIdBase.x + 1) + (groupThreadIdBase.y + 1) * TILE_SIZE;
+
+    SharedResult sharedResult0 = sharedResults[sharedIndex0];
+    SharedResult sharedResult1 = sharedResults[sharedIndex1];
+    SharedResult sharedResult2 = sharedResults[sharedIndex2];
+    SharedResult sharedResult3 = sharedResults[sharedIndex3];
+    GroupMemoryBarrierWithGroupSync();
+
+    uint4 results[2];
+
+    results[0] = uint4(sharedResult0.nodeIndex, sharedResult1.nodeIndex, sharedResult2.nodeIndex, sharedResult3.nodeIndex);
+    results[1] = uint4(sharedResult0.shadowbit, sharedResult1.shadowbit, sharedResult2.shadowbit, sharedResult3.shadowbit);
+
+    if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    {
+        float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
+        attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
+    
+        attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
+        attenuation = LerpWhiteTo(attenuation, shadowStrength);
+        _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+        return;
+    }
+
+    //TraverseVxShadowMapPosQ2x2(_BeginOffset, OFFSET_DIR, uint2(0, 1), posQ, results);
+
+    //if (sharedResult0.z != sharedResult2.z)
+    //{
+    //    _ScreenSpaceShadowOutput[pixelCoord] = 0.5;
+    //    return;
+    //}
+
+    //uint2 tmp = uint2(results[0].x, results[1].x);
+    //float attenuationVxsm = TraverseNearestSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, tmp);
+    //attenuation = min(attenuation, attenuationVxsm);
+
+    //lerpWeight.xy = 0.0;
+    float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
+    //float attenuationVxsm = TraverseNearestSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, result);
+    attenuation = min(attenuation, attenuationVxsm);
+    //attenuation = 1.0 - (float)valid4 / 4.0;
+#endif
+
+#elif 1//TRILINEAR_SAMPLE
+#if 0 // TEST PCF9X9
     uint4 results[4];
-    TraverseVxShadowMapPosQ2x2x2(_BeginOffset, OFFSET_DIR, posQ, results);
+    TraverseVxShadowMapPosQ2x2x2(_BeginOffset, OFFSET_DIR, uint2(0, 1), posQ, results);
 
     if (all(results[2] != VX_SHADOWS_INTERSECTED) && all(results[3] != VX_SHADOWS_INTERSECTED))
     {
@@ -177,6 +361,27 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 
     float attenuationVxsm = TravereTrilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight);
     attenuation = min(attenuation, attenuationVxsm);
+#else
+    uint2 adjOffset = uint2(-4, 4);
+    uint4 results[2];
+
+    TraverseVxShadowMapPosQ2x2(_BeginOffset, OFFSET_DIR, adjOffset, posQ, results);
+
+    //if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    //{
+    //    float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
+    //    attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
+    //
+    //    attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
+    //    attenuation = LerpWhiteTo(attenuation, shadowStrength);
+    //    _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+    //    return;
+    //}
+
+    //float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
+    float attenuationVxsm = TraversePCF9x9VxShadowMap(_BeginOffset, OFFSET_DIR, adjOffset, posQ, results);
+    attenuation = min(attenuation, attenuationVxsm);
+#endif
 #endif
 
     attenuation = LerpWhiteTo(attenuation, shadowStrength);
