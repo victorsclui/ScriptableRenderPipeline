@@ -103,17 +103,13 @@ void Frag(  PackedVaryingsToPS packedInput,
         {
             // Process one tile.
             mask = WaveActiveBitOr(surfaceData.HTileMask);
-
             uint laneID = WaveGetLaneIndex();
 
             // Is it the first active lane?
             if (laneID == WaveReadLaneFirst(laneID))
             {
-                htileCoord.x = minTileCoord1d & 0xffff;
-                htileCoord.y = (minTileCoord1d >> 16) & 0xffff;
-                InterlockedOr(_DecalHTile[COORD_TEXTURE2D_X(htileCoord)], mask);
+                InterlockedOr(_DecalPropertyMaskBuffer[minTileCoord1d], mask);
             }
-
             // Mark tile as processed.
             tileCoord1d = -1;
         }
