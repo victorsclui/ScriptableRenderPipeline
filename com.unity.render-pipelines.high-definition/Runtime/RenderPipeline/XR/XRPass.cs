@@ -229,44 +229,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (xrSdkEnabled)
             {
-                // null render texture is the backbuffer by default
-                bool shouldDoMirror = system.GetMirrorViewDesc(null, out var mirrorBlitDesc);
-
-                if (!shouldDoMirror)
-                {
-                    // This might happend when XR display is initializing, skip mirror blit if that's the case
-                    // TODO: fancier logic kills the job here
-                }
-                else
-                {
-                    // Blit to backbuffer here
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                    cmd.SetViewport(hdCamera.camera.pixelRect);
-
-                    HDUtils.BlitQuad(cmd, /*mirrorBlitDesc.blitParams[0].srcTex*/tempRenderTexture,
-                        new Vector4(mirrorBlitDesc.blitParams[0].srcRect.width, mirrorBlitDesc.blitParams[0].srcRect.height, mirrorBlitDesc.blitParams[0].srcRect.x, mirrorBlitDesc.blitParams[0].srcRect.y),
-                        new Vector4(mirrorBlitDesc.blitParams[0].destRect.width, mirrorBlitDesc.blitParams[0].destRect.height, mirrorBlitDesc.blitParams[0].destRect.x, mirrorBlitDesc.blitParams[0].destRect.y),
-                        0, false);
-
-                    /*
-                    /*  Here is the xr.sdk display sample related callback code. For ur convinience
-                    /*    static UnitySubsystemErrorCode UNITY_INTERFACE_API GfxThread_FinalBlitToGameViewBackBuffer(UnitySubsystemHandle handle, void* userData, const UnityXRMirrorViewRenderTargetDescriptor * gameViewBackBufferDesc)
-                    /*    {
-                    /*    #if XR_DX11
-	                /*        ID3D11Device* dxDevice = s_UnityInterfaces->Get<IUnityGraphicsD3D11>()->GetDevice();
-	                /*        ID3D11RenderTargetView* rtv = s_UnityInterfaces->Get<IUnityGraphicsD3D11>()->RTVFromRenderBuffer(gameViewBackBufferDesc->rtNative);
-	                /*        ID3D11DeviceContext* immContext;
-	                /*        dxDevice->GetImmediateContext(&immContext);
-	                /*        immContext->OMSetRenderTargets(1, &rtv, NULL);
-	                /*        // clear to blue
-	                /*        const FLOAT clrColor[4] = { 0,0,1,1 };
-	                /*        immContext->ClearRenderTargetView(rtv, clrColor);
-                    /*    #endif
-	                /*        return UnitySubsystemErrorCode::kUnitySubsystemErrorCodeSuccess;
-                    /*    }
-                    */
-                    system.AddGraphicsThreadMirrorViewBlit(cmd, false);
-                }
+                
+                
             }
             else
             {

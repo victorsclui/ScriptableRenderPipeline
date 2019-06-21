@@ -13,7 +13,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.XR;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public partial class XRSystem
     {
@@ -60,10 +60,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // XRTODO: support render to texture
                 bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
 
-                // Debug modes can override the entire layout
-                if (ProcessDebugMode(xrEnabled, camera))
-                    continue;
-
                 if (xrEnabled && xrSupported)
                 {
                     if (xrSdkActive)
@@ -86,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool RefreshXrSdk()
         {
-            TextureXR.maxViews = (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced) ? 2 : 1;
+            //TextureXR.maxViews = (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced) ? 2 : 1;
 
 #if USE_XR_SDK
             SubsystemManager.GetInstances(displayList);
@@ -98,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 display.disableLegacyRenderer = true;
 
                 // XRTODO: handle more than 2 instanced views
-                TextureXR.maxViews = 2;
+                //TextureXR.maxViews = 2;
 
                 return true;
             }
@@ -210,8 +206,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal void ClearAll()
         {
-            DestroyDebugVolume();
-
             framePasses = null;
 
 #if USE_XR_SDK

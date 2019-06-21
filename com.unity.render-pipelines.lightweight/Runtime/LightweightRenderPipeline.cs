@@ -6,6 +6,7 @@ using UnityEditor.Rendering.LWRP;
 #endif
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.XR;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.LWRP
@@ -32,6 +33,7 @@ namespace UnityEngine.Rendering.LWRP
             public static int _ScreenParams;
             public static int _WorldSpaceCameraPos;
         }
+        readonly XRSystem m_XRSystem = new XRSystem();
 
         public const string k_ShaderTagName = "LightweightPipeline";
 
@@ -128,20 +130,31 @@ namespace UnityEngine.Rendering.LWRP
             SetupPerFrameShaderConstants();
 
             SortCameras(cameras);
-            foreach (Camera camera in cameras)
+
+            var multipassCameras = m_XRSystem.SetupFrame(cameras);
+            foreach ((Camera camera, XRPass xrPass) in multipassCameras)
             {
                 BeginCameraRendering(renderContext, camera);
 
                 UnityEngine.Experimental.VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
-                RenderSingleCamera(renderContext, camera);
+                RenderSingleCamera(renderContext, camera, xrPass);
 
                 EndCameraRendering(renderContext, camera);
             }
+            //foreach (Camera camera in cameras)
+            //{
+            //    BeginCameraRendering(renderContext, camera);
 
+            //    UnityEngine.Experimental.VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+            //    RenderSingleCamera(renderContext, camera);
+
+            //    EndCameraRendering(renderContext, camera);
+            //}
+            m_XRSystem.ReleaseFrame();
             EndFrameRendering(renderContext, cameras);
         }
 
-        public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
+        public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera, XRPass xrpass)
         {
             if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
                 return;
@@ -189,7 +202,7 @@ namespace UnityEngine.Rendering.LWRP
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(settings, ref cameraData, ref cullResults, out var renderingData);
 
-                renderer.Setup(context, ref renderingData);
+                renderer.Setup(context, ref renderingData, xrpass);
                 renderer.Execute(context, ref renderingData);
             }
 

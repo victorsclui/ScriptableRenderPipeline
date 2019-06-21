@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.LWRP
         PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
-
+        FinalBlitXRPass m_FinalBlitXRPass;
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.LWRP
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
-
+            m_FinalBlitXRPass = new FinalBlitXRPass(RenderPassEvent.AfterRendering, blitMaterial);
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, copyDepthMaterial);
 #endif
@@ -116,10 +116,15 @@ namespace UnityEngine.Rendering.LWRP
 
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
                                       || rendererFeatures.Count != 0;
+            // @thomas redirect rendering ouput to camera inermediate rt
+            createColorTexture = createColorTexture || xrpass.enabled;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
             bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
+            // @thomas redirect rendering ouput to camera inermediate rt
+            createDepthTexture  = createDepthTexture || xrpass.enabled;
+
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
             bool hasOpaquePostProcess = postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
@@ -215,10 +220,8 @@ namespace UnityEngine.Rendering.LWRP
                 // now blit into eye texture if xr is enabled
                 if(xrpass.enabled)
                 {
-                    //TODO capture action: xr camera capture? redirect rendering to the capture texutre from mirror view
-                    RenderHandler eyeRt;
-                    eyeRt.id = xrpass.renderTarget;
-                    m_FinalBlitPass.Setup(xrpass.renderTargetDesc, eyeRt);
+                    m_FinalBlitXRPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment.Identifier(), xrpass.renderTargetDesc, xrpass.renderTarget);
+                    EnqueuePass(m_FinalBlitXRPass);
                 }
 
                 //now blit into the final target

@@ -10,34 +10,27 @@ namespace UnityEngine.Rendering.LWRP
     internal class FinalBlitXRPass : ScriptableRenderPass
     {
         const string m_ProfilerTag = "Final Blit XR Pass";
-        RenderTargetHandle m_Source;
-        RenderTargetHandle m_Dest;
-        TextureDimension m_srcDimension;
-        TextureDimension m_dstDimension;
+        RenderTargetIdentifier m_Source;
+        RenderTargetIdentifier m_Dest;
+        RenderTextureDescriptor m_srcDesc;
+        RenderTextureDescriptor m_dstDesc;
 
         Material m_BlitMaterial;
 
         bool m_IsMobileOrSwitch;
 
-        public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
+        public FinalBlitXRPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
         }
 
-        /// <summary>
-        /// Configure the pass
-        /// </summary>
-        /// <param name="baseDescriptor"></param>
-        /// <param name="colorHandle"></param>
-        /// <param name="clearBlitTarget"></param>
-        /// <param name="pixelRect"></param>
-        public void Setup(RenderTextureDescriptor srcDescriptor, RenderTargetHandle srcHandle, RenderTextureDescriptor dstDescriptor, RenderTargetHandle dstHandle)
+        public void Setup(RenderTextureDescriptor srcDescriptor, RenderTargetIdentifier srcHandle, RenderTextureDescriptor dstDescriptor, RenderTargetIdentifier dstHandle)
         {
-            m_Source = colorHandle;
+            m_Source = srcHandle;
             m_Dest = dstHandle;
-            m_srcDimension = srcDescriptor.dimension;
-            m_dstDimension = dstDescriptor.dimension;
+            m_srcDesc = srcDescriptor;
+            m_dstDesc = dstDescriptor;
 
             m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
         }
@@ -66,7 +59,7 @@ namespace UnityEngine.Rendering.LWRP
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
-            ref CameraData cameraData = ref renderingData.cameraData;
+            //ref CameraData cameraData = ref renderingData.cameraData;
             //if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             //{
             //    // This set render target is necessary so we change the LOAD state to DontCare.
@@ -80,25 +73,29 @@ namespace UnityEngine.Rendering.LWRP
             //}
             //else
             {
-                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
+                cmd.SetGlobalTexture("_BlitTex", m_Source);
 
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
                 // meanwhile we set to load so split screen case works.
                 SetRenderTarget(
                     cmd,
-                    m_Dest.Identifier(),
-                    m_ClearBlitTarget ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
+                    m_Dest,
+                    RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.Store,
-                    m_ClearBlitTarget ? ClearFlag.Color : ClearFlag.None,
+                    ClearFlag.None,
                     Color.black,
-                    m_TargetDimension);
+                    m_dstDesc.dimension);
 
-                Camera camera = cameraData.camera;
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(m_PixelRect != Rect.zero ? m_PixelRect : cameraData.camera.pixelRect);
+                //Camera camera = cameraData.camera;
+
+                // blit should not care about mvp?
+                //cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+
+                cmd.SetViewport(new Rect(0,0, m_dstDesc.width, m_dstDesc.height));
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+
+                //cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
 
             context.ExecuteCommandBuffer(cmd);

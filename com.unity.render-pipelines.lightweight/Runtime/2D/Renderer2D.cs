@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, CoreUtils.CreateEngineMaterial(data.blitShader));
         }
 
-        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData, XRPass xrpass)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             m_ColorTargetHandle = RenderTargetHandle.CameraTarget;

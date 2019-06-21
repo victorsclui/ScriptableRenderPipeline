@@ -15,7 +15,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.XR;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     internal struct XRView
     {
@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             views.Add(xrView);
 
             // Validate memory limitations
-            Debug.Assert(views.Count <= TextureXR.kMaxSlices);
+            //Debug.Assert(views.Count <= TextureXR.kMaxSlices);
         }
 
         internal void StartLegacyStereo(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext)
@@ -222,59 +222,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal void EndCamera(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd, XRSystem system)
+        internal void EndCamera(Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd, XRSystem system)
         {
             if (!enabled)
                 return;
 
             if (xrSdkEnabled)
             {
-                // null render texture is the backbuffer by default
-                bool shouldDoMirror = system.GetMirrorViewDesc(null, out var mirrorBlitDesc);
-
-                if (!shouldDoMirror)
-                {
-                    // This might happend when XR display is initializing, skip mirror blit if that's the case
-                    // TODO: fancier logic kills the job here
-                }
-                else
-                {
-                    // Blit to backbuffer here
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                    cmd.SetViewport(hdCamera.camera.pixelRect);
-
-                    mirrorBlitDesc.GetBlitParameter(0, out var blitParam);
-
-                    Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
-                    Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
-
-                    HDUtils.BlitQuad(cmd, /*mirrorBlitDesc.blitParams[0].srcTex*/tempRenderTexture,
-                        new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y),
-                        new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y),
-                        0, false);
-
-                    /*
-                    /*  Here is the xr.sdk display sample related callback code. For ur convinience
-                    /*    static UnitySubsystemErrorCode UNITY_INTERFACE_API GfxThread_FinalBlitToGameViewBackBuffer(UnitySubsystemHandle handle, void* userData, const UnityXRMirrorViewRenderTargetDescriptor * gameViewBackBufferDesc)
-                    /*    {
-                    /*    #if XR_DX11
-	                /*        ID3D11Device* dxDevice = s_UnityInterfaces->Get<IUnityGraphicsD3D11>()->GetDevice();
-	                /*        ID3D11RenderTargetView* rtv = s_UnityInterfaces->Get<IUnityGraphicsD3D11>()->RTVFromRenderBuffer(gameViewBackBufferDesc->rtNative);
-	                /*        ID3D11DeviceContext* immContext;
-	                /*        dxDevice->GetImmediateContext(&immContext);
-	                /*        immContext->OMSetRenderTargets(1, &rtv, NULL);
-	                /*        // clear to blue
-	                /*        const FLOAT clrColor[4] = { 0,0,1,1 };
-	                /*        immContext->ClearRenderTargetView(rtv, clrColor);
-                    /*    #endif
-	                /*        return UnitySubsystemErrorCode::kUnitySubsystemErrorCodeSuccess;
-                    /*    }
-                    */
-                    if (mirrorBlitDesc.nativeBlitAvailable)
-                    {
-                        system.AddGraphicsThreadMirrorViewBlit(cmd, mirrorBlitDesc.nativeBlitInvalidStates);
-                    }
-                }
+                // @thomas todo
+                // mirror view blit
             }
             else
             {
@@ -283,9 +239,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Pushes to XR headset and/or display mirror
                 if (legacyMultipassEnabled)
-                    renderContext.StereoEndRender(hdCamera.camera, legacyMultipassEye, legacyMultipassEye == 1);
+                    renderContext.StereoEndRender(camera, legacyMultipassEye, legacyMultipassEye == 1);
                 else
-                    renderContext.StereoEndRender(hdCamera.camera);
+                    renderContext.StereoEndRender(camera);
             }
         }
     }
