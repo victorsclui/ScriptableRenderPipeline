@@ -63,6 +63,8 @@ namespace UnityEngine.Rendering.LWRP
         internal bool xrSdkEnabled { get; private set; }
 
         internal int multipassId    { get; private set; }
+        internal int multiparamId   { get; set; }
+
         internal int cullingPassId  { get; private set; }
 
         // Ability to specify where to render the pass
@@ -136,6 +138,7 @@ namespace UnityEngine.Rendering.LWRP
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = xrRenderPass.renderPassIndex;
+
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;

@@ -151,6 +151,7 @@ namespace UnityEngine.Rendering.LWRP
 
                         var xrPass = XRPass.Create(renderPass);
                         xrPass.AddView(renderParam);
+                        xrPass.multiparamId = renderParamIndex;
 
                         AddPassToFrame(camera, xrPass);
                     }

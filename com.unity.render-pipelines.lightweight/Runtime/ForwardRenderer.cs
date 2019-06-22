@@ -236,6 +236,13 @@ namespace UnityEngine.Rendering.LWRP
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     EnqueuePass(m_FinalBlitPass);
                 }
+
+                //@thomas fixme! now pretend pass 1 is the last xrpass and blit to back buffer 
+                if(xrpass.multiparamId == 1)
+                {
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                    EnqueuePass(m_FinalBlitPass);
+                }
             }
             else
             {
