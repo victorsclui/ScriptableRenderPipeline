@@ -12,5 +12,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     int blockX = id.x % 8;
     int blockY = id.y;
     int index = blockID * 64 + blockY * 8 + blockX;
+#ifdef PLATFORM_SUPPORTS_TEXTURE_ATOMICS
     _DecalPropertyMaskBuffer[index] = 0;
+#endif
 }
