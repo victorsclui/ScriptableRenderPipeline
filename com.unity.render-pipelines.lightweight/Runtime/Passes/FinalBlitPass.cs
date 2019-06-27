@@ -91,11 +91,8 @@ namespace UnityEngine.Rendering.LWRP
                     Color.black,
                     m_TargetDimension);
 
-                Camera camera = cameraData.camera;
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(m_PixelRect != Rect.zero ? m_PixelRect : cameraData.camera.pixelRect);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                // Fast full screen pass
+                cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Triangles, 3, 1);
             }
 
             context.ExecuteCommandBuffer(cmd);

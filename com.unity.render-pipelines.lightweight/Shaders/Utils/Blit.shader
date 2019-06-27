@@ -29,8 +29,7 @@ Shader "Hidden/Lightweight Render Pipeline/Blit"
 
             struct Attributes
             {
-                float4 positionOS   : POSITION;
-                float2 uv           : TEXCOORD0;
+                uint   vertexID     : SV_VertexID;
             };
 
             struct Varyings
@@ -45,8 +44,8 @@ Shader "Hidden/Lightweight Render Pipeline/Blit"
             Varyings Vertex(Attributes input)
             {
                 Varyings output;
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = input.uv;
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
                 return output;
             }
 

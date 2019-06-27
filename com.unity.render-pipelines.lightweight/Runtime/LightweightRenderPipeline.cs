@@ -141,15 +141,8 @@ namespace UnityEngine.Rendering.LWRP
 
                 EndCameraRendering(renderContext, camera);
             }
-            //foreach (Camera camera in cameras)
-            //{
-            //    BeginCameraRendering(renderContext, camera);
 
-            //    UnityEngine.Experimental.VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
-            //    RenderSingleCamera(renderContext, camera);
 
-            //    EndCameraRendering(renderContext, camera);
-            //}
             m_XRSystem.ReleaseFrame();
             EndFrameRendering(renderContext, cameras);
         }

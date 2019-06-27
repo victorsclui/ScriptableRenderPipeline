@@ -44,7 +44,10 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
+            // @thomas: TODO handles srgb.
+            bool requiresSRGBConvertion = true;
+
+            // @thomas: TODO handles color format
             bool killAlpha = renderingData.killAlphaInFinalBlit;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
@@ -59,43 +62,17 @@ namespace UnityEngine.Rendering.LWRP
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
-            //ref CameraData cameraData = ref renderingData.cameraData;
-            //if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
-            //{
-            //    // This set render target is necessary so we change the LOAD state to DontCare.
-            //    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-
-            //    // Clearing render target is cost free on mobile and it avoid tile loading
-            //    if (m_IsMobileOrSwitch)
-            //        cmd.ClearRenderTarget(true, true, Color.black);
-                
-            //    cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget);
-            //}
-            //else
             {
+                // @thomas TODO: should avoid using SetGlobalTexture as _BlitTex is not a global texture.
                 cmd.SetGlobalTexture("_BlitTex", m_Source);
 
-                // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
-                // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
-                // meanwhile we set to load so split screen case works.
-                SetRenderTarget(
-                    cmd,
-                    m_Dest,
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store,
-                    ClearFlag.None,
-                    Color.black,
-                    m_dstDesc.dimension);
+                if (m_dstDesc.dimension == TextureDimension.Tex2DArray)
+                    cmd.SetRenderTarget(m_Dest, 0, CubemapFace.Unknown, 0);
+                else
+                    cmd.SetRenderTarget(m_Dest, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
-                //Camera camera = cameraData.camera;
-
-                // blit should not care about mvp?
-                //cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-
-                cmd.SetViewport(new Rect(0,0, m_dstDesc.width, m_dstDesc.height));
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-
-                //cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                // Emit 3 vertex draw with empty vbo and ibo. VS will generate full screen triangle
+                cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Triangles, 3, 1);
             }
 
             context.ExecuteCommandBuffer(cmd);
