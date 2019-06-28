@@ -33,11 +33,12 @@ namespace UnityEngine.Rendering.LWRP
             public static int _ScreenParams;
             public static int _WorldSpaceCameraPos;
         }
-        readonly XRSystem m_XRSystem = new XRSystem();
+        readonly XRSystem m_XRSystem;
 
         public const string k_ShaderTagName = "LightweightPipeline";
 
         const string k_RenderCameraTag = "Render Camera";
+        const string k_RenderMirrorViewTag = "Render Mirror View";
 
         public static float maxShadowBias
         {
@@ -105,6 +106,9 @@ namespace UnityEngine.Rendering.LWRP
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            //@thomas TODO refactor this line, should not have cast here
+            m_XRSystem = new XRSystem(((ForwardRendererData)asset.scriptableRendererData).shaders.blitPS);
         }
 
         protected override void Dispose(bool disposing)
@@ -142,6 +146,19 @@ namespace UnityEngine.Rendering.LWRP
                 EndCameraRendering(renderContext, camera);
             }
 
+            // Pure XRSDK: mirror view @thomas TODO create proper abstraction
+            if(m_XRSystem.xrSdkEnabled)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
+                using (new ProfilingSample(cmd, k_RenderMirrorViewTag))
+                {
+                    cmd.Clear();
+                    m_XRSystem.RenderMirrorView(cmd);
+                    renderContext.ExecuteCommandBuffer(cmd);
+                }
+                CommandBufferPool.Release(cmd);
+                renderContext.Submit();
+            }
 
             m_XRSystem.ReleaseFrame();
             EndFrameRendering(renderContext, cameras);

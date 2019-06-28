@@ -20,22 +20,30 @@ namespace UnityEngine.Rendering.LWRP
         // Valid empty pass when a camera is not using XR
         public readonly XRPass emptyPass = new XRPass();
 
+        // Bool that tells if xrsdk is available.
+        public bool xrSdkEnabled { get; private set; }
+
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
-#if USE_XR_SDK
         List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
         XRDisplaySubsystem display = null;
-#endif
 
-        internal XRSystem()
+        // Blit shader for the mirror view
+        Material mirrorViewMaterial;
+        MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
+
+        internal XRSystem(Shader xrMirrorViewPS)
         {
             RefreshXrSdk();
+
+            mirrorViewMaterial = CoreUtils.CreateEngineMaterial(xrMirrorViewPS);
         }
 
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras)
         {
             bool xrSdkActive = RefreshXrSdk();
+            xrSdkEnabled = xrSdkActive;
 
             // Validate state
             {
@@ -78,6 +86,58 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             return framePasses;
+        }
+
+        internal void RenderMirrorView(CommandBuffer cmd)
+        {
+            if (display == null)
+                return;
+
+            //using (new ProfilingSample(cmd, "XR Mirror View"))
+            {
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+
+                if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
+                {
+                    if (blitDesc.nativeBlitAvailable)
+                    {
+                        display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < blitDesc.blitParamsCount; ++i)
+                        {
+                            //@thomas TODO, respect to blit rect. use customized shader for this mirror view blit
+                            //Current impl will fail if srcTex is of texture array type.
+
+                            blitDesc.GetBlitParameter(i, out var blitParam);
+                            cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+                            cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
+                            //cmd.SetGlobalTexture("_BlitTex", new RenderTargetIdentifier(blitParam.srcTex));
+                            RenderTargetIdentifier id = new RenderTargetIdentifier(blitParam.srcTex);
+                            cmd.SetGlobalTexture("_BlitTex", id);
+
+                            //Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
+                            //Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
+
+                            //mirrorViewMaterialProperty.SetTexture(HDShaderIDs._BlitTexture, blitParam.srcTex);
+                            //mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+                            //mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+                            //mirrorViewMaterialProperty.SetInt(HDShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
+
+                            //int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
+                            // @thomas TODO: should avoid using SetGlobalTexture because _BlitTex is not a global texture
+                            int shaderPass = 0;
+
+                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Triangles, 3, 1);
+                        }
+                    }
+                }
+                else
+                {
+                    cmd.ClearRenderTarget(true, true, Color.blue);
+                }
+            }
         }
 
         bool RefreshXrSdk()

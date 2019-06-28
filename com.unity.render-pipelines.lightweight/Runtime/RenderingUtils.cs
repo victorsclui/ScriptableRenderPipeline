@@ -18,7 +18,8 @@ namespace UnityEngine.Rendering.LWRP
             new ShaderTagId("VertexLM"),
         };
 
-        //@ thomas: TODO, remove fullscreenmesh. Full screen fx can use fast full triangle pass. ScreenSpaceShadowResolve pass is currently using this mesh.
+        // @ thomas: TODO, remove fullscreenmesh. Full screen fx can use fast full screen triangle pass so this data struct is redundant.
+        // ScreenSpaceShadowResolve pass is currently using this mesh. We should update the resolve pass to use fullscreen triangle and remove this struct.
         static Mesh s_FullscreenMesh = null;
         public static Mesh fullscreenMesh
         {

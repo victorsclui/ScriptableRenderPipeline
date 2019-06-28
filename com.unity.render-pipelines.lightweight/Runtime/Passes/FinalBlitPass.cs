@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.LWRP
                 // This set render target is necessary so we change the LOAD state to DontCare.
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
-                // Clearing render target is cost free on mobile and it avoid tile loading
+                // Clearing render target is cost free on mobile and it avoids tile loading
                 if (m_IsMobileOrSwitch)
                     cmd.ClearRenderTarget(true, true, Color.black);
                 

@@ -44,8 +44,8 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            // @thomas: TODO handles srgb.
-            bool requiresSRGBConvertion = true;
+            // @thomas: TODO handles srgb. fetch from display subsystem.
+            bool requiresSRGBConvertion = false;
 
             // @thomas: TODO handles color format
             bool killAlpha = renderingData.killAlphaInFinalBlit;
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
             {
-                // @thomas TODO: should avoid using SetGlobalTexture as _BlitTex is not a global texture.
+                // @thomas TODO: should avoid using SetGlobalTexture because _BlitTex is not a global texture.
                 cmd.SetGlobalTexture("_BlitTex", m_Source);
 
                 if (m_dstDesc.dimension == TextureDimension.Tex2DArray)

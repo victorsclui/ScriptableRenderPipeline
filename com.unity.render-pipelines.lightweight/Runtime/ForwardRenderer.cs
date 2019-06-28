@@ -117,13 +117,13 @@ namespace UnityEngine.Rendering.LWRP
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
                                       || rendererFeatures.Count != 0;
             // @thomas redirect rendering ouput to camera inermediate rt
-            createColorTexture = createColorTexture || xrpass.enabled;
+            createColorTexture = createColorTexture || xrpass.xrSdkEnabled;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
             bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
             // @thomas redirect rendering ouput to camera inermediate rt
-            createDepthTexture  = createDepthTexture || xrpass.enabled;
+            createDepthTexture  = createDepthTexture || xrpass.xrSdkEnabled;
 
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
             bool hasOpaquePostProcess = postProcessEnabled &&
@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.LWRP
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
             // Enable after rendering when process xrpass. Need to blit from camera's rendertarget to eye texture
-            hasAfterRendering = hasAfterRendering || xrpass.enabled;
+            hasAfterRendering = hasAfterRendering || xrpass.xrSdkEnabled;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -217,14 +217,13 @@ namespace UnityEngine.Rendering.LWRP
                     EnqueuePass(m_PostProcessPass);
                 }
 
-                // now blit into eye texture if xr is enabled
-                if(xrpass.enabled)
+                // Pure XRSDK: now blit into eye texture if xr is enabled
+                if(xrpass.xrSdkEnabled)
                 {
                     m_FinalBlitXRPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment.Identifier(), xrpass.renderTargetDesc, xrpass.renderTarget);
                     EnqueuePass(m_FinalBlitXRPass);
                 }
-
-                //now blit into the final target
+                // Legacy XR: now blit into the final target
                 else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {
                     if (renderingData.cameraData.captureActions != null)
@@ -233,13 +232,6 @@ namespace UnityEngine.Rendering.LWRP
                         EnqueuePass(m_CapturePass);
                     }
 
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
-                    EnqueuePass(m_FinalBlitPass);
-                }
-
-                //@thomas fixme! now pretend pass 1 is the last xrpass and blit to back buffer 
-                if(xrpass.multiparamId == 1)
-                {
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     EnqueuePass(m_FinalBlitPass);
                 }
