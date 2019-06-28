@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.LWRP
             RenderingUtils.ClearSystemInfoCache();
 
             //@thomas TODO refactor this line, should not have cast here
-            m_XRSystem = new XRSystem(((ForwardRendererData)asset.scriptableRendererData).shaders.blitPS);
+            m_XRSystem = new XRSystem(((ForwardRendererData)asset.scriptableRendererData).shaders.xrMirrorViewPS);
         }
 
         protected override void Dispose(bool disposing)

@@ -33,6 +33,12 @@ namespace UnityEngine.Rendering.LWRP
         Material mirrorViewMaterial;
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
 
+        // Shader property id
+        public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
+        public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
+        public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
+        public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
+
         internal XRSystem(Shader xrMirrorViewPS)
         {
             RefreshXrSdk();
@@ -107,35 +113,29 @@ namespace UnityEngine.Rendering.LWRP
                     {
                         for (int i = 0; i < blitDesc.blitParamsCount; ++i)
                         {
-                            //@thomas TODO, respect to blit rect. use customized shader for this mirror view blit
-                            //Current impl will fail if srcTex is of texture array type.
 
                             blitDesc.GetBlitParameter(i, out var blitParam);
                             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
                             cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
-                            //cmd.SetGlobalTexture("_BlitTex", new RenderTargetIdentifier(blitParam.srcTex));
-                            RenderTargetIdentifier id = new RenderTargetIdentifier(blitParam.srcTex);
-                            cmd.SetGlobalTexture("_BlitTex", id);
 
-                            //Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
-                            //Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
+                            Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
+                            Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
-                            //mirrorViewMaterialProperty.SetTexture(HDShaderIDs._BlitTexture, blitParam.srcTex);
-                            //mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
-                            //mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-                            //mirrorViewMaterialProperty.SetInt(HDShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
+                            mirrorViewMaterialProperty.SetTexture(_BlitTexture, blitParam.srcTex);
+                            mirrorViewMaterialProperty.SetVector(_BlitScaleBias, scaleBias);
+                            mirrorViewMaterialProperty.SetVector(_BlitScaleBiasRt, scaleBiasRT);
+                            mirrorViewMaterialProperty.SetInt(_BlitTexArraySlice, blitParam.srcTexArraySlice);
 
-                            //int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
-                            // @thomas TODO: should avoid using SetGlobalTexture because _BlitTex is not a global texture
-                            int shaderPass = 0;
+                            int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
 
-                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Triangles, 3, 1);
+                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Triangles, 3, 1, mirrorViewMaterialProperty);
                         }
                     }
                 }
                 else
                 {
-                    cmd.ClearRenderTarget(true, true, Color.blue);
+                    // Display subsystem is not ready for the mirror view yet, clear color to black for now.
+                    cmd.ClearRenderTarget(true, true, Color.black);
                 }
             }
         }

@@ -42,6 +42,9 @@ namespace UnityEngine.Rendering.LWRP
         
             [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
+
+            [SerializeField, Reload("Shaders/Utils/XRMirrorView.shader")]
+            public Shader xrMirrorViewPS;
         }
 
         public ShaderResources shaders = null;
