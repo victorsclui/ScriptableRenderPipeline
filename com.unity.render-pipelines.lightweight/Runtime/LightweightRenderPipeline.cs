@@ -178,8 +178,8 @@ namespace UnityEngine.Rendering.LWRP
                 additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
 #endif
 
-            InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
-            SetupPerCameraShaderConstants(cameraData);
+            InitializeCameraData(settings, camera, additionalCameraData, xrpass, out var cameraData);
+            SetupPerCameraShaderConstants(cameraData, xrpass);
 
             ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
             if (renderer == null)
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        static void InitializeCameraData(LightweightRenderPipelineAsset settings, Camera camera, LWRPAdditionalCameraData additionalCameraData, out CameraData cameraData)
+        static void InitializeCameraData(LightweightRenderPipelineAsset settings, Camera camera, LWRPAdditionalCameraData additionalCameraData, XRPass xrpass, out CameraData cameraData)
         {
             const float kRenderScaleThreshold = 0.05f;
             cameraData.camera = camera;
@@ -299,8 +299,19 @@ namespace UnityEngine.Rendering.LWRP
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(camera);
 
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
-                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
+            // Pure XRSDK: use desc from xrsdk
+            if (xrpass.xrSdkEnabled)
+            {
+                cameraData.cameraTargetDescriptor = xrpass.renderTargetDesc;
+                cameraData.xrPass = xrpass;
+            }
+            // Legacy XR: configure camera render target
+            else
+            {
+                cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+                    cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
+                cameraData.xrPass = null;
+            }
         }
 
         static void InitializeRenderingData(LightweightRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
@@ -507,22 +518,46 @@ namespace UnityEngine.Rendering.LWRP
             Shader.SetGlobalVector(PerFrameBuffer._SubtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
-        static void SetupPerCameraShaderConstants(CameraData cameraData)
+        static void SetupPerCameraShaderConstants(CameraData cameraData, XRPass xrpass)
         {
             Camera camera = cameraData.camera;
 
-            float scaledCameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
-            float scaledCameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
-            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
-            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
-            float cameraWidth = (float)cameraData.camera.pixelWidth;
-            float cameraHeight = (float)cameraData.camera.pixelHeight;
-            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            float scaledCameraWidth = 0; 
+            float scaledCameraHeight = 0; 
 
-            Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
-            Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+            float cameraWidth = 0; 
+            float cameraHeight = 0;
+
+            Matrix4x4 projMatrix = Matrix4x4.identity;
+            Matrix4x4 viewMatrix = Matrix4x4.identity;
+            if (xrpass.xrSdkEnabled)
+            {
+                // @thomas TODO PureXRSDK , handles scale. In XR this is called adaptive pixel density. How it is being handled?
+                scaledCameraWidth = xrpass.renderTargetDesc.width;
+                scaledCameraHeight = xrpass.renderTargetDesc.height;
+                cameraWidth = xrpass.renderTargetDesc.width;
+                cameraHeight = xrpass.renderTargetDesc.height;
+
+                projMatrix = xrpass.GetProjMatrix(0);
+                viewMatrix = xrpass.GetViewMatrix(0);
+            }
+            else
+            {
+                scaledCameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
+                scaledCameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
+                cameraWidth = (float)cameraData.camera.pixelWidth;
+                cameraHeight = (float)cameraData.camera.pixelHeight;
+
+                projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+                viewMatrix = camera.worldToCameraMatrix;
+            }
+            
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+
+            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
+            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
         }
 

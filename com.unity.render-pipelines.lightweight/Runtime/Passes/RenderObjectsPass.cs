@@ -84,23 +84,38 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                //@thomas Pure XRSDK TODO, investigate what does this code do
                 if (m_CameraSettings.overrideCamera)
                 {
-                    Matrix4x4 projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
-                        camera.nearClipPlane, camera.farClipPlane);
+                    if (renderingData.cameraData.xrPass.xrSdkEnabled)
+                    {
+                        Matrix4x4 projMatrix = renderingData.cameraData.xrPass.GetProjMatrix(0);
+                        Matrix4x4 viewMatrix = renderingData.cameraData.xrPass.GetViewMatrix(0);
+                        cmd.SetViewProjectionMatrices(viewMatrix, projMatrix);
+                    }
+                    else
+                    {
+                        Matrix4x4 projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
+                            camera.nearClipPlane, camera.farClipPlane);
 
-                    Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
-                    Vector4 cameraTranslation = viewMatrix.GetColumn(3);
-                    viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
+                        Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                        Vector4 cameraTranslation = viewMatrix.GetColumn(3);
+                        viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
+                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+                    }
 
-                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                     context.ExecuteCommandBuffer(cmd);
                 }
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
                     ref m_RenderStateBlock);
 
-                if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera)
+                //@thomas Pure XRSDK TODO, investigate what does this code do
+                if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera
+                    // XRSDK begin
+                    && !renderingData.cameraData.xrPass.xrSdkEnabled
+                    // XRSDK end
+                    )
                 {
                     Matrix4x4 projectionMatrix = Matrix4x4.Perspective(camera.fieldOfView, cameraAspect,
                         camera.nearClipPlane, camera.farClipPlane);

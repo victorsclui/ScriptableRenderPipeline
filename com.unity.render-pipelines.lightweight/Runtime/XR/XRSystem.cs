@@ -128,7 +128,8 @@ namespace UnityEngine.Rendering.LWRP
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
 
-                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Triangles, 3, 1, mirrorViewMaterialProperty);
+                            // Draw full screen quad using VS
+                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
                         }
                     }
                 }

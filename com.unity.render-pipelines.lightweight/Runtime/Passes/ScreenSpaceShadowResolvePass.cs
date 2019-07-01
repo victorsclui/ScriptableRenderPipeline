@@ -55,7 +55,18 @@ namespace UnityEngine.Rendering.LWRP
             {
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
-                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+
+                //@thomas Pure XRSDK TODO, consolidate changes
+                if (renderingData.cameraData.xrPass.xrSdkEnabled)
+                {
+                    Matrix4x4 projMatrix = renderingData.cameraData.xrPass.GetProjMatrix(0);
+                    Matrix4x4 viewMatrix = renderingData.cameraData.xrPass.GetViewMatrix(0);
+                    cmd.SetViewProjectionMatrices(viewMatrix, projMatrix);
+                }
+                else
+                {
+                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                }
             }
             else
             {

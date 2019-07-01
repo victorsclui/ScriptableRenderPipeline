@@ -208,6 +208,7 @@ namespace UnityEngine.Rendering.LWRP
             // Used to render input textures like shadowmaps.
             ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
 
+            //@thomas TODO. The following comment is usefully, let's do all that in srp and remove SetupCameraProperties!
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
             /// * VR Camera Setup and SINGLE_PASS_STEREO props
