@@ -310,7 +310,8 @@ namespace UnityEngine.Rendering.LWRP
             {
                 cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
                     cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
-                cameraData.xrPass = null;
+                // assign xrpass that has xrsdkenable = false
+                cameraData.xrPass = xrpass;
             }
         }
 
