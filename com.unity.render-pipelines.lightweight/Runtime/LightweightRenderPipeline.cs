@@ -1,3 +1,4 @@
+#define USE_PURE_XRSDK
 using System;
 using Unity.Collections;
 #if UNITY_EDITOR
@@ -139,35 +140,36 @@ namespace UnityEngine.Rendering.LWRP
             foreach ((Camera camera, XRPass xrPass) in multipassCameras)
             {
                 BeginCameraRendering(renderContext, camera);
-
-                VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
-                RenderSingleCamera(renderContext, camera, xrPass);
-
-                EndCameraRendering(renderContext, camera);
-            }
-
-            // Pure XRSDK: mirror view @thomas TODO create proper abstraction
-            if(m_XRSystem.xrSdkEnabled)
-            {
-                CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
-                using (new ProfilingSample(cmd, k_RenderMirrorViewTag))
+                if (xrPass.isMirrorPass == false)
                 {
-                    cmd.Clear();
-                    m_XRSystem.RenderMirrorView(cmd);
-                    renderContext.ExecuteCommandBuffer(cmd);
+                    VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+                    RenderSingleCamera(renderContext, camera, xrPass);
                 }
-                CommandBufferPool.Release(cmd);
-                renderContext.Submit();
+                else
+                {
+                    // Pure XRSDK: mirror view @thomas TODO create proper abstraction
+                    if (m_XRSystem.xrSdkEnabled)
+                    {
+                        CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
+                        using (new ProfilingSample(cmd, k_RenderMirrorViewTag))
+                        {
+                            cmd.Clear();
+                            m_XRSystem.RenderMirrorView(cmd);
+                            renderContext.ExecuteCommandBuffer(cmd);
+                        }
+                        CommandBufferPool.Release(cmd);
+                        renderContext.Submit();
+                    }
+                }
+                EndCameraRendering(renderContext, camera);
             }
 
             m_XRSystem.ReleaseFrame();
             EndFrameRendering(renderContext, cameras);
         }
 
-        public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera, XRPass xrpass)
+        public void RenderSingleCamera(ScriptableRenderContext context, Camera camera, XRPass xrpass)
         {
-            if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
-                return;
 
             var settings = asset;
             LWRPAdditionalCameraData additionalCameraData = null;
@@ -196,6 +198,13 @@ namespace UnityEngine.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(tag);
             using (new ProfilingSample(cmd, tag))
             {
+#if (USE_PURE_XRSDK)
+                if (!m_XRSystem.GetCullingParameters(camera, xrpass, out var cullingParameters))
+                    return;
+#else
+                if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
+                    return;
+#endif
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 

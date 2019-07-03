@@ -72,7 +72,8 @@ namespace UnityEngine.Rendering.LWRP
 
                 // Enable XR layout only for gameview camera
                 // XRTODO: support render to texture
-                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
+                // @thomas TODO, similar logic in GetCullingParameters, group them up into one function to keep them consistant.
+                bool xrSupported = camera.cameraType == CameraType.Game /*&& camera.targetTexture == null*/;
 
                 if (xrEnabled && xrSupported)
                 {
@@ -99,46 +100,45 @@ namespace UnityEngine.Rendering.LWRP
             if (display == null)
                 return;
 
-            //using (new ProfilingSample(cmd, "XR Mirror View"))
+            
+            cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+
+            if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
             {
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-
-                if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
+                if (blitDesc.nativeBlitAvailable)
                 {
-                    if (blitDesc.nativeBlitAvailable)
-                    {
-                        display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates);
-                    }
-                    else
-                    {
-                        for (int i = 0; i < blitDesc.blitParamsCount; ++i)
-                        {
-
-                            blitDesc.GetBlitParameter(i, out var blitParam);
-                            cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
-                            cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
-
-                            Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
-                            Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
-
-                            mirrorViewMaterialProperty.SetTexture(_BlitTexture, blitParam.srcTex);
-                            mirrorViewMaterialProperty.SetVector(_BlitScaleBias, scaleBias);
-                            mirrorViewMaterialProperty.SetVector(_BlitScaleBiasRt, scaleBiasRT);
-                            mirrorViewMaterialProperty.SetInt(_BlitTexArraySlice, blitParam.srcTexArraySlice);
-
-                            int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
-
-                            // Draw full screen quad using VS
-                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
-                        }
-                    }
+                    display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates);
                 }
                 else
                 {
-                    // Display subsystem is not ready for the mirror view yet, clear color to black for now.
-                    cmd.ClearRenderTarget(true, true, Color.black);
+                    for (int i = 0; i < blitDesc.blitParamsCount; ++i)
+                    {
+
+                        blitDesc.GetBlitParameter(i, out var blitParam);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
+
+                        Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
+                        Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
+
+                        mirrorViewMaterialProperty.SetTexture(_BlitTexture, blitParam.srcTex);
+                        mirrorViewMaterialProperty.SetVector(_BlitScaleBias, scaleBias);
+                        mirrorViewMaterialProperty.SetVector(_BlitScaleBiasRt, scaleBiasRT);
+                        mirrorViewMaterialProperty.SetInt(_BlitTexArraySlice, blitParam.srcTexArraySlice);
+
+                        int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
+
+                        // Draw full screen quad using VS
+                        cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
+                    }
                 }
             }
+            else
+            {
+                // Display subsystem is not ready for the mirror view yet, clear color to black for now.
+                cmd.ClearRenderTarget(true, true, Color.black);
+            }
+            
         }
 
         bool RefreshXrSdk()
@@ -213,7 +213,12 @@ namespace UnityEngine.Rendering.LWRP
                         var xrPass = XRPass.Create(renderPass);
                         xrPass.AddView(renderParam);
                         xrPass.multiparamId = renderParamIndex;
-
+                        xrPass.isMirrorPass = false;
+                        AddPassToFrame(camera, xrPass);
+                    }
+                    {
+                        var xrPass = XRPass.Create(renderPass);
+                        xrPass.isMirrorPass = true;
                         AddPassToFrame(camera, xrPass);
                     }
                 }
@@ -255,6 +260,12 @@ namespace UnityEngine.Rendering.LWRP
             if (display != null)
             {
                 display.GetCullingParameters(camera, xrPass.cullingPassId, out cullingParams);
+                if (camera.cameraType == CameraType.Game)
+                {
+                    //XRTODO: remove this hack after culling pass is ready.
+                    camera.worldToCameraMatrix = (cullingParams.stereoViewMatrix);
+                    camera.projectionMatrix = (cullingParams.stereoProjectionMatrix);
+                }
             }
             else
 #endif

@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering.LWRP
         internal bool enabled      { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
 
+        //@thomas TODO: make this better
+        internal bool isMirrorPass { get; set; }
         internal int multipassId    { get; private set; }
         internal int multiparamId   { get; set; }
 
@@ -118,6 +120,7 @@ namespace UnityEngine.Rendering.LWRP
 #if USE_XR_SDK
             passInfo.tempRenderTextureDesc = default;
 #endif
+            passInfo.isMirrorPass = false;
 
             return passInfo;
         }
@@ -162,7 +165,7 @@ namespace UnityEngine.Rendering.LWRP
                     passInfo.tempRenderTextureDesc = xrRenderPass.renderTargetDesc;
                 }
             }
-
+            passInfo.isMirrorPass = false;
             return passInfo;
         }
 
