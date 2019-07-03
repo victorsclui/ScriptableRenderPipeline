@@ -39,7 +39,8 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
-        public string title;
+        [VFXSetting, SerializeField]
+        protected string title;
 
         public int index
         {
@@ -53,7 +54,7 @@ namespace UnityEditor.VFX
                 int i = this.index;
                 if (i < 0)
                     return string.Empty;
-                return string.IsNullOrEmpty(title)?string.Format("System {0}",i):title;
+                return string.Format("System {0}", i);
             }
         }
 

@@ -42,9 +42,9 @@ namespace UnityEditor.VFX.UI
                     if (data != null)
                     {
                         int index = value.IndexOfAny(new char[] { '\r', '\n' });
-                        data.title = index == -1 ? value : value.Substring(0, index);
+                        data.SetSettingValue("title", index == -1 ? value : value.Substring(0, index));
                     }
-                    m_ViewController.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                   data.owners.First().Invalidate(VFXModel.InvalidationCause.kSettingChanged);// TODO: tmp
                 }
             }
         }

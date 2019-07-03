@@ -620,6 +620,7 @@ namespace UnityEditor.VFX
 
             outSystemDescs.Add(new VFXEditorSystemDesc()
             {
+                name = fileName,
                 flags = systemFlag,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
