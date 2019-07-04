@@ -123,14 +123,14 @@ namespace UnityEditor.VFX.UI
             elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
 
-            m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos),null, GetAcceptedTypeNodes());
+            m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos), null, GetAcceptedTypeNodes());
 
             //Make sure a subgraph block as a block subgraph  context
             if (controller.model.isSubgraph && controller.model.subgraph is VisualEffectSubgraphBlock)
             {
-                if( !controller.graph.children.Any(t=>t is VFXBlockSubgraphContext) )
+                if (!controller.graph.children.Any(t => t is VFXBlockSubgraphContext))
                 {
-                    controller.graph.AddChild(VFXBlockSubgraphContext.CreateInstance<VFXBlockSubgraphContext>(),0);
+                    controller.graph.AddChild(VFXBlockSubgraphContext.CreateInstance<VFXBlockSubgraphContext>(), 0);
                 }
             }
         }
@@ -170,6 +170,30 @@ namespace UnityEditor.VFX.UI
 
                 RemoveElement(edge.Value);
                 dataEdges.Remove(edge.Key);
+            }
+        }
+
+        internal string UniqueName(VFXSystemBorder systemBorder)
+        {
+            var unindexedName = System.Text.RegularExpressions.Regex.Replace(systemBorder.title, @"( \(([0-9])*\))$", "");
+            unindexedName = System.Text.RegularExpressions.Regex.Escape(unindexedName);
+
+            var patternOriginalAndDuplicate = "^" + unindexedName + @"( \(([0-9])*\))?$";
+
+            var originalAndDuplicates = m_Systems.Where(s => s != systemBorder && System.Text.RegularExpressions.Regex.IsMatch(s.title, patternOriginalAndDuplicate));
+            var original = originalAndDuplicates.Where(s => s.title == systemBorder.title);
+
+            int i = originalAndDuplicates.Count();
+            if (originalAndDuplicates.Count() == 0 || original.Count() == 0)
+                return systemBorder.title;
+            else
+            {
+                var newName = unindexedName + " (" + i + ")";
+                while (originalAndDuplicates.Where(s => s.title == newName).Count() != 0)
+                {
+                    newName = unindexedName + " (" + ++i + ")";
+                }
+                return newName;
             }
         }
 
@@ -222,9 +246,9 @@ namespace UnityEditor.VFX.UI
             {
                 string path = d.modelDescriptor as string;
 
-                if(! path.StartsWith(VisualEffectAssetEditorUtility.templatePath) )
+                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
                 {
-                    if( Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
+                    if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
                     {
                         var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
                         if (subGraph != null && (!controller.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) && subGraph.GetResource() != controller.model))
@@ -573,7 +597,7 @@ namespace UnityEditor.VFX.UI
             }
 
             m_InControllerChanged = false;
-            if(change != VFXViewController.Change.dataEdge)
+            if (change != VFXViewController.Change.dataEdge)
                 UpdateSystems();
 
             if (m_UpdateUIBounds)
@@ -1154,7 +1178,7 @@ namespace UnityEditor.VFX.UI
 
             if (startAnchor is VFXDataAnchor)
             {
-                var controllers = controller.GetCompatiblePorts((startAnchor as  VFXDataAnchor).controller, nodeAdapter);
+                var controllers = controller.GetCompatiblePorts((startAnchor as VFXDataAnchor).controller, nodeAdapter);
                 return controllers.Select(t => (Port)GetDataAnchorByController(t as VFXDataAnchorController)).ToList();
             }
             else
@@ -1219,8 +1243,8 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
-                
-                foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
+
+                foreach (var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
                 {
                     RemoveElement(dataEdge);
                     dataEdges.Remove(dataEdge.controller);
@@ -1518,7 +1542,7 @@ namespace UnityEditor.VFX.UI
                 {
                     VFXContextUI topContext = flowEdge.output.GetFirstAncestorOfType<VFXContextUI>();
                     VFXContextUI bottomContext = flowEdge.input.GetFirstAncestorOfType<VFXContextUI>();
-                    if (contexts.Contains(topContext)  && !contexts.Contains(bottomContext))
+                    if (contexts.Contains(topContext) && !contexts.Contains(bottomContext))
                     {
                         float topContextBottom = topContext.layout.yMax;
                         float newTopContextBottom = topContext.layout.yMax + size;
@@ -1613,11 +1637,11 @@ namespace UnityEditor.VFX.UI
 
             if (evt.target is VFXView)
             {
-                evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); },(e) => DropdownMenuAction.Status.Normal);
+                evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); }, (e) => DropdownMenuAction.Status.Normal);
 
-                if( evt.triggerEvent is IMouseEvent)
+                if (evt.triggerEvent is IMouseEvent)
                 {
-                    foreach( var system in m_Systems)
+                    foreach (var system in m_Systems)
                     {
                         Rect bounds = system.worldBound;
                         if (bounds.Contains((evt.triggerEvent as IMouseEvent).mousePosition))
@@ -1649,7 +1673,7 @@ namespace UnityEditor.VFX.UI
                     evt.menu.InsertAction(3, "To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
                 }
             }
-            
+
         }
 
 
@@ -1659,9 +1683,9 @@ namespace UnityEditor.VFX.UI
             if (selectedContexts.Count() < 1)
                 return false;
 
-            HashSet<VFXData> usedDatas = new HashSet<VFXData>(selectedContexts.Select(t => t.controller.model.GetData()).Where(t=>t != null));
+            HashSet<VFXData> usedDatas = new HashSet<VFXData>(selectedContexts.Select(t => t.controller.model.GetData()).Where(t => t != null));
 
-            foreach( var context in GetAllContexts())
+            foreach (var context in GetAllContexts())
             {
                 if (usedDatas.Contains(context.controller.model.GetData()) && !selectedContexts.Contains(context))
                     return false;
@@ -1697,7 +1721,7 @@ namespace UnityEditor.VFX.UI
                 border.RemoveFromHierarchy();
             }
 
-            foreach(var system in m_Systems)
+            foreach (var system in m_Systems)
             {
                 system.Update();
             }
@@ -1717,7 +1741,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXBlackboardField selectedField = selection.OfType<VFXBlackboardField>().Where(t => t.GetFirstAncestorOfType<VFXBlackboardRow>() != null).First();
 
-                if( selectedField.controller.isOutput &&selectedField.controller.nodeCount > 0 )
+                if (selectedField.controller.isOutput && selectedField.controller.nodeCount > 0)
                 {
                     return;
                 }
@@ -1746,7 +1770,7 @@ namespace UnityEditor.VFX.UI
                 }
 
                 var droppedBlocks = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>();
-                if (droppedBlocks.Count() > 0 && !controller.model.isSubgraph )
+                if (droppedBlocks.Count() > 0 && !controller.model.isSubgraph)
                 {
                     DragAndDrop.visualMode = DragAndDropVisualMode.Link;
                     e.StopPropagation();
