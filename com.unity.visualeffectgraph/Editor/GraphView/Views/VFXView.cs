@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -12,7 +13,6 @@ using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
-
 using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
@@ -183,16 +183,16 @@ namespace UnityEditor.VFX.UI
             var originalAndDuplicates = m_Systems.Where(s => s != systemBorder && System.Text.RegularExpressions.Regex.IsMatch(s.title, patternOriginalAndDuplicate));
             var original = originalAndDuplicates.Where(s => s.title == systemBorder.title);
 
-            int i = originalAndDuplicates.Count();
-            if (originalAndDuplicates.Count() == 0 || original.Count() == 0)
+            if (original.Count() == 0)
                 return systemBorder.title;
             else
             {
+                int i = 1;
                 var newName = unindexedName + " (" + i + ")";
-                while (originalAndDuplicates.Where(s => s.title == newName).Count() != 0)
-                {
+                var systems = originalAndDuplicates.ToList();
+                while (systems.Find(s => s.title == newName) != null)
                     newName = unindexedName + " (" + ++i + ")";
-                }
+                
                 return newName;
             }
         }
