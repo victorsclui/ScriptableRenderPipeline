@@ -932,9 +932,9 @@ namespace UnityEditor.ShaderGraph
             using (vertexInputs.BlockSemicolonScope())
             {
                 vertexInputs.AppendLine("float4 vertex : POSITION;");
-                if(graphRequiements.requiresNormal != NeededCoordinateSpace.None)
+                if(graphRequiements.requiresNormal != NeededCoordinateSpace.None || graphRequiements.requiresBitangent != NeededCoordinateSpace.None)
                     vertexInputs.AppendLine("float3 normal : NORMAL;");
-                if(graphRequiements.requiresTangent != NeededCoordinateSpace.None)
+                if(graphRequiements.requiresTangent != NeededCoordinateSpace.None || graphRequiements.requiresBitangent != NeededCoordinateSpace.None)
                     vertexInputs.AppendLine("float4 tangent : TANGENT;");
                 if (graphRequiements.requiresVertexColor)
                 {
@@ -1193,7 +1193,7 @@ namespace UnityEditor.ShaderGraph
 
             if (requirements.requiresTime)
             {
-                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = {ShaderGeneratorNames.TimeParameters};");
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = IN.{ShaderGeneratorNames.TimeParameters};");
             }
         }
 
