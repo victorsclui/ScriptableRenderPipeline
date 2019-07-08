@@ -29,8 +29,7 @@ Shader "Hidden/Lightweight Render Pipeline/ScreenSpaceShadows"
 
         struct Attributes
         {
-            float4 positionOS   : POSITION;
-            float2 texcoord : TEXCOORD0;
+            uint vertexID : SV_VertexID;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
@@ -47,12 +46,13 @@ Shader "Hidden/Lightweight Render Pipeline/ScreenSpaceShadows"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-            output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+            output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
 
+            float2 texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             float4 projPos = output.positionCS * 0.5;
             projPos.xy = projPos.xy + projPos.w;
 
-            output.uv.xy = UnityStereoTransformScreenSpaceTex(input.texcoord);
+            output.uv.xy = UnityStereoTransformScreenSpaceTex(texcoord);
             output.uv.zw = projPos.xy;
 
             return output;

@@ -63,7 +63,6 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
             {
-                // @thomas TODO: should avoid using SetGlobalTexture because _BlitTex is not a global texture.
                 cmd.SetGlobalTexture("_BlitTex", m_Source);
 
                 if (m_dstDesc.dimension == TextureDimension.Tex2DArray)

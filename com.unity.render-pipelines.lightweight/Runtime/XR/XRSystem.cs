@@ -103,6 +103,7 @@ namespace UnityEngine.Rendering.LWRP
             
             cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
+            // Null represents backbuffer as render texture
             if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
             {
                 if (blitDesc.nativeBlitAvailable)

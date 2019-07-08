@@ -7,7 +7,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
     internal static class Light2DEditorUtility
     {
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
-        
+
+        static Mesh k_MeshQuad_Cache;
+        static Mesh k_MeshQuad => k_MeshQuad_Cache == null || k_MeshQuad_Cache.Equals(null) ? (k_MeshQuad_Cache = Resources.GetBuiltinResource<Mesh>("Quad.fbx")) : k_MeshQuad_Cache;
+
         static internal void GUITextureCap(int controlID, Texture texture, Vector3 position, Quaternion rotation, float size, EventType eventType, bool isAngleHandle)
         {
             switch (eventType)
@@ -38,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         Matrix4x4 matrix = new Matrix4x4();
                         matrix.SetTRS(position, rotation, scale);
 
-                        Graphics.DrawMeshNow(RenderingUtils.fullscreenMesh, matrix);
+                        Graphics.DrawMeshNow(k_MeshQuad, matrix);
                     }
                     break;
             }
