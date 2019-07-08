@@ -173,11 +173,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        internal string UniqueName(VFXSystemBorder systemBorder)
+        internal string UniqueSystemName(VFXSystemBorder systemBorder)
         {
+            if (string.IsNullOrEmpty(systemBorder.title))
+                return systemBorder.title;
+
             var unindexedName = System.Text.RegularExpressions.Regex.Replace(systemBorder.title, @"( \(([0-9])*\))$", "");
             unindexedName = System.Text.RegularExpressions.Regex.Escape(unindexedName);
-
             var patternOriginalAndDuplicate = "^" + unindexedName + @"( \(([0-9])*\))?$";
 
             var originalAndDuplicates = m_Systems.Where(s => s != systemBorder && System.Text.RegularExpressions.Regex.IsMatch(s.title, patternOriginalAndDuplicate));
@@ -188,11 +190,40 @@ namespace UnityEditor.VFX.UI
             else
             {
                 int i = 1;
-                var newName = unindexedName + " (" + i + ")";
+                var format = "{0} ({1})";
+                var newName = string.Format(format, unindexedName, i);
                 var systems = originalAndDuplicates.ToList();
                 while (systems.Find(s => s.title == newName) != null)
-                    newName = unindexedName + " (" + ++i + ")";
+                {
+                    newName = string.Format(format, unindexedName, ++i);
+                }
                 
+                return newName;
+            }
+        }
+
+        internal string UniqueSpawnerName(VFXContextUI contextUI)
+        {
+            var attemptedName = contextUI.controller.model.label;
+            var unindexedName = System.Text.RegularExpressions.Regex.Replace(attemptedName, @"( \(([0-9])*\))$", "");
+            unindexedName = System.Text.RegularExpressions.Regex.Escape(unindexedName);
+            var patternOriginalAndDuplicate = "^" + unindexedName + @"( \(([0-9])*\))?$";
+
+            var originalAndDuplicates = this.Query().OfType<VFXContextUI>().Where(c => c.controller.model.contextType == VFXContextType.Spawner && c != contextUI && System.Text.RegularExpressions.Regex.IsMatch(c.controller.model.label, patternOriginalAndDuplicate)).ToList();
+            var original = originalAndDuplicates.Where(c => c.controller.model.label == attemptedName);
+
+            if (original.Count() == 0)
+                return attemptedName;
+            else
+            {
+                int i = 1;
+                var format = "{0} ({1})";
+                var newName = string.Format(format, unindexedName, i);
+                var systems = originalAndDuplicates.ToList();
+                while (systems.Find(s => s.title == newName) != null)
+                {
+                    newName = string.Format(format, unindexedName, ++i);
+                }
                 return newName;
             }
         }

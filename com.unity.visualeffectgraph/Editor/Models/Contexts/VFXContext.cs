@@ -72,6 +72,19 @@ namespace UnityEditor.VFX
                 Invalidate(invalidationCause);
             }
         }
+        /// <summary>
+        /// Returns label if not null or empty, else a name is computed using an index and this context's type.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        internal string NativeName(int index)
+        {
+                // label is created using VFXView.UniqueSpawnerName
+                if (!string.IsNullOrEmpty(label))
+                    return label;
+                else
+                    return string.Format("{0} {1}", contextType.ToString(), index);
+        }
 
         private VFXContext() { m_UICollapsed = false; } // Used by serialization
 

@@ -39,6 +39,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return base.controller as VFXContextController; }
         }
+
         protected override void OnNewController()
         {
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
@@ -886,6 +887,11 @@ namespace UnityEditor.VFX.UI
                 .Replace("\"", "")
                 .Replace("|", "")
                 ;
+            if (controller.model.contextType == VFXContextType.Spawner)
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+                controller.model.label =  view.UniqueSpawnerName(this);
+            }
             m_TextField.style.display = DisplayStyle.None;
         }
         void OnTitleRelayout(GeometryChangedEvent e)
