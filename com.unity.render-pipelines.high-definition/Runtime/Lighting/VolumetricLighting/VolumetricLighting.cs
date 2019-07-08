@@ -717,6 +717,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int              volumetricLightingKernel;
 
             public bool             tiledLighting;
+            public bool             enableVxShadows; //seongdae;vxsm
             public Vector4          resolution;
             public int              numBigTileX, numBigTileY;
             public float            unitDepthTexelSpacing;
@@ -741,8 +742,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             parameters.enableReprojection = Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game &&
                                           hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
                 bool enableAnisotropy   = fog.anisotropy.value != 0;
-            bool enableVxShadows    = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadow) && //seongdae;vxsm
-                                      hdCamera.frameSettings.IsEnabled(FrameSettingsField.VxShadows); //seongdae;vxsm
+            parameters.enableVxShadows = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadow) && //seongdae;vxsm
+                                         hdCamera.frameSettings.IsEnabled(FrameSettingsField.VxShadows); //seongdae;vxsm
             bool highQuality = volumetricLightingPreset == VolumetricLightingPreset.High;
 
             parameters.volumetricLightingCS = m_VolumetricLightingCS;
@@ -788,10 +789,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                             CommandBuffer                   cmd)
         {
             //seongdae;vxsm
-            var vxShadowMapsBuffer = enableVxShadows ?
+            var vxShadowMapsBuffer = parameters.enableVxShadows ?
                 VxShadowMapsManager.Instance.VxShadowMapsBuffer :
                 VxShadowMapsManager.Instance.VxShadowMapsNullBuffer;
-            cmd.SetComputeBufferParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VxShadowMapsBuffer, vxShadowMapsBuffer);
+            cmd.SetComputeBufferParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VxShadowMapsBuffer, vxShadowMapsBuffer);
             //seongdae;vxsm
             cmd.SetComputeIntParam(parameters.volumetricLightingCS, HDShaderIDs._NumTileBigTileX, parameters.numBigTileX);
             cmd.SetComputeIntParam(parameters.volumetricLightingCS, HDShaderIDs._NumTileBigTileY, parameters.numBigTileY);
