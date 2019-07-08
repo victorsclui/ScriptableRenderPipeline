@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
             }
         }
         /// <summary>
-        /// Returns label if not null or empty, else a name is computed using an index and this context's type.
+        /// Returns label if not null or empty, else a name is computed using index and this context's type.
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>

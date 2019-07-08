@@ -219,8 +219,7 @@ namespace UnityEditor.VFX.UI
                 int i = 1;
                 var format = "{0} ({1})";
                 var newName = string.Format(format, unindexedName, i);
-                var systems = originalAndDuplicates.ToList();
-                while (systems.Find(s => s.title == newName) != null)
+                while (originalAndDuplicates.Find(c => c.controller.model.label == newName) != null)
                 {
                     newName = string.Format(format, unindexedName, ++i);
                 }
