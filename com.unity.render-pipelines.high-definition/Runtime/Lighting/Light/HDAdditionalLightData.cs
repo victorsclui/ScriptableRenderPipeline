@@ -2545,13 +2545,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float[] SetLayerShadowCullDistances(float[] layerShadowCullDistances) => legacyLight.layerShadowCullDistances = layerShadowCullDistances;
 
         /// <summary>
-        /// Set Lightmap Bake Type.
-        /// </summary>
-        /// <param name="lightmapBakeType"></param>
-        /// <returns></returns>
-        public LightmapBakeType SetLightmapBakeType(LightmapBakeType lightmapBakeType) => legacyLight.lightmapBakeType = lightmapBakeType;
-
-        /// <summary>
         /// Get the list of supported light units depending on the current light type.
         /// </summary>
         /// <returns></returns>
@@ -2629,10 +2622,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return lightType != LightTypeExtent.Punctual;
         }
 
+#if UNITY_EDITOR
         internal static bool IsAreaLight(SerializedProperty lightType)
         {
             return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
         }
+#endif
 
 #endregion
 
