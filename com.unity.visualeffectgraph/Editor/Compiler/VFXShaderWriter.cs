@@ -5,6 +5,7 @@ using System.Text;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.VFX;
+using SysRegex = System.Text.RegularExpressions.Regex;
 
 namespace UnityEditor.VFX
 {
@@ -22,6 +23,26 @@ namespace UnityEditor.VFX
                 index /= (uint)kAlpha.Length;
             }
             return prefix;
+        }
+
+        /// <summary>
+        /// Given a set of string, returns elt if it is not already in set, or a suffixed copy to make it unique in set.
+        /// </summary>
+        /// <param name="set"></param>
+        /// <param name="elt"></param>
+        /// <returns></returns>
+        public static string MakeUnique(IEnumerable<string> set, string elt)
+        {
+
+            var unindexedName = SysRegex.Unescape(SysRegex.Replace(SysRegex.Escape(elt), @"( \(([0-9])*\))$", ""));
+            int i = 0;
+            var format = "{0} ({1})";
+            var newName = elt;
+            
+            while (set.Where(s => s == newName).Count() != 0)
+                newName = string.Format(format, unindexedName, ++i);
+
+            return newName;
         }
     }
 

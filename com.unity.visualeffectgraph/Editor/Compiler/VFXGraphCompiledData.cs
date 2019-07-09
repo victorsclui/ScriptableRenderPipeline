@@ -435,7 +435,6 @@ namespace UnityEditor.VFX
                     initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
                 });
             }
-            int id = 1;// id for unnamed spawners
             foreach (var spawnContext in spawners)
             {
                 var buffers = new List<VFXMapping>();
@@ -462,13 +461,14 @@ namespace UnityEditor.VFX
                 }
 
                 var contextData = contextToCompiledData[spawnContext];
+                var nativeName = VFXCodeGeneratorHelper.MakeUnique(outSystemDescs.Select(s => s.name), string.IsNullOrEmpty(spawnContext.label) ? "Spawner" : spawnContext.label);
                 outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
                     buffers = buffers.ToArray(),
                     capacity = 0u,
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
-                    name = string.IsNullOrEmpty(spawnContext.label) ? spawnContext.NativeName(id++) : spawnContext.label,
+                    name = nativeName,
                     tasks = spawnContext.activeFlattenedChildrenWithImplicit.Select((b, index) =>
                     {
                         var spawnerBlock = b as VFXAbstractSpawner;

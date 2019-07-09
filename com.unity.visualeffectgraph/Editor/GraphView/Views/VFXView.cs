@@ -174,64 +174,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        internal string UniqueSystemName(VFXSystemBorder systemBorder)
+        internal IEnumerable<string> GetSystemsTitles(VFXSystemBorder excludedBorder)
         {
-            if (string.IsNullOrEmpty(systemBorder.title))
-                return systemBorder.title;
-
-            var unindexedName = SysRegex.Replace(systemBorder.title, @"( \(([0-9])*\))$", "");
-            unindexedName = SysRegex.Escape(unindexedName);
-            var patternOriginalAndDuplicate = "^" + unindexedName + @"( \(([0-9])*\))?$";
-
-            var originalAndDuplicates = m_Systems.Where(system =>
-                system != systemBorder &&
-                SysRegex.IsMatch(system.title, patternOriginalAndDuplicate));
-            var original = originalAndDuplicates.Where(system => system.title == systemBorder.title);
-
-            if (original.Count() == 0)
-                return systemBorder.title;
+            if (excludedBorder == null)
+                return m_Systems.Select(system => system.title);
             else
-            {
-                int i = 1;
-                var format = "{0} ({1})";
-                var newName = string.Format(format, unindexedName, i);
-                var systems = originalAndDuplicates.ToList();
-                while (systems.Find(system => system.title == newName) != null)
-                    newName = string.Format(format, unindexedName, ++i);
-                
-                return newName;
-            }
+                return m_Systems.Where(system => system != excludedBorder).Select(system => system.title);
         }
 
-        internal string UniqueSpawnerName(VFXContextUI contextUI)
+        internal IEnumerable<string> GetSpawnerLabels(VFXContextUI excludedSpawner)
         {
-            var attemptedName = contextUI.controller.model.label;
-            if (string.IsNullOrEmpty(attemptedName))
-                return attemptedName;
-
-            var unindexedName = SysRegex.Replace(attemptedName, @"( \(([0-9])*\))$", "");
-            unindexedName = SysRegex.Escape(unindexedName);
-            var patternOriginalAndDuplicate = "^" + unindexedName + @"( \(([0-9])*\))?$";
-
-            var originalAndDuplicates = this.Query().OfType<VFXContextUI>().Where(spawner =>
-                spawner != contextUI &&
-                spawner.controller.model.contextType == VFXContextType.Spawner &&
-                SysRegex.IsMatch(spawner.controller.model.label, patternOriginalAndDuplicate));
-            var original = originalAndDuplicates.Where(spawner => spawner.controller.model.label == attemptedName).ToList();
-
-            if (original.Count() == 0)
-                return attemptedName;
+            if (excludedSpawner == null)
+                return this.Query().OfType<VFXContextUI>().ToList().Select(spawner => spawner.controller.model.label);
             else
-            {
-                int i = 1;
-                var format = "{0} ({1})";
-                var newName = string.Format(format, unindexedName, i);
-                var spawners = originalAndDuplicates.ToList();
-                while (spawners.Find(spawner => spawner.controller.model.label == newName) != null)
-                    newName = string.Format(format, unindexedName, ++i);
-                
-                return newName;
-            }
+                return this.Query().OfType<VFXContextUI>().Where(spawner => spawner != excludedSpawner).ToList().Select(spawner => spawner.controller.model.label);
         }
 
         public void RemoveNodeEdges(VFXNodeUI node)

@@ -887,10 +887,11 @@ namespace UnityEditor.VFX.UI
                 .Replace("\"", "")
                 .Replace("|", "")
                 ;
-            if (controller.model.contextType == VFXContextType.Spawner)
+            if (controller.model.contextType == VFXContextType.Spawner && !string.IsNullOrEmpty(controller.model.label))
             {
                 VFXView view = GetFirstAncestorOfType<VFXView>();
-                controller.model.label =  view.UniqueSpawnerName(this);
+                var spawnerLabels = view.GetSpawnerLabels(this);
+                controller.model.label = VFXCodeGeneratorHelper.MakeUnique(spawnerLabels, controller.model.label);
             }
             m_TextField.style.display = DisplayStyle.None;
         }

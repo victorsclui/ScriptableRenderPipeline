@@ -72,15 +72,6 @@ namespace UnityEditor.VFX
                 Invalidate(invalidationCause);
             }
         }
-        /// <summary>
-        /// Returns a name made using contextType suffixed with a supplied index.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        internal string NativeName(int index)
-        {
-            return string.Format("{0} {1}", contextType.ToString(), index);
-        }
 
         private VFXContext() { m_UICollapsed = false; } // Used by serialization
 

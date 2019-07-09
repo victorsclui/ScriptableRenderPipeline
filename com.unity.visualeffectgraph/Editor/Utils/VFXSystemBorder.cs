@@ -150,10 +150,15 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleBlur(FocusOutEvent e)
         {
-            VFXView view = GetFirstAncestorOfType<VFXView>();
 
             title = m_TitleField.value.Trim();
-            title = view.UniqueSystemName(this);
+            if (!string.IsNullOrEmpty(title))
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+                var systemTitles = view.GetSystemsTitles(this);
+                title = VFXCodeGeneratorHelper.MakeUnique(systemTitles, title);
+            }
+
             m_TitleField.style.display = DisplayStyle.None;
 
             controller.title = title;

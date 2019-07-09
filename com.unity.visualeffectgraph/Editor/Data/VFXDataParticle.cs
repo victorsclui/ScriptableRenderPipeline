@@ -618,9 +618,10 @@ namespace UnityEditor.VFX
                 taskDescs.Add(taskDesc);
             }
 
+            var nativeName = VFXCodeGeneratorHelper.MakeUnique(outSystemDescs.Select(s => s.name), fileName);
             outSystemDescs.Add(new VFXEditorSystemDesc()
             {
-                name = fileName,
+                name = nativeName,
                 flags = systemFlag,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
