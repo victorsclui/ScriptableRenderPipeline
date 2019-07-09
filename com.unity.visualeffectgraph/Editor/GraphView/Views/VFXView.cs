@@ -14,6 +14,7 @@ using UnityEngine.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
 using PositionType = UnityEngine.UIElements.Position;
+using SysRegex = System.Text.RegularExpressions.Regex;
 
 namespace UnityEditor.VFX.UI
 {
@@ -178,12 +179,14 @@ namespace UnityEditor.VFX.UI
             if (string.IsNullOrEmpty(systemBorder.title))
                 return systemBorder.title;
 
-            var unindexedName = System.Text.RegularExpressions.Regex.Replace(systemBorder.title, @"( \(([0-9])*\))$", "");
-            unindexedName = System.Text.RegularExpressions.Regex.Escape(unindexedName);
+            var unindexedName = SysRegex.Replace(systemBorder.title, @"( \(([0-9])*\))$", "");
+            unindexedName = SysRegex.Escape(unindexedName);
             var patternOriginalAndDuplicate = "^" + unindexedName + @"( \(([0-9])*\))?$";
 
-            var originalAndDuplicates = m_Systems.Where(s => s != systemBorder && System.Text.RegularExpressions.Regex.IsMatch(s.title, patternOriginalAndDuplicate));
-            var original = originalAndDuplicates.Where(s => s.title == systemBorder.title);
+            var originalAndDuplicates = m_Systems.Where(system =>
+                system != systemBorder &&
+                SysRegex.IsMatch(system.title, patternOriginalAndDuplicate));
+            var original = originalAndDuplicates.Where(system => system.title == systemBorder.title);
 
             if (original.Count() == 0)
                 return systemBorder.title;
@@ -193,10 +196,8 @@ namespace UnityEditor.VFX.UI
                 var format = "{0} ({1})";
                 var newName = string.Format(format, unindexedName, i);
                 var systems = originalAndDuplicates.ToList();
-                while (systems.Find(s => s.title == newName) != null)
-                {
+                while (systems.Find(system => system.title == newName) != null)
                     newName = string.Format(format, unindexedName, ++i);
-                }
                 
                 return newName;
             }
@@ -205,12 +206,18 @@ namespace UnityEditor.VFX.UI
         internal string UniqueSpawnerName(VFXContextUI contextUI)
         {
             var attemptedName = contextUI.controller.model.label;
-            var unindexedName = System.Text.RegularExpressions.Regex.Replace(attemptedName, @"( \(([0-9])*\))$", "");
-            unindexedName = System.Text.RegularExpressions.Regex.Escape(unindexedName);
+            if (string.IsNullOrEmpty(attemptedName))
+                return attemptedName;
+
+            var unindexedName = SysRegex.Replace(attemptedName, @"( \(([0-9])*\))$", "");
+            unindexedName = SysRegex.Escape(unindexedName);
             var patternOriginalAndDuplicate = "^" + unindexedName + @"( \(([0-9])*\))?$";
 
-            var originalAndDuplicates = this.Query().OfType<VFXContextUI>().Where(c => c.controller.model.contextType == VFXContextType.Spawner && c != contextUI && System.Text.RegularExpressions.Regex.IsMatch(c.controller.model.label, patternOriginalAndDuplicate)).ToList();
-            var original = originalAndDuplicates.Where(c => c.controller.model.label == attemptedName);
+            var originalAndDuplicates = this.Query().OfType<VFXContextUI>().Where(spawner =>
+                spawner != contextUI &&
+                spawner.controller.model.contextType == VFXContextType.Spawner &&
+                SysRegex.IsMatch(spawner.controller.model.label, patternOriginalAndDuplicate));
+            var original = originalAndDuplicates.Where(spawner => spawner.controller.model.label == attemptedName).ToList();
 
             if (original.Count() == 0)
                 return attemptedName;
@@ -219,10 +226,10 @@ namespace UnityEditor.VFX.UI
                 int i = 1;
                 var format = "{0} ({1})";
                 var newName = string.Format(format, unindexedName, i);
-                while (originalAndDuplicates.Find(c => c.controller.model.label == newName) != null)
-                {
+                var spawners = originalAndDuplicates.ToList();
+                while (spawners.Find(spawner => spawner.controller.model.label == newName) != null)
                     newName = string.Format(format, unindexedName, ++i);
-                }
+                
                 return newName;
             }
         }
