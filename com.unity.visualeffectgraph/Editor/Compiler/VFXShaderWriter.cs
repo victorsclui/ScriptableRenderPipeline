@@ -33,7 +33,6 @@ namespace UnityEditor.VFX
         /// <returns></returns>
         public static string MakeUnique(IEnumerable<string> set, string elt)
         {
-
             var unindexedName = SysRegex.Unescape(SysRegex.Replace(SysRegex.Escape(elt), @"( \(([0-9])*\))$", ""));
             int i = 0;
             var format = "{0} ({1})";
