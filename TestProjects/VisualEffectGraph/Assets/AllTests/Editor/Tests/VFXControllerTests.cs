@@ -948,7 +948,7 @@ namespace UnityEditor.VFX.Test
             elements = view.Query().OfType<GraphElement>().ToList();
             UIElts = elements.OfType<VFXContextUI>().ToList();
 
-            // Deleting some of system names, then renaming all of them with "name"
+            // Deleting some spawner names, then renaming all of them with "name"
             // => every system should have end up being unique, and indexation should start at 1
             foreach (var contextUI in UIElts)
             {
@@ -1011,7 +1011,7 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < count; ++i)
                 Assert.AreEqual(name + (i != 0 ? " (" + i + ')' : ""), systems[i].title);
 
-            // Deleting some of system names, then renaming them with "name"
+            // Deleting some system names, then renaming them with "name"
             // => every system should have the same name as before deletion
             for (int i = 1; i < count - 1; ++i)
             {
