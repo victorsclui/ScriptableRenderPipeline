@@ -11,6 +11,8 @@ using UnityEditor.VFX.UI;
 using System.IO;
 using UnityEngine.TestTools;
 using UnityEditor.VFX.Block.Test;
+using UnityEngine.UIElements;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.VFX.Test
 {
@@ -898,6 +900,148 @@ namespace UnityEditor.VFX.Test
 
             var compatiblePorts = m_ViewController.GetCompatiblePorts(outputControllers[0], null);
             Assert.AreEqual(0, compatiblePorts.Count);
+        }
+
+        [Test]
+        public void UniqueSpawnersNames()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            const int count = 3;
+            Assert.IsTrue(count > 2);
+            List<VFXBasicSpawner> spawners = new List<VFXBasicSpawner>();
+            for (int i = 0; i != count; ++i)
+            {
+                var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                spawners.Add(spawner);
+                m_ViewController.graph.AddChild(spawner);
+            }
+
+            m_ViewController.ApplyChanges();
+
+            var elements = view.Query().OfType<GraphElement>().ToList();
+            var UIElts = elements.OfType<VFXContextUI>().ToList();
+
+            var contextUITextField = GetFieldValue<VFXContextUI, TextField>(UIElts[0], "m_TextField");
+            contextUITextField.value = "Foo (bar)";
+
+            // Creating spawners with "name" as user input
+            // => each spawner's name should end up being unique 
+            foreach (var contextUI in UIElts)
+            {
+                SetFieldValue(contextUI, "m_TextField", contextUITextField);
+                CallMethod(contextUI, "OnTitleBlur", new object[] { null });
+            }
+            for (int i = 0; i != count; ++i)
+                Assert.AreEqual(contextUITextField.value + (i != 0 ? " (" + i + ')' : ""), spawners[i].label);
+
+
+            for (int i = 1; i != count-1; ++i)
+            {
+                m_ViewController.graph.RemoveChild(spawners[i]);
+                spawners.RemoveAt(i);
+            }
+            m_ViewController.ApplyChanges();
+
+            elements = view.Query().OfType<GraphElement>().ToList();
+            UIElts = elements.OfType<VFXContextUI>().ToList();
+
+            // Deleting some of system names, then renaming all of them with "name"
+            // => every system should have end up being unique, and indexation should start at 1
+            foreach (var contextUI in UIElts)
+            {
+                SetFieldValue(contextUI, "m_TextField", contextUITextField);
+                CallMethod(contextUI, "OnTitleBlur", new object[] { null });
+            }
+            for (int i = 1; i < spawners.Count(); ++i)
+                Assert.AreEqual(contextUITextField.value + (i != 0 ? " (" + i + ')' : ""), spawners[i].label);
+        }
+
+        [Test]
+        public void UniqueSystemNames()
+        {
+            Func<int, VFXContextController> fnContextController = delegate (int i)
+            {
+                m_ViewController.ApplyChanges();
+                var controller = m_ViewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray(); ;
+                return controller[i];
+            };
+
+            Action<VFXSystemBorder, string> setTextFieldValue = delegate (VFXSystemBorder sys, string value)
+            {
+                var systemTextField = GetFieldValue<VFXSystemBorder, TextField>(sys, "m_TitleField");
+                systemTextField.value = value;
+                SetFieldValue(sys, "m_TitleField", systemTextField);
+            };
+            
+
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            const int count = 5;
+            Assert.IsTrue(count > 3);
+            var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
+            var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.StartsWith("Quad Output"));
+            for (int i = 0; i < count; ++i)
+            {
+
+                var output = m_ViewController.AddVFXContext(new Vector2(2 * i, 2 * i), contextOutputDesc);
+                var init = m_ViewController.AddVFXContext(new Vector2(i, i), contextInitializeDesc);
+
+                var flowEdge = new VFXFlowEdgeController(fnContextController(2 * i).flowInputAnchors.FirstOrDefault(), fnContextController(2 * i + 1).flowOutputAnchors.FirstOrDefault());
+                m_ViewController.AddElement(flowEdge);
+            }
+
+            m_ViewController.ApplyChanges();
+
+            var systems = GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems");
+            const string name = "Foo (bar)";
+
+            // Creating systems with "name" as user input
+            // => each system's name should end up being unique 
+            foreach (var sys in systems)
+            {
+                setTextFieldValue(sys, name);
+                CallMethod(sys, "OnTitleBlur", new object[] { null });
+            }
+            foreach (var sys in systems)
+            for (int i = 0; i < count; ++i)
+                Assert.AreEqual(name + (i != 0 ? " (" + i + ')' : ""), systems[i].title);
+
+            // Deleting some of system names, then renaming them with "name"
+            // => every system should have the same name as before deletion
+            for (int i = 1; i < count - 1; ++i)
+            {
+                setTextFieldValue(systems[i], name);
+                CallMethod(systems[i], "OnTitleBlur", new object[] { null });
+            }
+            for (int i = 1; i < count - 1; ++i)
+                Assert.AreEqual(name + " (" + i + ')', systems[i].title);
+        }
+
+        U GetFieldValue<T, U>(T obj, string fieldName)
+            where U : class
+        {
+            var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.IsTrue(field != null, fieldName + ": field not found");
+            return field.GetValue(obj) as U;
+        }
+
+        void SetFieldValue<T, U>(T obj, string fieldName, U value)
+        {
+            var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.IsTrue(field != null, fieldName + ": field not found");
+            field.SetValue(obj, value);
+        }
+
+        void CallMethod<T>(T obj, string methodName, object[] parameters)
+        {
+            var methodInfo = obj.GetType().GetMethod(methodName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.IsTrue(methodInfo != null, methodName + ": method not found");
+            methodInfo.Invoke(obj, new object[] { null });
         }
     }
 }
