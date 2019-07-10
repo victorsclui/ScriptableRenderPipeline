@@ -176,18 +176,12 @@ namespace UnityEditor.VFX.UI
 
         internal IEnumerable<string> GetSystemsTitles(VFXSystemBorder excludedBorder)
         {
-            if (excludedBorder == null)
-                return m_Systems.Select(system => system.title);
-            else
-                return m_Systems.Where(system => system != excludedBorder).Select(system => system.title);
+            return m_Systems.Where(system => system != excludedBorder).Select(system => system.title);
         }
 
         internal IEnumerable<string> GetSpawnerLabels(VFXContextUI excludedSpawner)
         {
-            if (excludedSpawner == null)
-                return this.Query().OfType<VFXContextUI>().ToList().Select(spawner => spawner.controller.model.label);
-            else
-                return this.Query().OfType<VFXContextUI>().Where(spawner => spawner != excludedSpawner).ToList().Select(spawner => spawner.controller.model.label);
+            return this.Query().OfType<VFXContextUI>().Where(spawner => spawner != excludedSpawner).ToList().Select(spawner => spawner.controller.model.label);
         }
 
         public void RemoveNodeEdges(VFXNodeUI node)
