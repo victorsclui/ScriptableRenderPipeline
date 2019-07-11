@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.Test
             VisualEffectAsset asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetName);
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
-            m_ViewController = VFXViewController.GetController(resource);
+            m_ViewController = VFXViewController.GetController(resource, true);
             m_ViewController.useCount++;
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
