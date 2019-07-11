@@ -54,21 +54,28 @@ namespace UnityEngine.Rendering.LWRP
             if (!stereo)
             {
                 //cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-
-                // Emit 3 vertex draw with empty vbo and ibo. VS will generate full screen triangle
-                cmd.DrawProcedural(Matrix4x4.identity, m_ScreenSpaceShadowsMaterial, 0, MeshTopology.Triangles, 3, 1);
-
-                //@thomas Pure XRSDK TODO, consolidate changes
+                // Pure XRSDK: use projection and view from XRSDK directly.
                 if (renderingData.cameraData.xrPass.xrSdkEnabled)
                 {
                     Matrix4x4 projMatrix = renderingData.cameraData.xrPass.GetProjMatrix(0);
                     Matrix4x4 viewMatrix = renderingData.cameraData.xrPass.GetViewMatrix(0);
                     cmd.SetViewProjectionMatrices(viewMatrix, projMatrix);
                 }
-                else
-                {
-                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-                }
+
+                // Emit 3 vertex draw with empty vbo and ibo. VS will generate full screen triangle
+                cmd.DrawProcedural(Matrix4x4.identity, m_ScreenSpaceShadowsMaterial, 0, MeshTopology.Triangles, 3, 1);
+
+                ////@thomas Pure XRSDK TODO, consolidate changes
+                //if (renderingData.cameraData.xrPass.xrSdkEnabled)
+                //{
+                //    Matrix4x4 projMatrix = renderingData.cameraData.xrPass.GetProjMatrix(0);
+                //    Matrix4x4 viewMatrix = renderingData.cameraData.xrPass.GetViewMatrix(0);
+                //    cmd.SetViewProjectionMatrices(viewMatrix, projMatrix);
+                //}
+                //else
+                //{
+                //    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                //}
             }
             else
             {

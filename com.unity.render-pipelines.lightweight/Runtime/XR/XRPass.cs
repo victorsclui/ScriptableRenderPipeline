@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.LWRP
         internal readonly Matrix4x4 viewMatrix;
         internal readonly Rect viewport;
         internal readonly Mesh occlusionMesh;
+        internal readonly int depthSlice;
         internal readonly Camera.StereoscopicEye legacyStereoEye;
 
         internal XRView(Camera camera, Camera.StereoscopicEye eye)
@@ -32,6 +33,7 @@ namespace UnityEngine.Rendering.LWRP
             viewport = camera.pixelRect;
             occlusionMesh = null;
             legacyStereoEye = eye;
+            depthSlice = 0;
         }
 
         internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp)
@@ -41,6 +43,7 @@ namespace UnityEngine.Rendering.LWRP
             viewport = vp;
             occlusionMesh = null;
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
+            depthSlice = 0;
         }
 
 #if USE_XR_SDK
@@ -51,6 +54,7 @@ namespace UnityEngine.Rendering.LWRP
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
+            depthSlice = renderParameter.textureArraySlice;
         }
 #endif
     }
@@ -79,6 +83,7 @@ namespace UnityEngine.Rendering.LWRP
         internal Matrix4x4 GetProjMatrix(int viewIndex = 0) { return views[viewIndex].projMatrix; }
         internal Matrix4x4 GetViewMatrix(int viewIndex = 0) { return views[viewIndex].viewMatrix; }
         internal Rect GetViewport(int viewIndex = 0)        { return views[viewIndex].viewport; }
+        internal int GetDepthSlice(int viewIndex = 0) { return views[viewIndex].depthSlice; }
 
         // Instanced views support (instanced draw calls or multiview extension)
         internal int viewCount { get => views.Count; }

@@ -57,6 +57,14 @@ namespace UnityEngine.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
+                // Pure XRSDK: use projection and view from XRSDK directly.
+                if (renderingData.cameraData.xrPass.xrSdkEnabled)
+                {
+                    Matrix4x4 projMatrix = renderingData.cameraData.xrPass.GetProjMatrix(0);
+                    Matrix4x4 viewMatrix = renderingData.cameraData.xrPass.GetViewMatrix(0);
+                    cmd.SetViewProjectionMatrices(viewMatrix, projMatrix);
+                }
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

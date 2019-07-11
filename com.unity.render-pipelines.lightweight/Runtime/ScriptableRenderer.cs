@@ -224,8 +224,8 @@ namespace UnityEngine.Rendering.LWRP
 
             if (renderingData.cameraData.xrPass.xrSdkEnabled)
             {
-                renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.cullingParams.stereoViewMatrix;
-                renderingData.cameraData.camera.projectionMatrix = renderingData.cameraData.cullingParams.stereoProjectionMatrix;
+                renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.xrPass.GetViewMatrix(0);
+                renderingData.cameraData.camera.projectionMatrix = renderingData.cameraData.xrPass.GetProjMatrix(0);
             }
             context.Submit();
             if (renderingData.cameraData.xrPass.xrSdkEnabled)

@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetIdentifier m_Dest;
         RenderTextureDescriptor m_srcDesc;
         RenderTextureDescriptor m_dstDesc;
+        int m_Targetslice;
 
         Material m_BlitMaterial;
 
@@ -25,12 +26,13 @@ namespace UnityEngine.Rendering.LWRP
             renderPassEvent = evt;
         }
 
-        public void Setup(RenderTextureDescriptor srcDescriptor, RenderTargetIdentifier srcHandle, RenderTextureDescriptor dstDescriptor, RenderTargetIdentifier dstHandle)
+        public void Setup(RenderTextureDescriptor srcDescriptor, RenderTargetIdentifier srcHandle, RenderTextureDescriptor dstDescriptor, RenderTargetIdentifier dstHandle, int targetslice)
         {
             m_Source = srcHandle;
             m_Dest = dstHandle;
             m_srcDesc = srcDescriptor;
             m_dstDesc = dstDescriptor;
+            m_Targetslice = targetslice;
 
             m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
         }
@@ -69,7 +71,7 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.SetGlobalVector("_BlitScaleBias", new Vector4(1,-1,0,1));
 
                 if (m_dstDesc.dimension == TextureDimension.Tex2DArray)
-                    cmd.SetRenderTarget(m_Dest, 0, CubemapFace.Unknown, 0);
+                    cmd.SetRenderTarget(m_Dest, 0, CubemapFace.Unknown, m_Targetslice);
                 else
                     cmd.SetRenderTarget(m_Dest, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 

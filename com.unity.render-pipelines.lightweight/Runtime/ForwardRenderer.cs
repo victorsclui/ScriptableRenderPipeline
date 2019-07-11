@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.LWRP
                 // Pure XRSDK: now blit into eye texture if xr is enabled
                 if(xrpass.xrSdkEnabled)
                 {
-                    m_FinalBlitXRPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment.Identifier(), xrpass.renderTargetDesc, xrpass.renderTarget);
+                    m_FinalBlitXRPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment.Identifier(), xrpass.renderTargetDesc, xrpass.renderTarget, xrpass.GetDepthSlice());
                     EnqueuePass(m_FinalBlitXRPass);
                 }
                 // Legacy XR: now blit into the final target

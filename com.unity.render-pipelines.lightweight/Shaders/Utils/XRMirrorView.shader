@@ -13,7 +13,7 @@ Shader "Hidden/HDRP/XRMirrorView"
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinear
 
-                #define DISABLE_TEXTURE2D_X_ARRAY 1
+                #define DISABLE_TEXTURE2D_X_ARRAY
 				#include "Packages/com.unity.render-pipelines.lightweight/Shaders/Utils/TextureXR.hlsl"
 				
 				TEXTURE2D_X(_BlitTexture);
@@ -37,7 +37,7 @@ Shader "Hidden/HDRP/XRMirrorView"
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinear
 				
-				#define DISABLE_TEXTURE2D_X_ARRAY 0
+				#undef DISABLE_TEXTURE2D_X_ARRAY
 				#include "Packages/com.unity.render-pipelines.lightweight/Shaders/Utils/TextureXR.hlsl"
 				
 				TEXTURE2D_X(_BlitTexture);
@@ -73,14 +73,6 @@ Shader "Hidden/HDRP/XRMirrorView"
             float4 positionCS : SV_POSITION;
             float2 texcoord   : TEXCOORD0;
         };
-
-        Varyings Vert(Attributes input)
-        {
-            Varyings output;
-            output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
-            return output;
-        }
 
         Varyings VertQuad(Attributes input)
         {
