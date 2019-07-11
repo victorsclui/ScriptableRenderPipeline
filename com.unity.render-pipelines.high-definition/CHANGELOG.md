@@ -73,6 +73,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix PBR master node always opaque (wrong blend modes for forward pass)
 - Fixed TAA with XR single-pass instancing (missing macros)
 - Fixed an issue causing Scene View selection wire gizmo to not appear when using HDRP Shader Graphs.
+- Fixed wireframe rendering mode (case 1083989)
+- Fixed the renderqueue not updated when the alpha clip is modified in the material UI.
+- Fixed the PBR master node preview
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
@@ -102,6 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader framework refactor: Changed ClampRoughness signature to include PreLightData access.
 - HDRPWizard window is now in Window > General > HD Render Pipeline Wizard
 - Moved StaticLightingSky to LightingWindow
+- Removes the current "Scene Settings" and replace them with "Sky & Fog Settings" (with Physically Based Sky and Volumetric Fog).
 
 ## [6.7.0-preview] - 2019-05-16
 
