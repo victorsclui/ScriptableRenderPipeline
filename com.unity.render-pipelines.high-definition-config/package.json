@@ -5,7 +5,5 @@
     "unity": "2019.3",
     "unityRelease": "0a8",
     "displayName": "High Definition RP Configuration",
-	"dependencies": {
-	"com.unity.ugui" : "1.0.0"
-    }
+	"dependencies": {}
 }
