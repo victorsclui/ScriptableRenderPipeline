@@ -218,7 +218,23 @@ namespace UnityEngine.Rendering.LWRP
             /// * Setup HDR keyword
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
+
+
             context.SetupCameraProperties(camera, stereoEnabled);
+
+            if (renderingData.cameraData.xrPass.xrSdkEnabled)
+            {
+                renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.cullingParams.stereoViewMatrix;
+                renderingData.cameraData.camera.projectionMatrix = renderingData.cameraData.cullingParams.stereoProjectionMatrix;
+            }
+            context.Submit();
+            if (renderingData.cameraData.xrPass.xrSdkEnabled)
+            {
+				// Reset is required to reset inernal states, assign to origin value is not working because it won't reset internal states
+                renderingData.cameraData.camera.ResetWorldToCameraMatrix();
+                renderingData.cameraData.camera.ResetProjectionMatrix();
+            }
+
             SetupLights(context, ref renderingData);
 
             // Override time values from when `SetupCameraProperties` were called.

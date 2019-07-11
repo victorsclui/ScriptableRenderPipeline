@@ -40,12 +40,13 @@ Shader "Hidden/Lightweight Render Pipeline/Blit"
 
             TEXTURE2D(_BlitTex);
             SAMPLER(sampler_BlitTex);
+            uniform float4 _BlitScaleBias;
 
             Varyings Vertex(Attributes input)
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.uv = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;;
                 return output;
             }
 

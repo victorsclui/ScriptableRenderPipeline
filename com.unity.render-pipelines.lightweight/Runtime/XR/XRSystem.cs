@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.LWRP
                 // Enable XR layout only for gameview camera
                 // XRTODO: support render to texture
                 // @thomas TODO, similar logic in GetCullingParameters, group them up into one function to keep them consistant.
-                bool xrSupported = camera.cameraType == CameraType.Game /*&& camera.targetTexture == null*/;
+                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
 
                 if (xrEnabled && xrSupported)
                 {
@@ -217,12 +217,12 @@ namespace UnityEngine.Rendering.LWRP
                         xrPass.isMirrorPass = false;
                         AddPassToFrame(camera, xrPass);
                     }
-                    {
-                        var xrPass = XRPass.Create(renderPass);
-                        xrPass.isMirrorPass = true;
-                        AddPassToFrame(camera, xrPass);
-                    }
                 }
+            }
+            {
+                XRPass xrPass = GenericPool<XRPass>.Get();
+                xrPass.isMirrorPass = true;
+                AddPassToFrame(camera, xrPass);
             }
 #endif
         }
@@ -261,12 +261,6 @@ namespace UnityEngine.Rendering.LWRP
             if (display != null)
             {
                 display.GetCullingParameters(camera, xrPass.cullingPassId, out cullingParams);
-                if (camera.cameraType == CameraType.Game)
-                {
-                    //XRTODO: remove this hack after culling pass is ready.
-                    camera.worldToCameraMatrix = (cullingParams.stereoViewMatrix);
-                    camera.projectionMatrix = (cullingParams.stereoProjectionMatrix);
-                }
             }
             else
 #endif

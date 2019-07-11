@@ -65,6 +65,9 @@ namespace UnityEngine.Rendering.LWRP
             {
                 cmd.SetGlobalTexture("_BlitTex", m_Source);
 
+                // xr flip!
+                cmd.SetGlobalVector("_BlitScaleBias", new Vector4(1,-1,0,1));
+
                 if (m_dstDesc.dimension == TextureDimension.Tex2DArray)
                     cmd.SetRenderTarget(m_Dest, 0, CubemapFace.Unknown, 0);
                 else

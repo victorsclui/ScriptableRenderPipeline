@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.LWRP
         public Camera camera;
         public RenderTextureDescriptor cameraTargetDescriptor;
         public XRPass xrPass;
+        public ScriptableCullingParameters cullingParams;
         public float renderScale;
         public bool isSceneViewCamera;
         public bool isDefaultViewport;

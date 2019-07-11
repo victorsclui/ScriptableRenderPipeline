@@ -1,4 +1,3 @@
-#define USE_PURE_XRSDK
 using System;
 using Unity.Collections;
 #if UNITY_EDITOR
@@ -148,7 +147,7 @@ namespace UnityEngine.Rendering.LWRP
                 else
                 {
                     // Pure XRSDK: mirror view @thomas TODO create proper abstraction
-                    if (m_XRSystem.xrSdkEnabled)
+                    if (xrPass.xrSdkEnabled)
                     {
                         CommandBuffer cmd = CommandBufferPool.Get(k_RenderMirrorViewTag);
                         using (new ProfilingSample(cmd, k_RenderMirrorViewTag))
@@ -198,15 +197,22 @@ namespace UnityEngine.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(tag);
             using (new ProfilingSample(cmd, tag))
             {
-#if (USE_PURE_XRSDK)
-                if (!m_XRSystem.GetCullingParameters(camera, xrpass, out var cullingParameters))
-                    return;
-#else
-                if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
-                    return;
-#endif
+                ScriptableCullingParameters cullingParameters;
+
+                if (xrpass.xrSdkEnabled)
+                {
+                    if (!m_XRSystem.GetCullingParameters(camera, xrpass, out cullingParameters))
+                        return;
+                }
+                else
+                {
+                    if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
+                        return;
+                }
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
+
+                cameraData.cullingParams = cullingParameters;
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -311,8 +317,14 @@ namespace UnityEngine.Rendering.LWRP
             // Pure XRSDK: use desc from xrsdk
             if (xrpass.xrSdkEnabled)
             {
-                cameraData.cameraTargetDescriptor = xrpass.renderTargetDesc;
+                // XRTODO: better solution?
+                // LWRP mix built-in rendering with SRP rendering. Built-in shadow map is flippable, it is required to keep camera's depth and color consistent with shadow map
+                // XR's desc is not guaranteed to be flippable but this default constructed one is flippable. 
+                cameraData.cameraTargetDescriptor = new RenderTextureDescriptor(xrpass.renderTargetDesc.width, xrpass.renderTargetDesc.height, xrpass.renderTargetDesc.colorFormat,
+                    xrpass.renderTargetDesc.depthBufferBits, xrpass.renderTargetDesc.mipCount);
+                //cameraData.cameraTargetDescriptor.SetOrClearRenderTextureCreationFlag(true, RenderTextureCreationFlags.AllowVerticalFlip);
                 cameraData.xrPass = xrpass;
+                cameraData.cullingParams = new ScriptableCullingParameters();
             }
             // Legacy XR: configure camera render target
             else
@@ -321,6 +333,7 @@ namespace UnityEngine.Rendering.LWRP
                     cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
                 // assign xrpass that has xrsdkenable = false
                 cameraData.xrPass = xrpass;
+                cameraData.cullingParams = new ScriptableCullingParameters();
             }
         }
 

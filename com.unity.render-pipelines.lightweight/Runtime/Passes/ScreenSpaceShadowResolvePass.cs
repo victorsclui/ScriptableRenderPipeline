@@ -53,10 +53,10 @@ namespace UnityEngine.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             if (!stereo)
             {
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                //cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-                // Emit 4 vertex draw with empty vbo and ibo. VS will generate full screen quad
-                cmd.DrawProcedural(Matrix4x4.identity, m_ScreenSpaceShadowsMaterial, 0, MeshTopology.Quads, 4, 1);
+                // Emit 3 vertex draw with empty vbo and ibo. VS will generate full screen triangle
+                cmd.DrawProcedural(Matrix4x4.identity, m_ScreenSpaceShadowsMaterial, 0, MeshTopology.Triangles, 3, 1);
 
                 //@thomas Pure XRSDK TODO, consolidate changes
                 if (renderingData.cameraData.xrPass.xrSdkEnabled)
