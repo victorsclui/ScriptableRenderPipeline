@@ -712,6 +712,15 @@ namespace UnityEngine.Rendering
             return disabled;
         }
 
+        public static void ForceSceneLightingEnable()
+        {
+            // Determine whether the "No Scene Lighting" checkbox is checked for the current view.
+            foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+            {
+                sv.sceneLighting = true;
+            }
+        }
+
 #if UNITY_EDITOR
         static Func<List<UnityEditor.MaterialEditor>> materialEditors;
 

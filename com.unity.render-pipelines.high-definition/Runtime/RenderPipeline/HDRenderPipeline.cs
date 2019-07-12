@@ -826,6 +826,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             CameraCaptureBridge.enabled = false;
+
+            // Disable all debug views
+            DebugManager.instance.Reset();
+            // Reset the scene lighting button
+            CoreUtils.ForceSceneLightingEnable();
         }
 
 
