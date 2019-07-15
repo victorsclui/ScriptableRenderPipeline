@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         internal static void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor,
-            RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
+            RenderTargetIdentifier source, RenderTextureDescriptor destDescriptor, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
         {
             var layer = cameraData.postProcessLayer;
             int effectsCount;
@@ -66,6 +66,16 @@ namespace UnityEngine.Rendering.LWRP
             postProcessRenderContext.destination = destination;
             postProcessRenderContext.command = cmd;
             postProcessRenderContext.flip = flip;
+            postProcessRenderContext.width = destDescriptor.width;
+            postProcessRenderContext.height = destDescriptor.height;
+            //width = m_Camera.pixelWidth;
+            //height = m_Camera.pixelHeight;
+            //#if UNITY_2017_2_OR_NEWER
+            //                    m_sourceDescriptor.width = width;
+            //                    m_sourceDescriptor.height = height;
+            //#endif
+            //            screenWidth = width;
+            //            screenHeight = height;
 
             // If there's only one effect in the stack and soure is same as dest we
             // create an intermediate blit rendertarget to handle it.

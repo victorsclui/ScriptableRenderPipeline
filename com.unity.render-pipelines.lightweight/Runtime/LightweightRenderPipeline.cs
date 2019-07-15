@@ -198,17 +198,28 @@ namespace UnityEngine.Rendering.LWRP
             using (new ProfilingSample(cmd, tag))
             {
                 ScriptableCullingParameters cullingParameters;
+                ScriptableCullingParameters xrcullingParameters;
 
                 if (xrpass.xrSdkEnabled)
                 {
-                    if (!m_XRSystem.GetCullingParameters(camera, xrpass, out cullingParameters))
+                    if (!m_XRSystem.GetCullingParameters(camera, xrpass, out xrcullingParameters))
                         return;
                 }
                 else
                 {
-                    if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
+                    if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out xrcullingParameters))
                         return;
                 }
+
+                if (xrpass.xrSdkEnabled)
+                {
+                    camera.worldToCameraMatrix = xrcullingParameters.stereoViewMatrix;
+                    camera.projectionMatrix = xrcullingParameters.stereoProjectionMatrix;
+                }
+
+                if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out cullingParameters))
+                    return;
+
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 
@@ -223,8 +234,14 @@ namespace UnityEngine.Rendering.LWRP
                 if (cameraData.isSceneViewCamera)
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
-
                 var cullResults = context.Cull(ref cullingParameters);
+                if (xrpass.xrSdkEnabled)
+                {
+                    // Reset is required to reset inernal states, assign to origin value is not working because it won't reset internal states
+                    camera.ResetWorldToCameraMatrix();
+                    camera.ResetProjectionMatrix();
+                }
+
                 InitializeRenderingData(settings, ref cameraData, ref cullResults, out var renderingData);
 
                 renderer.Setup(context, ref renderingData, xrpass);

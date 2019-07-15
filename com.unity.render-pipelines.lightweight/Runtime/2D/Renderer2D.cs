@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (postProcessEnabled)
             {
-                m_PostProcessPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, m_ColorTargetHandle);
+                m_PostProcessPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, cameraData.cameraTargetDescriptor, m_ColorTargetHandle);
                 EnqueuePass(m_PostProcessPass);
             }
 

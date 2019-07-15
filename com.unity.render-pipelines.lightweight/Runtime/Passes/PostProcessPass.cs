@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetHandle m_Source;
         RenderTargetHandle m_Destination;
         RenderTextureDescriptor m_Descriptor;
+        RenderTextureDescriptor m_DestDesc;
 
         RenderTargetHandle m_TemporaryColorTexture;
         bool m_IsOpaquePostProcessing;
@@ -35,11 +36,12 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="baseDescriptor"></param>
         /// <param name="sourceHandle">Source of rendering to execute the post on</param>
         /// <param name="destinationHandle">Destination target for the final blit</param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle sourceHandle, RenderTargetHandle destinationHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle sourceHandle, RenderTextureDescriptor destDescriptor, RenderTargetHandle destinationHandle)
         {
             m_Descriptor = baseDescriptor;
             m_Source = sourceHandle;
             m_Destination = destinationHandle;
+            m_DestDesc = destDescriptor;
         }
 
         /// <inheritdoc/>
@@ -51,7 +53,7 @@ namespace UnityEngine.Rendering.LWRP
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderPostProcessingTag);
             RenderPostProcessing(cmd, ref renderingData.cameraData, m_Descriptor, m_Source.Identifier(),
-                    m_Destination.Identifier(), m_IsOpaquePostProcessing, flip);
+                    m_DestDesc, m_Destination.Identifier(), m_IsOpaquePostProcessing, flip);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

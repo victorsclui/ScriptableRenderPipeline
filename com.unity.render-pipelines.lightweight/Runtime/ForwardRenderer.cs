@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.LWRP
             EnqueuePass(m_RenderOpaqueForwardPass);
 
             if (hasOpaquePostProcess)
-                m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
+                m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, cameraTargetDescriptor, m_ActiveCameraColorAttachment);
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
                 EnqueuePass(m_DrawSkyboxPass);
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.LWRP
                 // perform post with src / dest the same
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     EnqueuePass(m_PostProcessPass);
                 }
 
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, cameraTargetDescriptor, RenderTargetHandle.CameraTarget);
                     EnqueuePass(m_PostProcessPass);
                 }
                 else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
