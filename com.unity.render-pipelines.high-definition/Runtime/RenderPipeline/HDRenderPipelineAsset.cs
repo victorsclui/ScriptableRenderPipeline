@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
+        void Reset() => OnValidate();
+
         protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
         {
             // safe: When we return a null render pipline it will do nothing in the rendering
@@ -148,8 +150,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Return the current use RenderPipelineSettings (i.e for the current platform)
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
+        [SerializeField]
         internal bool allowShaderVariantStripping = true;
+        [SerializeField]
         internal bool enableSRPBatcher = true;
+        [SerializeField]
         internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
         [SerializeField]

@@ -391,15 +391,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// if <c>lodBiasMode == LODBiasMode.Fixed</c>, then this value will overwrite <c>QualitySettings.lodBias</c>
         /// if <c>lodBiasMode == LODBiasMode.ScaleQualitySettings</c>, then this value will scale <c>QualitySettings.lodBias</c>
         /// </summary>
+        [SerializeField]
         internal float lodBias;
         /// <summary>Define how the <c>QualitySettings.lodBias</c> value is set.</summary>
+        [SerializeField]
         internal LODBiasMode lodBiasMode;
         /// <summary>
         /// if <c>maximumLODLevelMode == MaximumLODLevelMode.FromQualitySettings</c>, then this value will overwrite <c>QualitySettings.maximumLODLevel</c>
         /// if <c>maximumLODLevelMode == MaximumLODLevelMode.OffsetQualitySettings</c>, then this value will offset <c>QualitySettings.maximumLODLevel</c>
         /// </summary>
+        [SerializeField]
         internal int maximumLODLevel;
         /// <summary>Define how the <c>QualitySettings.maximumLODLevel</c> value is set.</summary>
+        [SerializeField]
         internal MaximumLODLevelMode maximumLODLevelMode;
 
         /// <summary>Helper to see binary saved data on LitShaderMode as a LitShaderMode enum.</summary>
@@ -457,26 +461,17 @@ namespace UnityEngine.Rendering.HighDefinition
             // When rendering reflection probe we disable specular as it is view dependent
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
 
-            // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
-            // as rendering everything in wireframe + deferred do not play well together
-            if (GL.wireframe)
+            switch (renderPipelineSettings.supportedLitShaderMode)
             {
-                sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
-            }
-            else
-            {
-                switch (renderPipelineSettings.supportedLitShaderMode)
-                {
-                    case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                        sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
-                        break;
-                    case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                        sanitazedFrameSettings.litShaderMode = LitShaderMode.Deferred;
-                        break;
-                    case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                        //nothing to do: keep previous value
-                        break;
-                }
+                case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                    sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
+                    break;
+                case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                    sanitazedFrameSettings.litShaderMode = LitShaderMode.Deferred;
+                    break;
+                case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                    //nothing to do: keep previous value
+                    break;
             }
 
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;
