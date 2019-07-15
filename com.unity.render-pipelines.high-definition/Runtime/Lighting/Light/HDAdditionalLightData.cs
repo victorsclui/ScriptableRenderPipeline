@@ -1370,6 +1370,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Rect                m_CachedShadowRect = new Rect(0, 0, 0, 0);
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
+        int[]               m_CachedResolutionRequestIndices = new int[6];
+
 
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
@@ -1402,6 +1404,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        private void DisableCachedShadowSlot()
+        {
+            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+                  (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+            if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
+            {
+                HDShadowManager.instance.MarkCachedShadowSlotsAsEmpty(shadowMapType, GetInstanceID());
+            }
+        }
+
+        void OnDestroy()
+        {
+            DisableCachedShadowSlot();
+        }
+
+        void OnDisable()
+        {
+            DisableCachedShadowSlot();
+        }
+
         int GetShadowRequestCount()
         {
             return (legacyLight.type == LightType.Point && lightTypeExtent == LightTypeExtent.Punctual) ? 6 : (legacyLight.type == LightType.Directional) ? m_ShadowSettings.cascadeShadowSplitCount.value : 1;
@@ -1424,6 +1447,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     return !m_ShadowMapRenderedSinceLastRequest;
             }
             return true;
+        }
+
+        internal bool ShadowIsUpdatedEveryFrame()
+        {
+            return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
         }
 
         internal void EvaluateShadowState(HDCamera hdCamera, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
@@ -1542,8 +1570,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount();
+
             for (int index = 0; index < count; index++)
-                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType);
+            {
+                if (ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional)
+                {
+                    m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType, GetInstanceID(), index);
+                }
+                else
+                {
+                    int indexInCachedList = shadowManager.RegisterCachedShadowRequest(new Vector2(resolution, resolution), shadowMapType, GetInstanceID(), index);
+                    if(indexInCachedList > 0) // we have a new one
+                    {
+                        m_CachedResolutionRequestIndices[index] = indexInCachedList;
+                    }
+                }
+            }
         }
 
         internal bool WillRenderShadowMap()
@@ -1635,14 +1677,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int count = GetShadowRequestCount();
             bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
-
+            bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
             for (int index = 0; index < count; index++)
             {
                 var         shadowRequest = shadowRequests[index];
 
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex);
+
+                ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+                              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+
+                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, !isUpdatedEveryFrame, isUpdatedEveryFrame ? shadowRequestIndex : m_CachedResolutionRequestIndices[index]);
+                Vector2     viewportSize = resolutionRequest.resolution;
 
 
                 shadowIsCached = shadowIsCached && (shadowRequest.atlasViewport == m_CachedShadowRect);
@@ -1709,7 +1757,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
                 }
 
-
+                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest);
 
                 // Store the first shadow request id to return it
