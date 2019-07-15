@@ -181,7 +181,7 @@ namespace UnityEditor.VFX.UI
 
         internal IEnumerable<string> GetSpawnerLabels(VFXContextUI excludedSpawner)
         {
-            return this.Query().OfType<VFXContextUI>().Where(spawner => spawner != excludedSpawner).ToList().Select(spawner => spawner.controller.model.label);
+            return this.Query().OfType<VFXContextUI>().Where(context => context != excludedSpawner && context.controller.model.contextType == VFXContextType.Spawner).ToList().Select(spawner => spawner.controller.model.label);
         }
 
         public void RemoveNodeEdges(VFXNodeUI node)
@@ -1712,7 +1712,6 @@ namespace UnityEditor.VFX.UI
             {
                 system.Update();
             }
-
             while (m_Systems.Count() < controller.systems.Count())
             {
                 VFXSystemBorder border = new VFXSystemBorder();

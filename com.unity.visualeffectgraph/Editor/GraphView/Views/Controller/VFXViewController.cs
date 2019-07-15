@@ -1889,7 +1889,29 @@ namespace UnityEditor.VFX.UI
             get { return m_Systems.AsReadOnly(); }
         }
 
-        
+        public void SetNameOfSystemContaining(VFXContext context, string name)
+        {
+            foreach (var sys in m_Systems)
+            {
+                if (sys.contexts.Any(t => t.model == context))
+                {
+                    sys.title = name;
+                    break;
+                }
+            }
+        }
+
+        public string GetNameOfSystemContaining(VFXContextController context)
+        {
+            foreach (var sys in m_Systems)
+            {
+                if (sys.contexts.Any(t => t == context))
+                {
+                    return sys.title;
+                }
+            }
+            return String.Empty;
+        }
 
         public void UpdateSystems()
         {
@@ -1962,7 +1984,7 @@ namespace UnityEditor.VFX.UI
             {
                 var contextToController = systems[i].Keys.Select(t => new KeyValuePair<VFXContextController, VFXContext>((VFXContextController)GetNodeController(t, 0), t)).Where(t => t.Key != null).ToDictionary(t => t.Value, t => t.Key);
                 m_Systems[i].contexts = contextToController.Values.ToArray();
-                m_Systems[i].title = graph.UIInfos.GetNameOfSystem(systems[i].Keys);
+                //m_Systems[i].title = graph.UIInfos.GetNameOfSystem(systems[i].Keys);
 
                 VFXContextType type = VFXContextType.None;
                 VFXContext prevContext = null;

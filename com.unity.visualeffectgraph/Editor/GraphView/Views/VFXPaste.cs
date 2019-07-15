@@ -259,6 +259,7 @@ namespace UnityEditor.VFX.UI
             }
 
             newContext.label = context.label;
+            controller.SetNameOfSystemContaining(newContext, context.systemTitle);
 
             if (newContext is VFXAbstractRenderedOutput)
                 PasteSubOutputs((VFXAbstractRenderedOutput)newContext, ref context);
