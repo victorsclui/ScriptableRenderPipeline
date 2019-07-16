@@ -1575,16 +1575,6 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int index = 0; index < count; index++)
             {
                 m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(canBeCached ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, gameObject.name, canBeCached, out m_CachedResolutionRequestIndices[index]);
-
-                if (!(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional || shadowManager.HasForcedDynamicResOff(shadowMapType)))
-                {
-                    //int indexInCachedList = shadowManager.RegisterCachedShadowRequest(new Vector2(resolution, resolution), shadowMapType, GetInstanceID(), index, gameObject.name);
-                    if(canBeCached) // CAN DO DIFFERENTLY
-                    {
-
-                     //   m_CachedResolutionRequestIndices[index] = m_ShadowRequestIndices[index];
-                    }
-                }
             }
         }
 
@@ -1689,7 +1679,7 @@ namespace UnityEngine.Rendering.HighDefinition
                               (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
 
 
-                bool isInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional || manager.HasForcedDynamicResOff(shadowMapType));
+                bool isInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional) && manager.CachedDataIsValid(shadowMapType);
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, isInCachedPool, isInCachedPool ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
                 Vector2     viewportSize = resolutionRequest.resolution;
 

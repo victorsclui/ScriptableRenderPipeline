@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void DisableCaching()
         {
-            m_ForcedDisablingCaching = false;
+            m_ForcedDisablingCaching = true;
             m_ListOfCachedShadowRequests.Clear();
         }
 
