@@ -258,8 +258,16 @@ namespace UnityEditor.VFX.UI
                 return null;
             }
 
-            newContext.label = context.label;
-            controller.SetNameOfSystemContaining(newContext, context.systemTitle);
+            if (newContext.contextType == VFXContextType.Spawner && !string.IsNullOrEmpty(context.label))
+            {
+                newContext.label = VFXCodeGeneratorHelper.MakeUnique(
+                    controller.graph.children.OfType<VFXContext>()
+                    .Where(spwn => spwn.contextType == VFXContextType.Spawner)
+                    .Select(spwn => spwn.label), context.label);
+            }
+            else
+                newContext.label = context.label;
+            newContext.systemTitle = context.systemTitle;
 
             if (newContext is VFXAbstractRenderedOutput)
                 PasteSubOutputs((VFXAbstractRenderedOutput)newContext, ref context);

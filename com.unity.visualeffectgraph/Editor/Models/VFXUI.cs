@@ -119,6 +119,26 @@ namespace UnityEditor.VFX
             }
             return string.Empty;
         }
+        public string GetNameOfSystem(IEnumerable<VFXContext> contexts, List<string> systemNames)
+        {
+            if (systemInfos != null)
+            {
+                foreach (var context in contexts)
+                {
+                    var system = systemInfos.Find(t => t.contexts.Contains(context));
+                    if (system != null)
+                        return system.title;
+                }
+                var firstContext = contexts.FirstOrDefault();
+                if (contexts.Count() > 0 && firstContext != null && !String.IsNullOrEmpty(firstContext.systemTitle))
+                {
+                    var name = VFXCodeGeneratorHelper.MakeUnique(systemNames, firstContext.systemTitle);
+                    systemNames.Add(name);
+                    return name;
+                }
+            }
+            return string.Empty;
+        }
 
         public void SetNameOfSystem(IEnumerable<VFXContext> contexts, string name)
         {

@@ -22,6 +22,12 @@ namespace UnityEditor.VFX.UI
             m_ViewController = viewController;
         }
 
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            title = "";
+        }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
 

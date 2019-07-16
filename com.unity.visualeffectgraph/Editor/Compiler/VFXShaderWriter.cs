@@ -26,17 +26,17 @@ namespace UnityEditor.VFX
         }
 
         /// <summary>
-        /// Given a set of string, returns elt if it is not already in set, or a suffixed copy to make it unique in set.
+        /// Given a set of strings, returns elt if it is not already in set, or a suffixed copy to make it unique in set.
         /// </summary>
         /// <param name="set"></param>
         /// <param name="elt"></param>
         /// <returns></returns>
         public static string MakeUnique(IEnumerable<string> set, string elt)
         {
-            var unindexedName = SysRegex.Unescape(SysRegex.Replace(SysRegex.Escape(elt), @"( \(([0-9])*\))$", ""));
+            var unindexedName = SysRegex.Replace(elt, @" (\(([0-9])*\))$", "");
             int i = 0;
             var format = "{0} ({1})";
-            var newName = elt;
+            var newName = unindexedName;
             
             while (set.Where(s => s == newName).Count() != 0)
                 newName = string.Format(format, unindexedName, ++i);

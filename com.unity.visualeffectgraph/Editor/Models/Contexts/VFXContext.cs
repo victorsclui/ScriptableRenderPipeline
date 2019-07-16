@@ -61,6 +61,8 @@ namespace UnityEditor.VFX
         [SerializeField]
         private string m_Label;
 
+        public string systemTitle { get; set; }
+
         public string label
         {
             get { return m_Label; }
