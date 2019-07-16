@@ -2272,7 +2272,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 // TODO_FCC: Remove me
-               // HDShadowManager.instance.DBG_PrintListOfCachedLights();
+            //    HDShadowManager.instance.DBG_PrintListOfCachedLights();
                 HDShadowManager.instance.CheckForCulledCachedShadows();
                 HDShadowManager.instance.IncrementCountersForCached();
 

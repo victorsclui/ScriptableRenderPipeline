@@ -41,8 +41,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_IntermediateSummedAreaTexture;
         RTHandle m_SummedAreaTexture;
 
-        // Caching information
-        bool m_CacheDataIsValid = true;
+        // Caching information, overly verbose for now TODO_FCC, also dirty af 
+        public bool m_CacheDataIsValid = true;
+        public bool m_ForcedDisablingCaching = false;
         public int frameCounter = 0;
         
         public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
@@ -139,8 +140,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 int j = i - 1;
 
                 // Sort in descending order.
-                while ((j >= 0) && ((curr.atlasViewport.height > array[j].atlasViewport.height) ||
-                                    (curr.atlasViewport.width  > array[j].atlasViewport.width)))
+                // TODO_FCC: REVERT TO atlasViewport.height/width instead of resolution
+                while ((j >= 0) && ((curr.resolution.x > array[j].resolution.x) ||
+                                    (curr.resolution.y > array[j].resolution.y)))
                 {
                     array[j + 1] = array[j];
                     j--;
@@ -164,17 +166,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDShadowResolutionRequest GetCachedRequest(int cachedIndex)
         {
-            if (cachedIndex < 0 || cachedIndex > m_ListOfCachedShadowRequests.Count)
-                return null;
+            if (cachedIndex < 0 || cachedIndex >= m_ListOfCachedShadowRequests.Count)
+                return new HDShadowResolutionRequest();
 
             return m_ListOfCachedShadowRequests[cachedIndex];
+        }
+        // TODO_FCC: Slow!
+        public bool HasEmptyCachedSlots()
+        {
+            return m_ListOfCachedShadowRequests.Exists(x => x.emptyRequest);
+        }
+
+        private void DisableCaching()
+        {
+            m_ForcedDisablingCaching = false;
+            m_ListOfCachedShadowRequests.Clear();
         }
 
         public void MarkCulledShadowMapAsEmptySlots()
         {
             for(int i=0; i<m_ListOfCachedShadowRequests.Count; ++i)
             {
-                if((frameCounter - m_ListOfCachedShadowRequests[i].lastFrameActive) > 30) // We give 30 frames of grace period in case the light comes back fast.
+                //  if((frameCounter - m_ListOfCachedShadowRequests[i].lastFrameActive) > 30) // We give 30 frames of grace period in case the light comes back fast.
+                // IL PROBLEMA E' COL FLICKERING QUANDO E' INVALIDO (Jumpa da valido ad invalido????) 
+                if ((frameCounter - m_ListOfCachedShadowRequests[i].lastFrameActive) > 0)      // TODO_FCC: This number regulates HOW OFTEN IT FLICKERS in the bug you are facing. WTF IS GOING ON.
                 {
                     m_ListOfCachedShadowRequests[i].emptyRequest = true;
                 }
@@ -198,6 +213,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int RegisterCachedLight(HDShadowResolutionRequest request)
         {
+            // TODO_FCC: This reset of validity should really be done outside.
+            m_CacheDataIsValid = true;
+
             // If it is already registered, we do nothing. 
             int shadowIndex = m_ListOfCachedShadowRequests.FindIndex(x => (x.lightID == request.lightID) && (x.indexInLight == request.indexInLight));
             if (shadowIndex == -1)
@@ -208,8 +226,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int holeWithRightSize = m_ListOfCachedShadowRequests.FindIndex(x => (
                 x.emptyRequest &&               // Is empty
-                request.atlasViewport.width < x.atlasViewport.width &&      // Slot is bigger than what we need to fit in it. 
-                Math.Abs(request.atlasViewport.width - x.atlasViewport.width) < x.atlasViewport.width * 0.1f)); // ... but not much smaller.
+                request.atlasViewport.width <= x.atlasViewport.width && // fits the request
+                (x.atlasViewport.width - request.atlasViewport.width) <= x.atlasViewport.width * 0.1f // but the is not much smaller.
+                ) 
+                ); 
 
                 if (holeWithRightSize > 0)
                 {
@@ -221,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // We need to insert and resort. 
                     m_ListOfCachedShadowRequests.Add(request);
                     InsertionSort(m_ListOfCachedShadowRequests);
-                    m_CacheDataIsValid = false;     // Invalidate cached data.
+                    m_CacheDataIsValid = false;     // Invalidate cached data.e
                     return m_ListOfCachedShadowRequests.FindIndex(x => (x.lightID == request.lightID) && (x.indexInLight == request.indexInLight));
                 }
             }
@@ -232,8 +252,104 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             m_ListOfCachedShadowRequests[shadowIndex].lastFrameActive = frameCounter;
 
-            return -1;
+            return shadowIndex;
         }
+
+        private bool AtlasLayout(bool allowResize, List<HDShadowResolutionRequest> fullShadowList, bool enteredWithPrunedCachedList = false)
+        {
+            float curX = 0, curY = 0, curH = 0, xMax = width, yMax = height;
+            m_RcpScaleFactor = 1;
+            for (int i = 0; i < fullShadowList.Count; ++i)
+            {
+                var shadowRequest = fullShadowList[i];
+                // shadow atlas layouting
+                Rect viewport = new Rect(Vector2.zero, shadowRequest.resolution);
+                curH = Mathf.Max(curH, viewport.height);
+
+                if (curX + viewport.width > xMax)
+                {
+                    curX = 0;
+                    curY += curH;
+                    curH = viewport.height;
+                }
+                if (curY + curH > yMax)
+                {
+                    if(enteredWithPrunedCachedList)
+                    {
+                        // We need to resize. Also we give up on caching...
+                        DisableCaching();
+                        // TODO_FCC: DEBUG, REMOVE
+                        if (allowResize)
+                        {
+                            LayoutResize();
+                            return true;
+                        }
+                        
+                        return false;
+                    }
+                    else
+                    {
+                        // We can still prune 
+                        PruneDeadCachedLightSlots();
+                        // Remove cached slots from the currently sorted list (instead of rebuilding it).
+                        // Since it is ordered, the order post deletion is guaranteed.
+                        fullShadowList.RemoveAll(x => (x.emptyRequest));
+                        return AtlasLayout(allowResize, fullShadowList, enteredWithPrunedCachedList: true);
+
+                    }
+                }
+                viewport.x = curX;
+                viewport.y = curY;
+                shadowRequest.atlasViewport = viewport;
+                shadowRequest.resolution = viewport.size;
+                curX += viewport.width;
+            }
+            m_RcpScaleFactor = m_ForcedDisablingCaching ? 0.25f : 1.0f;
+
+            m_ForcedDisablingCaching = false; // re-enable as we might have space again? 
+            return true;
+        }
+
+        public bool RENAME_ME_Layout2(bool allowResize = true)
+        {
+            // Sort non-cached requests
+            // Perform a deep copy.
+            int n = (m_ShadowResolutionRequests != null) ? m_ShadowResolutionRequests.Count : 0;
+            var nonCachedRequests = new List<HDShadowResolutionRequest>(n);
+
+            for (int i = 0; i < n; i++)
+            {
+                if(!m_ShadowResolutionRequests[i].hasBeenStoredInCachedList)  // TODO_FCC: Find better way to detect cached.
+                    nonCachedRequests.Add(m_ShadowResolutionRequests[i]);
+            }
+
+            // Note: it is very important to keep the added order for shadow maps that are the same size (for punctual lights)
+            // and because of that we can't use List.Sort because it messes up the list even with a good custom comparator
+            // Sort in place.
+            InsertionSort(nonCachedRequests);
+
+            // Now we append the cached shadows first.Note that this is not taken from m_ShadowResolutionRequests as we might have holes.
+            List<HDShadowResolutionRequest> fullShadowList = new List<HDShadowResolutionRequest>(n + m_ListOfCachedShadowRequests.Count);
+            if (m_ForcedDisablingCaching)
+            {
+                fullShadowList = nonCachedRequests;
+            }
+            else
+            {
+                for (int i = 0; i < m_ListOfCachedShadowRequests.Count; ++i)
+                {
+                    fullShadowList.Add(m_ListOfCachedShadowRequests[i]);
+                }
+                for (int i = 0; i < nonCachedRequests.Count; i++)
+                {
+                    fullShadowList.Add(nonCachedRequests[i]);
+                }
+
+            }
+
+            return AtlasLayout(allowResize, fullShadowList, enteredWithPrunedCachedList: false);
+        }
+
         public bool Layout(bool allowResize = true)
         {
 
