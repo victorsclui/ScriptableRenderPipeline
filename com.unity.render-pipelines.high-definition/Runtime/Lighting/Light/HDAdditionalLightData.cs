@@ -1371,7 +1371,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
         int[]               m_CachedResolutionRequestIndices = new int[6];
-
+        bool m_cachedDataIsValid = true;
 
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
@@ -1680,12 +1680,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool requestCouldBeInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
                 bool shouldUseRequestFromCachedList = requestCouldBeInCachedPool && !manager.AtlasHasResized(shadowMapType);
-                bool isInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional) && manager.CachedDataIsValid(shadowMapType);
+                bool cachedDataIsValid = m_cachedDataIsValid && manager.CachedDataIsValid(shadowMapType);
+                bool isInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional) && cachedDataIsValid;
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
                 Vector2     viewportSize = resolutionRequest.resolution;
 
 
-                shadowIsCached = shadowIsCached && requestCouldBeInCachedPool && manager.CachedDataIsValid(shadowMapType) /*&& (shadowRequest.atlasViewport == m_CachedShadowRect)*/;
+                shadowIsCached = shadowIsCached && requestCouldBeInCachedPool && cachedDataIsValid /*&& (shadowRequest.atlasViewport == m_CachedShadowRect)*/;
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1751,7 +1752,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest);
-                shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && manager.CachedDataIsValid(shadowMapType);
+                shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
                 shadowRequest.dbg_name = gameObject.name;
                 if(!manager.CachedDataIsValid(shadowMapType))
                 {
@@ -1761,6 +1762,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                  //   Debug.Log("Cache data is valid!");
                 }
+
+                m_cachedDataIsValid = manager.CachedDataIsValid(shadowMapType);
 
                 // Store the first shadow request id to return it
                 if (firstShadowRequestIndex == -1)
