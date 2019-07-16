@@ -453,19 +453,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AreaLightShadowAtlas.frameCounter++;
         }
 
-        public bool HasForcedDynamicResOff(ShadowMapType type)
-        {
-            switch (type)
-            {
-                case ShadowMapType.PunctualAtlas:
-                    return m_Atlas.m_ForcedDisablingCaching;
-                case ShadowMapType.AreaLightAtlas:
-                    return m_AreaLightShadowAtlas.m_ForcedDisablingCaching;
-            }
-
-            return false;
-        }
-
         public bool CachedDataIsValid(ShadowMapType type)
         {
             switch (type)
@@ -479,6 +466,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        public bool AtlasHasResized(ShadowMapType type)
+        {
+            switch (type)
+            {
+                case ShadowMapType.PunctualAtlas:
+                    return m_Atlas.HasResizedThisFrame();
+                case ShadowMapType.AreaLightAtlas:
+                    return m_Atlas.HasResizedThisFrame();
+            }
+
+            return false;
+        }
 
         public HDShadowResolutionRequest GetResolutionRequest(ShadowMapType type, bool cachedShadow, int index)
         {
@@ -665,7 +664,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     shadowData = CreateShadowData(m_ShadowRequests[i], atlas);
-                    m_ShadowRequests[i].cachedShadowData = shadowData;
+                    m_ShadowRequests[i].cachedShadowData = shadowData;  // ERRORE! NON CACHA QUANDO INVALIDO I DATI?
                 }
 
                 m_ShadowDatas.Add(shadowData);

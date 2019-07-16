@@ -1678,13 +1678,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
                               (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
 
-
+                bool requestCouldBeInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+                bool shouldUseRequestFromCachedList = requestCouldBeInCachedPool && !manager.AtlasHasResized(shadowMapType);
                 bool isInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional) && manager.CachedDataIsValid(shadowMapType);
-                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, isInCachedPool, isInCachedPool ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
+                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
                 Vector2     viewportSize = resolutionRequest.resolution;
 
 
-                shadowIsCached = shadowIsCached && isInCachedPool /*&& (shadowRequest.atlasViewport == m_CachedShadowRect)*/;
+                shadowIsCached = shadowIsCached && requestCouldBeInCachedPool && manager.CachedDataIsValid(shadowMapType) /*&& (shadowRequest.atlasViewport == m_CachedShadowRect)*/;
 
                 if (shadowRequestIndex == -1)
                     continue;

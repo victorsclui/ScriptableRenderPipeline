@@ -43,9 +43,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Caching information, overly verbose for now TODO_FCC, also dirty af 
         public bool m_CacheDataIsValid = true;
-        public bool m_ForcedDisablingCaching = false;
         public int frameCounter = 0;
-        public bool m_CanTryCaching = false;
+        public bool m_HasResizedAtlas = false;
+
         public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
             this.width = width;
@@ -177,9 +177,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ListOfCachedShadowRequests.Exists(x => x.emptyRequest);
         }
 
+        public bool HasResizedThisFrame()
+        {
+            return m_HasResizedAtlas;
+        }
+
         private void DisableCaching()
         {
-            m_ForcedDisablingCaching = false;
             m_CacheDataIsValid = false;
             m_ListOfCachedShadowRequests.Clear();
         }
@@ -283,6 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (allowResize)
                         {
                             LayoutResize();
+                            m_HasResizedAtlas = true;
                             return true;
                         }
                         
@@ -305,10 +310,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequest.resolution = viewport.size;
                 curX += viewport.width;
             }
-            m_RcpScaleFactor = m_ForcedDisablingCaching ? 0.25f : 1.0f;
 
-            m_ForcedDisablingCaching = false; // re-enable as we might have space again? 
-            m_CanTryCaching = true;
+            m_HasResizedAtlas = false;
             return true;
         }
 
@@ -332,11 +335,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Now we append the cached shadows first.Note that this is not taken from m_ShadowResolutionRequests as we might have holes.
             List<HDShadowResolutionRequest> fullShadowList = new List<HDShadowResolutionRequest>(n + m_ListOfCachedShadowRequests.Count);
-            if (m_ForcedDisablingCaching)
-            {
-                fullShadowList = nonCachedRequests;
-            }
-            else
+            // TODO_FCC: Problem is here.... it's modifying the data in the list of cached, but not on the main shadow request list, therefore the data is not updated...
+
             {
                 for (int i = 0; i < m_ListOfCachedShadowRequests.Count; ++i)
                 {
@@ -559,7 +559,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequest.shouldUseCachedShadow)
                     continue;
 
-                Debug.Log("Rendering: " + shadowRequest.dbg_name);
                 cmd.SetViewport(shadowRequest.atlasViewport);
 
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
