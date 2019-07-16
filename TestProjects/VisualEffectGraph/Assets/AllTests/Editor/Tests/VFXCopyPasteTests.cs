@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.VFX.UI;
 using System.IO;
 using UnityEditor.Experimental.GraphView;
@@ -393,6 +394,53 @@ namespace UnityEditor.VFX.Test
             view.controller = m_ViewController;
 
             view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/Simple Particle System.vfx", Vector2.zero, null);
+        }
+
+        [Test]
+        public void PasteSystems()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            // Create a bunch of systems
+            VFXTestCommon.CreateSystems(m_ViewController, 5, "Foo (bar)");
+
+            // Copy paste them
+            view.ClearSelection();
+            foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
+            {
+                view.AddToSelection(element);
+            }
+            view.CopySelectionCallback();
+            view.PasteCallback();
+
+            // Make sure every systems is a set has a different title
+            var systemNames = VFXTestCommon.GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems").Select(sys => sys.title);
+            var distinct = systemNames.Distinct();
+            Assert.IsTrue(Enumerable.SequenceEqual(systemNames, distinct), "Some systems have the same name");
+        }
+
+        [Test]
+        public void PasteSpawners()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            // Create a bunch of spawners
+            var spawners = VFXTestCommon.CreateSpawners(m_ViewController, 5, "Foo (bar)");
+
+            // Copy paste them
+            view.ClearSelection();
+            foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
+            {
+                view.AddToSelection(element);
+            }
+            view.CopySelectionCallback();
+            view.PasteCallback();
+
         }
     }
 }
