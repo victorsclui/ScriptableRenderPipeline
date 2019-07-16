@@ -1570,7 +1570,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount();
-            bool canBeCached = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional || shadowManager.HasForcedDynamicResOff(shadowMapType));
+            bool canBeCached = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional /*|| shadowManager.HasForcedDynamicResOff(shadowMapType)*/);
 
             for (int index = 0; index < count; index++)
             {
@@ -1684,7 +1684,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2     viewportSize = resolutionRequest.resolution;
 
 
-                shadowIsCached = shadowIsCached /*&& (shadowRequest.atlasViewport == m_CachedShadowRect)*/;
+                shadowIsCached = shadowIsCached && isInCachedPool /*&& (shadowRequest.atlasViewport == m_CachedShadowRect)*/;
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1758,7 +1758,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if(shadowRequest.shouldUseCachedShadow)
                 {
-                    Debug.Log("Cache data is valid!");
+                 //   Debug.Log("Cache data is valid!");
                 }
 
                 // Store the first shadow request id to return it

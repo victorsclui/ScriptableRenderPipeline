@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool m_CacheDataIsValid = true;
         public bool m_ForcedDisablingCaching = false;
         public int frameCounter = 0;
-        
+        public bool m_CanTryCaching = false;
         public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
             this.width = width;
@@ -179,7 +179,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void DisableCaching()
         {
-            m_ForcedDisablingCaching = true;
+            m_ForcedDisablingCaching = false;
+            m_CacheDataIsValid = false;
             m_ListOfCachedShadowRequests.Clear();
         }
 
@@ -307,6 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RcpScaleFactor = m_ForcedDisablingCaching ? 0.25f : 1.0f;
 
             m_ForcedDisablingCaching = false; // re-enable as we might have space again? 
+            m_CanTryCaching = true;
             return true;
         }
 
@@ -557,6 +559,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequest.shouldUseCachedShadow)
                     continue;
 
+                Debug.Log("Rendering: " + shadowRequest.dbg_name);
                 cmd.SetViewport(shadowRequest.atlasViewport);
 
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
