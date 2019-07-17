@@ -1372,6 +1372,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int[]               m_CachedResolutionRequestIndices = new int[6];
         bool m_cachedDataIsValid = true;
+        int m_lastSeenAtlasShapeID = 0;
 
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
@@ -1680,7 +1681,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool requestCouldBeInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
                 bool shouldUseRequestFromCachedList = requestCouldBeInCachedPool && !manager.AtlasHasResized(shadowMapType);
-                bool cachedDataIsValid = m_cachedDataIsValid && manager.CachedDataIsValid(shadowMapType);
+                bool cachedDataIsValid =  m_cachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_lastSeenAtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
                 bool isInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional) && cachedDataIsValid;
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
                 Vector2     viewportSize = resolutionRequest.resolution;
@@ -1750,7 +1751,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
                 }
                  
-
+                if(!isUpdatedEveryFrame)
+                {
+                    Debug.Log(gameObject.name + " has cached data valid: " + m_cachedDataIsValid + " will it render? " + (shadowRequest.shouldUseCachedShadow && cachedDataIsValid));
+                }
                 if (shadowRequest.shouldUseCachedShadow && !cachedDataIsValid)
                 {
                     Debug.Log("Cache data is invalid for "+gameObject.name);
@@ -1762,6 +1766,7 @@ namespace UnityEngine.Rendering.HighDefinition
         
 
                 m_cachedDataIsValid = manager.CachedDataIsValid(shadowMapType);
+                m_lastSeenAtlasShapeID = manager.GetAtlasShapeID(shadowMapType);
 
                 // Store the first shadow request id to return it
                 if (firstShadowRequestIndex == -1)

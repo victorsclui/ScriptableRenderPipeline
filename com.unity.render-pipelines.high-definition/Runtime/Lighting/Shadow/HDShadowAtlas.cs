@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool m_CacheDataIsValid = true;
         public int frameCounter = 0;
         public bool m_HasResizedAtlas = false;
+        public int m_AtlasShapeID = 0;
 
         public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
@@ -151,17 +152,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 array[j + 1] = curr;
                 i++;
             }
-        }
-
-        public void DBG_PrintCachedLightList()
-        {
-            for(int i=0; i<m_ListOfCachedShadowRequests.Count; ++i)
-            {
-                string outStr = "Light " + m_ListOfCachedShadowRequests[i].lightID + " (" + m_ListOfCachedShadowRequests[i].indexInLight + ") ";
-                outStr += "Res [" + m_ListOfCachedShadowRequests[i].resolution.x + "] - " + (m_ListOfCachedShadowRequests[i].emptyRequest ? " empty " : "full");
-                Debug.Log(outStr);
-            }
-            Debug.Log("------------------------------------------------------------------------------");
         }
 
         public HDShadowResolutionRequest GetCachedRequest(int cachedIndex)
@@ -335,7 +325,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Now we append the cached shadows first.Note that this is not taken from m_ShadowResolutionRequests as we might have holes.
             List<HDShadowResolutionRequest> fullShadowList = new List<HDShadowResolutionRequest>(n + m_ListOfCachedShadowRequests.Count);
-            // TODO_FCC: Problem is here.... it's modifying the data in the list of cached, but not on the main shadow request list, therefore the data is not updated...
 
             {
                 for (int i = 0; i < m_ListOfCachedShadowRequests.Count; ++i)
@@ -481,6 +470,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 r.atlasViewport = new Rect(reScaled.x, reScaled.y, reScaled.z, reScaled.w);
                 r.resolution = r.atlasViewport.size;
             }
+
+            m_AtlasShapeID++;
         }
 
         public void RenderShadows(CullingResults cullResults, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)

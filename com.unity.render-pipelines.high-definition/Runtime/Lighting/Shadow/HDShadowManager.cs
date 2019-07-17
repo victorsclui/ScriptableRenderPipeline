@@ -436,11 +436,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO_FCC: Delete!
-        public void DBG_PrintListOfCachedLights()
-        {
-            m_Atlas.DBG_PrintCachedLightList();
-        }
-
         public void CheckForCulledCachedShadows()
         {
             m_Atlas.MarkCulledShadowMapAsEmptySlots();
@@ -464,6 +459,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return false;
+        }
+
+        public int GetAtlasShapeID(ShadowMapType type)
+        {
+            switch (type)
+            {
+                case ShadowMapType.PunctualAtlas:
+                    return m_Atlas.m_AtlasShapeID;
+                case ShadowMapType.AreaLightAtlas:
+                    return m_AreaLightShadowAtlas.m_AtlasShapeID;
+            }
+            return -1;
         }
 
         public bool AtlasHasResized(ShadowMapType type)

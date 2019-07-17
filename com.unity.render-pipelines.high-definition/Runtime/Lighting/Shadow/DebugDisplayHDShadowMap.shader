@@ -58,7 +58,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayHDShadowMap"
                 // If the shadow atlas is rescaled, display it with gradiant
                 // (1x scale -> blue, 2x -> yellowish, 4x scale -> red)
                 if (_RcpGlobalScaleFactor < 1)
-                    color *= float4(1,0,0,1); // TODO_FCC: REVERT.
+                    color *= saturate(1 - abs(3 * (_RcpGlobalScaleFactor - 0.3) - float4(0, 1, 2, 3))).rgb;
 
                 return float4(color, 1);
             }
