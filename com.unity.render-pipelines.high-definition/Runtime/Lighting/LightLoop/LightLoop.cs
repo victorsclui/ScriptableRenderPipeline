@@ -2270,9 +2270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-
                 HDShadowManager.instance.CheckForCulledCachedShadows();
-                HDShadowManager.instance.IncrementCountersForCached();
 
                 if (decalDatasCount > 0)
                 {

@@ -11,9 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
         AreaLightAtlas
     }
 
-    // TODO_FCC: This has been moved to public. Restructure at some point, no need to be public
     [GenerateHLSL(needAccessors = false)]
-    public struct HDShadowData
+    struct HDShadowData
     {
         public Vector3      rot0;
         public Vector3      rot1;
@@ -61,8 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float      cascadeBorders[4];
     }
 
-    // TODO_FCC: This has been moved to public. Restructure at some point, no need to be public
-    public class HDShadowRequest
+    class HDShadowRequest
     {
         public Matrix4x4            view;
         // Use the y flipped device projection matrix as light projection matrix
@@ -108,9 +106,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool         shouldUseCachedShadow = false;
         public HDShadowData cachedShadowData;
-
-        // TODO_FCC: REMOVE ME
-        public string dbg_name;
     }
 
     public enum HDShadowFilteringQuality
@@ -230,8 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxScreenSpaceShadows;
     }
 
-    // TODO_FCC: This has been moved to public. Restructure at some point, no need to be public
-    public class HDShadowResolutionRequest
+    class HDShadowResolutionRequest
     {
         public Rect             atlasViewport;
         public Vector2          resolution;
@@ -240,7 +234,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool             emptyRequest = false; // This useful for cached lights TODO_FCC: Might remove.
         public int              indexInLight = 0;       // TODO_FCC: Might remove.
         public int              lastFrameActive = 0;
-        public string dbg_name = "";                // TODO_FCC: REMOVE
         public bool hasBeenStoredInCachedList = false;// TODO_FCC: REMOVE
     }
 
@@ -334,9 +327,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CascadeAtlas.UpdateSize(atlasResolution);
         }
 
-        public int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, string dbg_name, bool canBeCached, out int dbg_cached_idx)
+        public int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, bool canBeCached, out int cachedRequestIdx)
         {
-            dbg_cached_idx = -1;
+            cachedRequestIdx = -1;
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
                 Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the max requests in the HDRP asset");
@@ -349,7 +342,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightID = lightID,
                 emptyRequest = false,
                 indexInLight = index,
-                dbg_name = dbg_name
             };
             int cachedIndex = -1;
             switch (shadowMapType)
@@ -383,85 +375,42 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ShadowResolutionRequests.Add(resolutionRequest);
             m_ShadowRequestCount = m_ShadowResolutionRequests.Count;
-            //if(canBeCached)
-            //{
-            //    return cachedIndex;
-            //}
-            dbg_cached_idx = cachedIndex;
+            cachedRequestIdx = cachedIndex;
             return m_ShadowResolutionRequests.Count - 1;
         }
 
-        public int RegisterCachedShadowRequest(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, string dbg_name)
+        internal void MarkCachedShadowSlotsAsEmpty(ShadowMapType shadowMapType, int lightID)
         {
-            HDShadowResolutionRequest resolutionRequest = new HDShadowResolutionRequest
-            {
-                resolution = resolution,
-                shadowMapType = shadowMapType,
-                lightID = lightID,
-                emptyRequest = false,
-                indexInLight = index,
-                dbg_name = dbg_name,
-                hasBeenStoredInCachedList = true,
-            };
-
-            resolutionRequest.atlasViewport.width = resolution.x;
-            resolutionRequest.atlasViewport.height = resolution.y;
-
-            switch(shadowMapType)
+            switch (shadowMapType)
             {
                 case ShadowMapType.PunctualAtlas:
-                    return m_Atlas.RegisterCachedLight(resolutionRequest);
+                    m_Atlas.MarkCachedShadowSlotAsEmpty(lightID);
+                    break;
                 case ShadowMapType.AreaLightAtlas:
-                    return m_AreaLightShadowAtlas.RegisterCachedLight(resolutionRequest);
-            }
-
-            return -1;
-        }
-
-        public void MarkCachedShadowSlotsAsEmpty(ShadowMapType shadowMapType, int lightID)
-        {
-            // TODO_FCC: make it better....
-            if(m_Atlas != null)
-            {
-                switch (shadowMapType)
-                {
-                    case ShadowMapType.PunctualAtlas:
-                        m_Atlas.MarkCachedShadowSlotAsEmpty(lightID);
-                        break;
-                    case ShadowMapType.AreaLightAtlas:
-                        m_AreaLightShadowAtlas.MarkCachedShadowSlotAsEmpty(lightID);
-                        break;
-                }
+                    m_AreaLightShadowAtlas.MarkCachedShadowSlotAsEmpty(lightID);
+                    break;
             }
         }
 
-        // TODO_FCC: Delete!
-        public void CheckForCulledCachedShadows()
+        internal void CheckForCulledCachedShadows()
         {
             m_Atlas.MarkCulledShadowMapAsEmptySlots();
             m_AreaLightShadowAtlas.MarkCulledShadowMapAsEmptySlots();
         }
-
-        public void IncrementCountersForCached()
-        {
-            m_Atlas.frameCounter++;
-            m_AreaLightShadowAtlas.frameCounter++;
-        }
-
-        public bool CachedDataIsValid(ShadowMapType type)
+        internal bool CachedDataIsValid(ShadowMapType type)
         {
             switch (type)
             {
                 case ShadowMapType.PunctualAtlas:
-                    return m_Atlas.m_CacheDataIsValid;
+                    return m_Atlas.cacheDataIsValid;
                 case ShadowMapType.AreaLightAtlas:
-                    return m_AreaLightShadowAtlas.m_CacheDataIsValid;
+                    return m_AreaLightShadowAtlas.cacheDataIsValid;
             }
 
             return false;
         }
 
-        public int GetAtlasShapeID(ShadowMapType type)
+        internal int GetAtlasShapeID(ShadowMapType type)
         {
             switch (type)
             {
@@ -473,7 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return -1;
         }
 
-        public bool AtlasHasResized(ShadowMapType type)
+        internal bool AtlasHasResized(ShadowMapType type)
         {
             switch (type)
             {
@@ -486,7 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public HDShadowResolutionRequest GetResolutionRequest(ShadowMapType type, bool cachedShadow, int index)
+        internal HDShadowResolutionRequest GetResolutionRequest(ShadowMapType type, bool cachedShadow, int index)
         {
             if(cachedShadow)
             {
@@ -517,7 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowResolutionRequests[index].resolution;
         }
 
-        public void UpdateShadowRequest(int index, HDShadowRequest shadowRequest)
+        internal void UpdateShadowRequest(int index, HDShadowRequest shadowRequest)
         {
             if (index >= m_ShadowRequestCount)
                 return;
@@ -639,8 +588,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Assign a position to all the shadows in the atlas, and scale shadows if needed
             if (m_CascadeAtlas != null && !m_CascadeAtlas.Layout(false))
                 Debug.LogError("Cascade Shadow atlasing has failed, only one directional light can cast shadows at a time");
-            m_Atlas.RENAME_ME_Layout2();
-            // TODO_FCC: Enable back with new one.
+
+            m_Atlas.Layout();
             m_AreaLightShadowAtlas.Layout();
         }
 
