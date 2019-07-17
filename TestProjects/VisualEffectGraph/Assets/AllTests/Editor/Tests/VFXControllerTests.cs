@@ -916,8 +916,8 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i != count; ++i)
                 Assert.AreEqual(name + (i != 0 ? " (" + i + ')' : ""), spawners[i].label);
 
-            // Deleting some spawner names, then renaming all of them with "name"
-            // => every system should have end up being unique, and indexation should start at 1
+            // Deleting some spawners, then renaming all of them with "name"
+            // => every name should be unique, and name indexation should start at 1
             for (int i = 1; i != count - 1; ++i)
             {
                 m_ViewController.graph.RemoveChild(spawners[i]);
@@ -960,6 +960,9 @@ namespace UnityEditor.VFX.Test
             // => every system should have the same name as before deletion
             for (int i = 1; i < count - 1; ++i)
             {
+                VFXTestCommon.SetTextFieldValue(systems[i], "");
+                VFXTestCommon.CallMethod(systems[i], "OnTitleBlur", new object[] { null });
+
                 VFXTestCommon.SetTextFieldValue(systems[i], name);
                 VFXTestCommon.CallMethod(systems[i], "OnTitleBlur", new object[] { null });
             }
