@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.Test
             SetFieldValue(sys, "m_TitleField", systemTextField);
         }
 
-        internal static void CreateSystems(VFXViewController viewController, int count, string name = null)
+        internal static void CreateSystems(VFXView view, VFXViewController viewController, int count, string name = null)
         {
             Func<int, VFXContextController> fnContextController = delegate (int i)
             {
@@ -51,9 +51,6 @@ namespace UnityEditor.VFX.Test
                 var controller = viewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray(); ;
                 return controller[i];
             };
-
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            VFXView view = window.graphView;
 
             var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
             var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.StartsWith("Quad Output"));
@@ -79,11 +76,8 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        internal static List<VFXBasicSpawner> CreateSpawners(VFXViewController viewController, int count, string name = null)
+        internal static List<VFXBasicSpawner> CreateSpawners(VFXView view, VFXViewController viewController, int count, string name = null)
         {
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            VFXView view = window.graphView;
-
             List<VFXBasicSpawner> spawners = new List<VFXBasicSpawner>();
             for (int i = 0; i != count; ++i)
             {

@@ -911,7 +911,7 @@ namespace UnityEditor.VFX.Test
 
             const int count = 3;
             const string name = "Foo (bar)";
-            var spawners = VFXTestCommon.CreateSpawners(m_ViewController, count, name);
+            var spawners = VFXTestCommon.CreateSpawners(view, m_ViewController, count, name);
 
             for (int i = 0; i != count; ++i)
                 Assert.AreEqual(name + (i != 0 ? " (" + i + ')' : ""), spawners[i].label);
@@ -951,7 +951,7 @@ namespace UnityEditor.VFX.Test
             const string name = "Foo (bar)";
 
             // Creating a bunch of systems
-            VFXTestCommon.CreateSystems(m_ViewController, 5, name);
+            VFXTestCommon.CreateSystems(view, m_ViewController, 5, name);
 
             for (int i = 0; i < count; ++i)
                 Assert.AreEqual(name + (i != 0 ? " (" + i + ')' : ""), systems[i].title);

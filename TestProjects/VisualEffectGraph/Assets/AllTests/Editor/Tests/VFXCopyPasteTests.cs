@@ -405,7 +405,7 @@ namespace UnityEditor.VFX.Test
             view.controller = m_ViewController;
 
             // Create a bunch of systems
-            VFXTestCommon.CreateSystems(m_ViewController, 5, "Foo (bar)");
+            VFXTestCommon.CreateSystems(view, m_ViewController, 5, "Foo (bar)");
 
             // Copy paste them
             view.ClearSelection();
@@ -416,7 +416,7 @@ namespace UnityEditor.VFX.Test
             view.CopySelectionCallback();
             view.PasteCallback();
 
-            // Make sure every systems is a set has a different title
+            // Make sure systemNames is a set
             var systemNames = VFXTestCommon.GetFieldValue<VFXView, List<VFXSystemBorder>>(view, "m_Systems").Select(sys => sys.title);
             var distinct = systemNames.Distinct();
             Assert.IsTrue(Enumerable.SequenceEqual(systemNames, distinct), "Some systems have the same name");
@@ -430,7 +430,7 @@ namespace UnityEditor.VFX.Test
             view.controller = m_ViewController;
 
             // Create a bunch of spawners
-            var spawners = VFXTestCommon.CreateSpawners(m_ViewController, 5, "Foo (bar)");
+            var spawners = VFXTestCommon.CreateSpawners(view, m_ViewController, 5, "Foo (bar)");
 
             // Copy paste them
             view.ClearSelection();
@@ -441,6 +441,12 @@ namespace UnityEditor.VFX.Test
             view.CopySelectionCallback();
             view.PasteCallback();
 
+            // Make sure spawnerLabels is a set
+            var elements = view.Query().OfType<GraphElement>();
+            var UIElts = elements.OfType<VFXContextUI>().ToList();
+            var spawnerLabels = UIElts.Select(elt => elt.controller.model.label).ToList();
+            var distinct = spawnerLabels.Distinct();
+            Assert.IsTrue(Enumerable.SequenceEqual(spawnerLabels, distinct), "Some Spawners have the same label");
         }
     }
 }
