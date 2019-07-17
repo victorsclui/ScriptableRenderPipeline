@@ -1754,7 +1754,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest);
                 shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
         
-
                 m_CachedDataIsValid = manager.CachedDataIsValid(shadowMapType);
                 m_AtlasShapeID = manager.GetAtlasShapeID(shadowMapType);
 
@@ -2134,7 +2133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (lightTypeExtent == LightTypeExtent.Punctual)
                     SetLightIntensityPunctual(intensity);
                 else
-                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightTypeExtent, intensity, m_ShapeWidth, m_ShapeHeight);
+                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightTypeExtent, intensity, shapeWidth, m_ShapeHeight);
             }
             else if (lightUnit == LightUnit.Ev100)
             {
@@ -2189,7 +2188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (timelineWorkaround.oldLossyScale != transform.lossyScale)
                 lightSize = transform.lossyScale;
             else
-                lightSize = new Vector3(shapeWidth, m_ShapeHeight, transform.localScale.z);
+                lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, transform.localScale.z);
 
             if (lightTypeExtent == LightTypeExtent.Tube)
                 lightSize.y = k_MinAreaWidth;

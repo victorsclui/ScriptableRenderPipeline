@@ -417,9 +417,9 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (type)
             {
                 case ShadowMapType.PunctualAtlas:
-                    return m_Atlas.m_AtlasShapeID;
+                    return m_Atlas.atlasShapeID;
                 case ShadowMapType.AreaLightAtlas:
-                    return m_AreaLightShadowAtlas.m_AtlasShapeID;
+                    return m_AreaLightShadowAtlas.atlasShapeID;
             }
             return -1;
         }
@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_ShadowResolutionRequests[index];
             }
 
-            return new HDShadowResolutionRequest();
+            return null;
         }
 
         public Vector2 GetReservedResolution(int index)
@@ -590,7 +590,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Assign a position to all the shadows in the atlas, and scale shadows if needed
             if (m_CascadeAtlas != null && !m_CascadeAtlas.Layout(false))
                 Debug.LogError("Cascade Shadow atlasing has failed, only one directional light can cast shadows at a time");
-
             m_Atlas.Layout();
             m_AreaLightShadowAtlas.Layout();
         }

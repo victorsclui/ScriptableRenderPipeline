@@ -43,10 +43,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Caching information, overly verbose for now TODO_FCC, also dirty af 
         public bool cacheDataIsValid { get; private set; }
+        public int atlasShapeID { get; private set; }
 
-        public bool m_HasResizedAtlas = false;
-        public int m_AtlasShapeID = 0;
-
+        bool m_HasResizedAtlas = false;
         int frameCounter = 0;
 
         public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
@@ -158,17 +157,17 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDShadowResolutionRequest GetCachedRequest(int cachedIndex)
         {
             if (cachedIndex < 0 || cachedIndex >= m_ListOfCachedShadowRequests.Count)
-                return new HDShadowResolutionRequest();
+                return null;
 
             return m_ListOfCachedShadowRequests[cachedIndex];
         }
 
-        public bool HasResizedThisFrame()
+        internal bool HasResizedThisFrame()
         {
             return m_HasResizedAtlas;
         }
 
-        public void MarkCulledShadowMapAsEmptySlots()
+        internal void MarkCulledShadowMapAsEmptySlots()
         {
             for(int i=0; i<m_ListOfCachedShadowRequests.Count; ++i)
             {
@@ -187,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cacheDataIsValid = false; // Invalidate cached data.
         }
 
-        public void MarkCachedShadowSlotAsEmpty(int lightID)
+        internal void MarkCachedShadowSlotAsEmpty(int lightID)
         {
             var subList = m_ListOfCachedShadowRequests.FindAll(x => x.lightID == lightID);
             for (int i = 0; i < subList.Count; ++i)
@@ -226,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // We need to insert and resort. 
                     m_ListOfCachedShadowRequests.Add(request);
                     InsertionSort(m_ListOfCachedShadowRequests);
-                    cacheDataIsValid = false;     // Invalidate cached data.e
+                    cacheDataIsValid = false;     // Invalidate cached data
                     return m_ListOfCachedShadowRequests.FindIndex(x => (x.lightID == request.lightID) && (x.indexInLight == request.indexInLight));
                 }
             }
@@ -296,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        public bool Layout(bool allowResize = true)
+        internal bool Layout(bool allowResize = true)
         {
             // Sort non-cached requests
             // Perform a deep copy.
@@ -314,19 +313,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Sort in place.
             InsertionSort(nonCachedRequests);
 
-            // Now we append the cached shadows first.Note that this is not taken from m_ShadowResolutionRequests as we might have holes.
+            // Now we append the cached shadows first.Note that this is not taken from m_ShadowResolutionRequests as we might have holes that we still to allocate in atlas.
             List<HDShadowResolutionRequest> fullShadowList = new List<HDShadowResolutionRequest>(n + m_ListOfCachedShadowRequests.Count);
 
+            for (int i = 0; i < m_ListOfCachedShadowRequests.Count; ++i)
             {
-                for (int i = 0; i < m_ListOfCachedShadowRequests.Count; ++i)
-                {
-                    fullShadowList.Add(m_ListOfCachedShadowRequests[i]);
-                }
-                for (int i = 0; i < nonCachedRequests.Count; i++)
-                {
-                    fullShadowList.Add(nonCachedRequests[i]);
-                }
-
+                fullShadowList.Add(m_ListOfCachedShadowRequests[i]);
+            }
+            for (int i = 0; i < nonCachedRequests.Count; i++)
+            {
+                fullShadowList.Add(nonCachedRequests[i]);
             }
 
             return AtlasLayout(allowResize, fullShadowList, enteredWithPrunedCachedList: false);
@@ -391,7 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 r.resolution = r.atlasViewport.size;
             }
 
-            m_AtlasShapeID++;
+            atlasShapeID++;
         }
 
         public void RenderShadows(CullingResults cullResults, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)
