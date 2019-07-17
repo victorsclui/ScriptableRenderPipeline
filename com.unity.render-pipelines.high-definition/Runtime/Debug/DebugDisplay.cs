@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public class DebugData
         {
-            public float debugOverlayRatio = 0.75f;
+            public float debugOverlayRatio = 0.33f;
             public FullScreenDebugMode fullScreenDebugMode = FullScreenDebugMode.None;
             public float fullscreenDebugMip = 0.0f;
             public int fullScreenContactShadowLightIndex = 0;

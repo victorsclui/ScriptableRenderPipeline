@@ -4,7 +4,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum ShadowMapType
+    enum ShadowMapType
     {
         CascadedDirectional,
         PunctualAtlas,
@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CascadeAtlas.UpdateSize(atlasResolution);
         }
 
-        public int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, bool canBeCached, out int cachedRequestIdx)
+        internal int ReserveShadowResolutions(Vector2 resolution, ShadowMapType shadowMapType, int lightID, int index, bool canBeCached, out int cachedRequestIdx)
         {
             cachedRequestIdx = -1;
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
@@ -622,7 +622,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     shadowData = CreateShadowData(m_ShadowRequests[i], atlas);
-                    m_ShadowRequests[i].cachedShadowData = shadowData;  // ERRORE! NON CACHA QUANDO INVALIDO I DATI?
+                    m_ShadowRequests[i].cachedShadowData = shadowData;
                 }
 
                 m_ShadowDatas.Add(shadowData);

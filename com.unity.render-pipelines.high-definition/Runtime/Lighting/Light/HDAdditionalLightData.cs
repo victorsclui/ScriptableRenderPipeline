@@ -337,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!IsValidLightUnitForType(legacyLight.type, m_LightTypeExtent, value))
                 {
                     var supportedTypes = String.Join(", ", GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent));
-                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supprted.");
+                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supported.");
                     return;
                 }
 
@@ -1370,8 +1370,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
         int[]               m_CachedResolutionRequestIndices = new int[6];
-        bool m_cachedDataIsValid = true;
-        int m_lastSeenAtlasShapeID = 0;
+        bool                m_CachedDataIsValid = true;
+        // This is useful to detect whether the atlas has been repacked since the light was last seen
+        int                 m_AtlasShapeID = 0;
 
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
@@ -1570,11 +1571,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount();
-            bool canBeCached = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+            bool needsCachedSlotsInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
 
             for (int index = 0; index < count; index++)
             {
-                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(canBeCached ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, canBeCached, out m_CachedResolutionRequestIndices[index]);
+                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(needsCachedSlotsInAtlas ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, needsCachedSlotsInAtlas, out m_CachedResolutionRequestIndices[index]);
             }
         }
 
@@ -1678,15 +1679,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
                               (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
 
-                bool requestCouldBeInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
-                bool shouldUseRequestFromCachedList = requestCouldBeInCachedPool &&  !manager.AtlasHasResized(shadowMapType);
-                bool cachedDataIsValid =  m_cachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_lastSeenAtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
-                bool isInCachedPool = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional) && cachedDataIsValid;
+                bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+
+                bool shouldUseRequestFromCachedList = hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
+                bool cachedDataIsValid =  m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
                 Vector2     viewportSize = resolutionRequest.resolution;
 
                 cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
-                shadowIsCached = shadowIsCached && (requestCouldBeInCachedPool && cachedDataIsValid || legacyLight.type == LightType.Directional);
+                shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1754,8 +1755,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
         
 
-                m_cachedDataIsValid = manager.CachedDataIsValid(shadowMapType);
-                m_lastSeenAtlasShapeID = manager.GetAtlasShapeID(shadowMapType);
+                m_CachedDataIsValid = manager.CachedDataIsValid(shadowMapType);
+                m_AtlasShapeID = manager.GetAtlasShapeID(shadowMapType);
 
                 // Store the first shadow request id to return it
                 if (firstShadowRequestIndex == -1)
@@ -2051,7 +2052,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknow reasons we recreate additional data on an existing line)
+            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknown  reasons we recreate additional data on an existing line)
             if (light.type == LightType.Rectangle && lightData.lightTypeExtent == LightTypeExtent.Punctual)
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
@@ -2133,7 +2134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (lightTypeExtent == LightTypeExtent.Punctual)
                     SetLightIntensityPunctual(intensity);
                 else
-                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightTypeExtent, intensity, shapeWidth, m_ShapeHeight);
+                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightTypeExtent, intensity, m_ShapeWidth, m_ShapeHeight);
             }
             else if (lightUnit == LightUnit.Ev100)
             {
@@ -2206,21 +2207,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-            Vector3 lossyToLocalScale = new Vector3(
-                lightSize.x / transform.parent.lossyScale.x,
-                lightSize.y / transform.parent.lossyScale.y,
-                lightSize.z / transform.parent.lossyScale.z
-            );
+            Vector3 lossyToLocalScale = lightSize;
+            if (transform.parent != null)
+            {
+                lossyToLocalScale = new Vector3(
+                    lightSize.x / transform.parent.lossyScale.x,
+                    lightSize.y / transform.parent.lossyScale.y,
+                    lightSize.z / transform.parent.lossyScale.z
+                );
+            }
             legacyLight.transform.localScale = lossyToLocalScale;
 
             switch (lightTypeExtent)
             {
                 case LightTypeExtent.Rectangle:
-                    shapeWidth = lightSize.x;
+                    m_ShapeWidth = lightSize.x;
                     m_ShapeHeight = lightSize.y;
                     break;
                 case LightTypeExtent.Tube:
-                    shapeWidth = lightSize.x;
+                    m_ShapeWidth = lightSize.x;
                     break;
                 default:
                     break;
@@ -2648,8 +2653,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (IsAreaLight(lightTypeExtent))
             {
-                shapeWidth = size.x;
-                shapeHeight = size.y;
+                m_ShapeWidth = size.x;
+                m_ShapeHeight = size.y;
+                UpdateAllLightValues();
             }
         }
 
