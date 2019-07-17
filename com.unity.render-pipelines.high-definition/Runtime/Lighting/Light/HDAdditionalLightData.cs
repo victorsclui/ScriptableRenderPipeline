@@ -1749,19 +1749,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Assign all setting common to every lights
                     SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
                 }
+                 
 
+                if (shadowRequest.shouldUseCachedShadow && !cachedDataIsValid)
+                {
+                    Debug.Log("Cache data is invalid for "+gameObject.name);
+                }
                 shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest);
                 shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
                 shadowRequest.dbg_name = gameObject.name;
-                if(!manager.CachedDataIsValid(shadowMapType))
-                {
-         //           Debug.Log("Cache data is invalid.....");
-                }
-                else if(shadowRequest.shouldUseCachedShadow)
-                {
-                 //   Debug.Log("Cache data is valid!");
-                }
+        
 
                 m_cachedDataIsValid = manager.CachedDataIsValid(shadowMapType);
 
