@@ -1889,18 +1889,6 @@ namespace UnityEditor.VFX.UI
             get { return m_Systems.AsReadOnly(); }
         }
 
-        /*public void SetNameOfSystemContaining(VFXContext context, string name)
-        {
-            foreach (var sys in m_Systems)
-            {
-                if (sys.contexts.Any(t => t.model == context))
-                {
-                    sys.title = name;
-                    break;
-                }
-            }
-        }*/
-
         public string GetNameOfSystemContaining(VFXContextController context)
         {
             foreach (var sys in m_Systems)
