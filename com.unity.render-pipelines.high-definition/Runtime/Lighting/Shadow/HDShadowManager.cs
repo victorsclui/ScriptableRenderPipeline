@@ -230,11 +230,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Rect             atlasViewport;
         public Vector2          resolution;
         public ShadowMapType    shadowMapType;
+
+        /* Data for cached shadows */
         public int              lightID;
-        public bool             emptyRequest = false; // This useful for cached lights TODO_FCC: Might remove.
-        public int              indexInLight = 0;       // TODO_FCC: Might remove.
+        public int              indexInLight = 0;
         public int              lastFrameActive = 0;
-        public bool hasBeenStoredInCachedList = false;// TODO_FCC: REMOVE
+        public bool             emptyRequest = false; 
+        public bool             hasBeenStoredInCachedList = false;
     }
 
     partial class HDShadowManager : IDisposable
