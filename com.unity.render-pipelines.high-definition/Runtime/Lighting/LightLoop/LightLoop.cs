@@ -1416,6 +1416,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
             VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView, int viewIndex)
         {
+            if (ShaderConfig.s_AreaLights == 0 && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Tube))
+            {
+                return;
+            }
+
             // Then Culling side
             var range = lightDimensions.z;
             var lightToWorld = light.localToWorldMatrix;
@@ -2135,7 +2140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount);
 
                     m_lightList.punctualLightCount = punctualLightcount;
-                    m_lightList.areaLightCount = areaLightCount;
+                    m_lightList.areaLightCount = (ShaderConfig.s_AreaLights == 1) ? areaLightCount : 0;
 
                     // Redo everything but this time with envLights
                     Debug.Assert(m_MaxEnvLightsOnScreen <= 256); //for key construction

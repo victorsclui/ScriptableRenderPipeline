@@ -555,7 +555,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "Area Light Shadows rendering", CustomSamplerId.RenderShadowMaps.GetSampler()))
             {
-                m_AreaLightShadowAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
+                if (ShaderConfig.s_AreaLights == 1)
+                    m_AreaLightShadowAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
             }
         }
 
