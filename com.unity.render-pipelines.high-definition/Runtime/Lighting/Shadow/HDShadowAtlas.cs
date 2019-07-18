@@ -201,19 +201,34 @@ namespace UnityEngine.Rendering.HighDefinition
             cacheDataIsValid = true;
 
             // If it is already registered, we do nothing. 
-            int shadowIndex = m_ListOfCachedShadowRequests.FindIndex(x => (x.lightID == request.lightID) && (x.indexInLight == request.indexInLight));
+            int shadowIndex = -1;
+            for(int i=0; i< m_ListOfCachedShadowRequests.Count; ++i)
+            {
+                if(m_ListOfCachedShadowRequests[i].lightID == request.lightID && m_ListOfCachedShadowRequests[i].indexInLight == request.indexInLight)
+                {
+                    shadowIndex = i;
+                    break;
+                }
+            }
+
             if (shadowIndex == -1)
             {
                 // First we search if we have a hole we can fill with it. 
                 float resolutionOfNewLight = request.atlasViewport.width;
                 request.lastFrameActive = frameCounter;
 
-                int holeWithRightSize = m_ListOfCachedShadowRequests.FindIndex(x => (
-                x.emptyRequest &&               // Is empty
-                request.atlasViewport.width <= x.atlasViewport.width && // fits the request
-                (x.atlasViewport.width - request.atlasViewport.width) <= x.atlasViewport.width * 0.1f // but the is not much smaller.
-                ) 
-                ); 
+                int holeWithRightSize = -1;
+                for (int i = 0; i < m_ListOfCachedShadowRequests.Count; ++i)
+                {
+                    var currReq = m_ListOfCachedShadowRequests[i];
+                    if (currReq.emptyRequest &&   // Is empty
+                        request.atlasViewport.width <= currReq.atlasViewport.width && // fits the request
+                        (currReq.atlasViewport.width - request.atlasViewport.width) <= currReq.atlasViewport.width * 0.1f) // but is not much smaller.
+                    {
+                        holeWithRightSize = i;
+                        break;
+                    }
+                }
 
                 if (holeWithRightSize > 0)
                 {
@@ -226,7 +241,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_ListOfCachedShadowRequests.Add(request);
                     InsertionSort(m_ListOfCachedShadowRequests);
                     cacheDataIsValid = false;     // Invalidate cached data
-                    return m_ListOfCachedShadowRequests.FindIndex(x => (x.lightID == request.lightID) && (x.indexInLight == request.indexInLight));
+                    for (int i = 0; i < m_ListOfCachedShadowRequests.Count; ++i)
+                    {
+                        if (m_ListOfCachedShadowRequests[i].lightID == request.lightID && m_ListOfCachedShadowRequests[i].indexInLight == request.indexInLight)
+                        {
+                            return i;
+                        }
+                    }
                 }
             }
             else if (m_ListOfCachedShadowRequests[shadowIndex].emptyRequest)

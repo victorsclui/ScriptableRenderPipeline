@@ -386,10 +386,12 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (shadowMapType)
             {
                 case ShadowMapType.PunctualAtlas:
-                    m_Atlas.MarkCachedShadowSlotAsEmpty(lightID);
+                    if(m_Atlas != null)
+                        m_Atlas.MarkCachedShadowSlotAsEmpty(lightID);
                     break;
                 case ShadowMapType.AreaLightAtlas:
-                    m_AreaLightShadowAtlas.MarkCachedShadowSlotAsEmpty(lightID);
+                    if (m_AreaLightShadowAtlas != null)
+                        m_AreaLightShadowAtlas.MarkCachedShadowSlotAsEmpty(lightID);
                     break;
             }
         }
