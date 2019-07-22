@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added VR verification in HDRPWizard
 - Added DXR verification in HDRPWizard
 - Added feedbacks in UI of Volume regarding skies
+- Added option in the config package to disable globally Area Lights and to select shadow quality settings for the deferred pipeline. 
 
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
