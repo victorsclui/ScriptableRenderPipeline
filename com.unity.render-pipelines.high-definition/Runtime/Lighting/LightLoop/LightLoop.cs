@@ -1185,9 +1185,12 @@ namespace UnityEngine.Rendering.HighDefinition
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData,
             int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex)
         {
+            if (ShaderConfig.s_AreaLights == 0 && gpuLightType.IsAreaLight())
+                return false;
+
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.lights.Count >= m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen)
-                return false;
+            return false;
 
             // Both of these positions are non-camera-relative.
             float distanceToCamera  = (light.GetPosition() - hdCamera.camera.transform.position).magnitude;
@@ -1416,7 +1419,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
             VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView, int viewIndex)
         {
-            if (ShaderConfig.s_AreaLights == 0 && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Tube))
+            if (ShaderConfig.s_AreaLights == 0 && gpuLightType.IsAreaLight())
             {
                 return;
             }
@@ -2140,7 +2143,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount);
 
                     m_lightList.punctualLightCount = punctualLightcount;
-                    m_lightList.areaLightCount = (ShaderConfig.s_AreaLights == 1) ? areaLightCount : 0;
+                    m_lightList.areaLightCount = areaLightCount;
 
                     // Redo everything but this time with envLights
                     Debug.Assert(m_MaxEnvLightsOnScreen <= 256); //for key construction
