@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Raytracing = 0,
 #endif
 #if ENABLE_VR
-        XrMaxViews = 8, // Used for single-pass rendering (with fast path in vertex shader code when forced to 2)
+        XrMaxViews = 2, // Used for single-pass rendering (with fast path in vertex shader code when forced to 2)
 #else
         XrMaxViews = 1,
 #endif
@@ -39,10 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public static int s_CameraRelativeRendering = (int)ShaderOptions.CameraRelativeRendering;
         public static int s_PreExposition = (int)ShaderOptions.PreExposition;
-
-        // XRTODO: shader constants using this macro could be switched to StructuredBuffer instead of fixed-size array (if performance is similar)
         public static int s_XrMaxViews = (int)ShaderOptions.XrMaxViews;
-
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static HDShadowFilteringQuality s_DeferredShadowFiltering = (HDShadowFilteringQuality)ShaderOptions.DeferredShadowFiltering;
