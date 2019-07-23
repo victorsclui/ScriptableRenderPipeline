@@ -101,15 +101,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         PrepassOutput RenderPrepass(RenderGraph renderGraph, RenderGraphMutableResource sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
         {
-            StartLegacyStereo(renderGraph, hdCamera);
-
             m_IsDepthBufferCopyValid = false;
 
             var result = new PrepassOutput();
             result.gbuffer = m_GBufferOutput;
             result.dbuffer = m_DBufferOutput;
 
+            // TODO: See how to clean this. Some buffers are created outside, some inside functions...
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+            result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+
+            RenderOcclusionMeshes(renderGraph, hdCamera, result.depthBuffer);
+            StartLegacyStereo(renderGraph, hdCamera);
 
             bool renderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result);
 
@@ -182,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.msaaEnabled = msaa;
                 passData.hasDepthOnlyPrepass = depthPrepassParameters.hasDepthOnlyPass;
 
-                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, msaa), DepthAccess.ReadWrite);
+                passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 passData.normalBuffer = builder.WriteTexture(CreateNormalBuffer(renderGraph, msaa));
                 // This texture must be used because reading directly from an MSAA Depth buffer is way to expensive.
                 // The solution that we went for is writing the depth in an additional color buffer (10x cheaper to solve on ps4)

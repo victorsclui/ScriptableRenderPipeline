@@ -126,5 +126,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        class RenderOcclusionMeshesPassData
+        {
+            public HDCamera hdCamera;
+            public RenderGraphMutableResource depthBuffer;
+        }
+
+        void RenderOcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource depthBuffer)
+        {
+            if (hdCamera.xr.enabled && hdCamera.xr.xrSdkEnabled)
+            {
+                using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
+                {
+                    passData.hdCamera = hdCamera;
+                    passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Write);
+
+                    builder.SetRenderFunc(
+                    (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
+                    {
+                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, ctx.resources.GetTexture(data.depthBuffer));
+                    });
+                }
+            }
+        }
     }
 }
