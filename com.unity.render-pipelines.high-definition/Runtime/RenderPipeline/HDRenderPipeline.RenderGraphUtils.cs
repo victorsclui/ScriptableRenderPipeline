@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public XRPass xr;
         }
 
-        void StartLegacyStereo(RenderGraph renderGraph, HDCamera hdCamera)
+        void StartSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void StopLegacyStereo(RenderGraph renderGraph, HDCamera hdCamera)
+        void StopSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled && hdCamera.camera.stereoEnabled)
             {

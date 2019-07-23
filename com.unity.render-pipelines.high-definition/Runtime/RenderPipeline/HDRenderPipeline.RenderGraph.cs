@@ -33,10 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled())
             {
-                StartLegacyStereo(m_RenderGraph, hdCamera);
+                StartSinglePass(m_RenderGraph, hdCamera);
                 RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, colorBuffer);
                 colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
-                StopLegacyStereo(m_RenderGraph, hdCamera);
+                StopSinglePass(m_RenderGraph, hdCamera);
             }
             else
             {
@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_TileAndClusterData.bigTileLightList, shadowResult, m_FrameCount);
 
-                StartLegacyStereo(m_RenderGraph, hdCamera);
+                StartSinglePass(m_RenderGraph, hdCamera);
 
                 var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult);
 
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             // XR mirror view and blit do device
-            StopLegacyStereo(m_RenderGraph, hdCamera);
+            StopSinglePass(m_RenderGraph, hdCamera);
             EndCameraXR(m_RenderGraph, hdCamera);
 
             //// Send all required graphics buffer to client systems.
