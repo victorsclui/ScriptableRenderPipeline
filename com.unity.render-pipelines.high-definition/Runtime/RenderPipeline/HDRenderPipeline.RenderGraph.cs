@@ -689,7 +689,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer, RenderGraphResource volumetricLighting, RenderGraphMutableResource depthStencilBuffer, RenderGraphResource depthTexture)
         {
-            if (m_DebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
+            if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
             {
                 return;
             }
@@ -719,7 +719,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var intermediateBuffer = context.resources.GetTexture(data.intermediateBuffer);
                     var inputVolumetric = context.resources.GetTexture(data.volumetricLighting);
 
-                    data.skyManager.RenderSky(data.hdCamera, data.sunLight, destination, depthBuffer, data.debugDisplaySettings, context.cmd);
+                    data.skyManager.RenderSky(data.hdCamera, data.sunLight, destination, depthBuffer, data.debugDisplaySettings, m_FrameCount, context.cmd);
 
                     if ((data.visualEnvironment.fogType.value != FogType.None) || (data.visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased))
                     {
@@ -922,11 +922,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_EDITOR
         class RenderGizmosPassData
         {
             public GizmoSubset  gizmoSubset;
             public Camera       camera;
         }
+#endif
 
         void RenderGizmos(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer, GizmoSubset gizmoSubset)
         {
