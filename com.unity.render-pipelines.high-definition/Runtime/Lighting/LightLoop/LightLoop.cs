@@ -1185,9 +1185,6 @@ namespace UnityEngine.Rendering.HighDefinition
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData,
             int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex)
         {
-            if (ShaderConfig.s_AreaLights == 0 && gpuLightType.IsAreaLight())
-                return false;
-
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.lights.Count >= m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen)
             return false;
@@ -1419,11 +1416,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
             VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView, int viewIndex)
         {
-            if (ShaderConfig.s_AreaLights == 0 && gpuLightType.IsAreaLight())
-            {
-                return;
-            }
-
             // Then Culling side
             var range = lightDimensions.z;
             var lightToWorld = light.localToWorldMatrix;
@@ -1908,6 +1900,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
                         var light = cullResults.visibleLights[lightIndex];
+
                         if (!aovRequest.IsLightEnabled(light.light.gameObject))
                             continue;
 
@@ -1916,9 +1909,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
 
+                        if (ShaderConfig.s_AreaLights == 0 && (additionalData.lightTypeExtent == LightTypeExtent.Rectangle || additionalData.lightTypeExtent == LightTypeExtent.Tube))
+                            continue;
+
                         // First we should evaluate the shadow information for this frame
                         additionalData.EvaluateShadowState(hdCamera, cullResults, hdCamera.frameSettings, lightIndex);
-
 
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         if(additionalData.WillRenderShadowMap())
