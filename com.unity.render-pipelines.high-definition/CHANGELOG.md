@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed PBR master node always opaque (wrong blend modes for forward pass)
 - Fixed alphaClip option in materials not updating the renderqueue.
 - Fixed PBR master node preview
+- Hide the transparent depth pre/post pass option when the alpha clip is disabled.
 
 ## [6.9.0] - 2019-07-02
 
