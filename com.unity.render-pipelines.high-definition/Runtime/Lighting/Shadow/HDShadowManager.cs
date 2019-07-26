@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ShadowMapType.PunctualAtlas:
                     return m_Atlas.HasResizedThisFrame();
                 case ShadowMapType.AreaLightAtlas:
-                    return m_Atlas.HasResizedThisFrame();
+                    return m_AreaLightShadowAtlas.HasResizedThisFrame();
             }
 
             return false;
