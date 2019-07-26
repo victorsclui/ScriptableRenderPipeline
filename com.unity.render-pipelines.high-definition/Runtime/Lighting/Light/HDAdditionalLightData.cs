@@ -1686,6 +1686,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool shouldUseRequestFromCachedList = hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
                 bool cachedDataIsValid =  m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
+
+                if (resolutionRequest == null)
+                    continue;
+
                 Vector2     viewportSize = resolutionRequest.resolution;
 
                 cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
