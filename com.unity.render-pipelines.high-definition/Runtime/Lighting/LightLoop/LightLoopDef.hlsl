@@ -17,9 +17,9 @@ struct LightLoopContext
     HDShadowContext shadowContext;
 
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
-    float contactShadowFade;    // combined fade factor of all contact shadows
-    float vxShadowValue;        // Stores the value of the voxelized shadow map from sun light //seongdae;vxsm 
-    float shadowValue;          // Stores the value of the cascade shadow map
+    real contactShadowFade;    // combined fade factor of all contact shadows
+    real vxShadowValue;        // Stores the value of the voxelized shadow map from sun light //seongdae;vxsm
+    real shadowValue;          // Stores the value of the cascade shadow map
 };
 
 //-----------------------------------------------------------------------------
@@ -72,7 +72,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
-    output.multiplier = ReplaceDiffuseForReflectionPass(float3(1.0, 1.0, 1.0)) ? 0.0 : 1.0;
+    output.multiplier = _EnableSkyLighting.x != 0 ? 1.0 : 0.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
