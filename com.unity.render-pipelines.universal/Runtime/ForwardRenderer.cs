@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
+        ScreenSpaceShadowComputePass m_ScreenSpaceShadowComputePass; //seongdae;vxsm
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
@@ -55,10 +56,12 @@ namespace UnityEngine.Rendering.Universal
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
             m_VolumeBlendingPass = new VolumeBlendingPass(RenderPassEvent.BeforeRendering);
-            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            //m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows); //seongdae;vxsm;origin
+            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows, data.shaders.screenSpaceShadowCS); //seongdae;vxsm
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, screenspaceShadowsMaterial);
+            m_ScreenSpaceShadowComputePass = new ScreenSpaceShadowComputePass(RenderPassEvent.BeforeRenderingPrepasses, data.shaders.screenSpaceShadowCS); //seongdae;vxsm
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
@@ -107,10 +110,13 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            //bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData); //seongdae;vxsm;origin
+            bool mainLightDynamicShadows = m_MainLightShadowCasterPass.Setup(ref renderingData); //seongdae;vxsm
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
-            bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
-            
+            //bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve; //seongdae;vxsm;origin
+            bool resolveShadowsInScreenSpace = mainLightDynamicShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve; //seongdae;vxsm
+            bool computeShadowsInScreenSpace = renderingData.shadowData.requiresScreenSpaceShadowCompute; //seongdae;vxsm
+
             // Depth prepass is generated in the following cases:
             // - We resolve shadows in screen space
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
@@ -118,6 +124,7 @@ namespace UnityEngine.Rendering.Universal
             bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
                 (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
             requiresDepthPrepass |= resolveShadowsInScreenSpace;
+            requiresDepthPrepass |= computeShadowsInScreenSpace; //seongdae;vxsm
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
             // we have a proper fix.
@@ -160,7 +167,8 @@ namespace UnityEngine.Rendering.Universal
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
-            if (mainLightShadows)
+            //if (mainLightShadows) //seongdae;vxsm;origin
+            if (mainLightDynamicShadows) //seongdae;vxsm
                 EnqueuePass(m_MainLightShadowCasterPass);
 
             if (additionalLightShadows)
@@ -171,7 +179,18 @@ namespace UnityEngine.Rendering.Universal
                 m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                 EnqueuePass(m_DepthPrepass);
             }
+            //seongdae;vxsm
+            if (computeShadowsInScreenSpace)
+            {
+                m_ScreenSpaceShadowComputePass.Setup(
+                    cameraTargetDescriptor,
+                    m_MainLightShadowCasterPass,
+                    mainLightDynamicShadows);
 
+                EnqueuePass(m_ScreenSpaceShadowComputePass);
+            }
+            else
+            //seongdae;vxsm
             if (resolveShadowsInScreenSpace)
             {
                 m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);

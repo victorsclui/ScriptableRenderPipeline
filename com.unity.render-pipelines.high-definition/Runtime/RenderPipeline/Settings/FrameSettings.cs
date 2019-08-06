@@ -482,7 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.VxShadows] &= renderPipelineSettings.supportVxShadows && !preview; //seongdae;vxsm
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VxShadows] &= renderPipelineSettings.supportVxShadows && !preview; //seongdae;vxsm
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
 

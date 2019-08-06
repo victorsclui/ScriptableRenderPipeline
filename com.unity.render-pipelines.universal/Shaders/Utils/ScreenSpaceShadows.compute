@@ -1,11 +1,11 @@
 
-#pragma kernel BlendDynamicShadowsNearest   CSMain=BlendDynamicShadowsNearest   WITH_DYNAMIC_SHADOWS NEAREST_SAMPLE
-#pragma kernel BlendDynamicShadowsBilinear  CSMain=BlendDynamicShadowsBilinear  WITH_DYNAMIC_SHADOWS BILINEAR_SAMPLE
-#pragma kernel BlendDynamicShadowsTrilinear CSMain=BlendDynamicShadowsTrilinear WITH_DYNAMIC_SHADOWS TRILINEAR_SAMPLE
+#pragma kernel BlendDynamicShadowsNearest  CSMain=BlendDynamicShadowsNearest  WITH_DYNAMIC_SHADOWS NEAREST_SAMPLE
+#pragma kernel BlendDynamicShadowsHard     CSMain=BlendDynamicShadowsHard     WITH_DYNAMIC_SHADOWS HARD_SHADOWS
+#pragma kernel BlendDynamicShadowsSoft     CSMain=BlendDynamicShadowsSoft     WITH_DYNAMIC_SHADOWS SOFT_SHADOWS
 
-#pragma kernel NoBlendNearest               CSMain=NoBlendNearest               NEAREST_SAMPLE
-#pragma kernel NoBlendBilinear              CSMain=NoBlendBilinear              BILINEAR_SAMPLE
-#pragma kernel NoBlendTrilinear             CSMain=NoBlendTrilinear             TRILINEAR_SAMPLE
+#pragma kernel NoBlendNearest              CSMain=NoBlendNearest              NEAREST_SAMPLE
+#pragma kernel NoBlendHard                 CSMain=NoBlendHard                 HARD_SHADOWS
+#pragma kernel NoBlendSoft                 CSMain=NoBlendSoft                 SOFT_SHADOWS
 
 #define TILE_SIZE 8
 
@@ -247,7 +247,7 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     uint3 posQ = (uint3)posP;
     posQ.z -= 2;
 
-#if 0//NEAREST_SAMPLE
+#if NEAREST_SAMPLE
     uint2 result;
     TraverseVxShadowMapPosQ(_BeginOffset, OFFSET_DIR, posQ, result);
 
@@ -261,9 +261,7 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 
     float attenuationVxsm = TraverseNearestSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, result);
     attenuation = min(attenuation, attenuationVxsm);
-#elif 0//BILINEAR_SAMPLE
-
-#if 1 // TEST_USING_LDS
+#elif HARD_SHADOWS
     uint4 results[2];
     TraverseVxShadowMapPosQ2x2(_BeginOffset, OFFSET_DIR, uint2(0, 1), posQ, results);
 
@@ -280,88 +278,7 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 
     float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
     attenuation = min(attenuation, attenuationVxsm);
-#else
-    uint2 groupThreadIdBase   = groupThreadId & 0xFFFFFFFE;
-    uint2 groupthreadIdOffset = groupThreadId.xy & 0x00000001;
-
-    uint3 posQs = posQ + float3(groupthreadIdOffset, 0);
-
-    uint2 result;
-    TraverseVxShadowMapPosQ(_BeginOffset, OFFSET_DIR, posQs, result);
-
-    sharedResult.index = posQs;
-    sharedResult.nodeIndex = result.x;
-    sharedResult.shadowbit = result.y;
-    sharedResults[sharedIndex] = sharedResult;
-
-    uint sharedIndex0 = (groupThreadIdBase.x    ) + (groupThreadIdBase.y    ) * TILE_SIZE;
-    uint sharedIndex1 = (groupThreadIdBase.x + 1) + (groupThreadIdBase.y    ) * TILE_SIZE;
-    uint sharedIndex2 = (groupThreadIdBase.x    ) + (groupThreadIdBase.y + 1) * TILE_SIZE;
-    uint sharedIndex3 = (groupThreadIdBase.x + 1) + (groupThreadIdBase.y + 1) * TILE_SIZE;
-
-    SharedResult sharedResult0 = sharedResults[sharedIndex0];
-    SharedResult sharedResult1 = sharedResults[sharedIndex1];
-    SharedResult sharedResult2 = sharedResults[sharedIndex2];
-    SharedResult sharedResult3 = sharedResults[sharedIndex3];
-    GroupMemoryBarrierWithGroupSync();
-
-    uint4 results[2];
-
-    results[0] = uint4(sharedResult0.nodeIndex, sharedResult1.nodeIndex, sharedResult2.nodeIndex, sharedResult3.nodeIndex);
-    results[1] = uint4(sharedResult0.shadowbit, sharedResult1.shadowbit, sharedResult2.shadowbit, sharedResult3.shadowbit);
-
-    if (all(results[1] != VX_SHADOWS_INTERSECTED))
-    {
-        float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
-        attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
-    
-        attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
-        attenuation = LerpWhiteTo(attenuation, shadowStrength);
-        _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
-        return;
-    }
-
-    //TraverseVxShadowMapPosQ2x2(_BeginOffset, OFFSET_DIR, uint2(0, 1), posQ, results);
-
-    //if (sharedResult0.z != sharedResult2.z)
-    //{
-    //    _ScreenSpaceShadowOutput[pixelCoord] = 0.5;
-    //    return;
-    //}
-
-    //uint2 tmp = uint2(results[0].x, results[1].x);
-    //float attenuationVxsm = TraverseNearestSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, tmp);
-    //attenuation = min(attenuation, attenuationVxsm);
-
-    //lerpWeight.xy = 0.0;
-    float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
-    //float attenuationVxsm = TraverseNearestSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, result);
-    attenuation = min(attenuation, attenuationVxsm);
-    //attenuation = 1.0 - (float)valid4 / 4.0;
-#endif
-
-#elif 1//TRILINEAR_SAMPLE
-#if 0 // TEST PCF9X9
-    uint4 results[4];
-    TraverseVxShadowMapPosQ2x2x2(_BeginOffset, OFFSET_DIR, uint2(0, 1), posQ, results);
-
-    if (all(results[2] != VX_SHADOWS_INTERSECTED) && all(results[3] != VX_SHADOWS_INTERSECTED))
-    {
-        float4 attenuation4_0 = results[2] & 0x000000001 ? attenuation : 0.0;
-        float4 attenuation4_1 = results[3] & 0x000000001 ? attenuation : 0.0;
-
-        attenuation4_0    = lerp(attenuation4_0, attenuation4_1, lerpWeight.x);
-        attenuation4_0.xy = lerp(attenuation4_0.xz, attenuation4_0.yw, lerpWeight.y);
-
-        attenuation = lerp(attenuation4_0.x, attenuation4_0.y, lerpWeight.z);
-        attenuation = LerpWhiteTo(attenuation, shadowStrength);
-        _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
-        return;
-    }
-
-    float attenuationVxsm = TravereTrilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight);
-    attenuation = min(attenuation, attenuationVxsm);
-#else
+#elif SOFT_SHADOWS
     uint2 adjOffset = uint2(-4, 4);
     uint4 results[2];
 
@@ -378,10 +295,8 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     //    return;
     //}
 
-    //float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
     float attenuationVxsm = TraversePCF9x9VxShadowMap(_BeginOffset, OFFSET_DIR, adjOffset, posQ, results);
     attenuation = min(attenuation, attenuationVxsm);
-#endif
 #endif
 
     attenuation = LerpWhiteTo(attenuation, shadowStrength);

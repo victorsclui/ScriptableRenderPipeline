@@ -47,6 +47,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shadowDepthBias = EditorGUIUtility.TrTextContent("Depth Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
+            public static GUIContent supportsVxShadows = EditorGUIUtility.TrTextContent("Vx Shadows (Experimental)", "Renders scene with voxelized shadow maps from directional light set with VxShadowMap Component. it needs APIs level Dx11, Vulkan, Metal."); //seongdae;vxsm
+            public static GUIContent vxShadowsQualityText = EditorGUIUtility.TrTextContent("Vx Shadows Quality (Experimental)", "Controls the filtering of Vx Shadows."); //seongdae;vxsm
 
             // Post-processing
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
@@ -65,6 +67,7 @@ namespace UnityEditor.Rendering.Universal
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
+            public static string[] vxShadowsQualityOptions = { "Nearest", "Hard", "Soft" }; //seongdae;vxsm
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
@@ -103,6 +106,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShadowNormalBiasProp;
 
         SerializedProperty m_SoftShadowsSupportedProp;
+        SerializedProperty m_VxShadowsSupportedProp; //seongdae;vxsm
+        SerializedProperty m_VxShadowsQualityProp; //seongdae;vxsm
 
         SerializedProperty m_SRPBatcher;
         SerializedProperty m_SupportsDynamicBatching;
@@ -164,6 +169,8 @@ namespace UnityEditor.Rendering.Universal
             m_ShadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             m_ShadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
+            m_VxShadowsSupportedProp = serializedObject.FindProperty("m_VxShadowsSupported"); //seongdae;vxsm
+            m_VxShadowsQualityProp = serializedObject.FindProperty("m_VxShadowsQuality"); //seongdae;vxsm
 
             m_SRPBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
             m_SupportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
@@ -303,6 +310,8 @@ namespace UnityEditor.Rendering.Universal
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
+                EditorGUILayout.PropertyField(m_VxShadowsSupportedProp, Styles.supportsVxShadows); //seongdae;vxsm
+                CoreEditorUtils.DrawPopup(Styles.vxShadowsQualityText, m_VxShadowsQualityProp, Styles.vxShadowsQualityOptions); //seongdae;vxsm
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();

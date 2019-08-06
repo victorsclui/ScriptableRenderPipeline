@@ -3,7 +3,8 @@
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.ugui",
-        "Unity.RenderPipelines.HighDefinition.Config.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Config.Runtime",
+        "Unity.VoxelizedShadows.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -18,5 +19,6 @@
             "expression": "0.0.0",
             "define": "HDRP_1_OR_NEWER"
         }
-    ]
+    ],
+    "noEngineReferences": false
 }

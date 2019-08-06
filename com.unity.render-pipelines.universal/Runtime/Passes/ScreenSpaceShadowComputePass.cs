@@ -3,7 +3,7 @@ using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.VoxelizedShadows;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     internal class ScreenSpaceShadowComputePass : ScriptableRenderPass
     {
@@ -100,8 +100,9 @@ namespace UnityEngine.Rendering.LWRP
 
             if (mainLightDynamicShadows)
             {
+                bool softShadows = shadowLight.light.shadows == LightShadows.Soft && renderingData.shadowData.supportsSoftShadows;
                 mainLightShadowCasterPass.SetMainLightShadowReceiverConstantsOnComputeShader(
-                    cmd, ref renderingData.shadowData, shadowLight, m_ScreenSpaceShadowsComputeShader);
+                    cmd, shadowLight, softShadows, m_ScreenSpaceShadowsComputeShader); // todo 
             }
 
             SetupVxShadowReceiverConstants(
@@ -161,8 +162,8 @@ namespace UnityEngine.Rendering.LWRP
                 string filteringName = "Nearest";
                 switch (shadowData.mainLightVxShadowQuality)
                 {
-                    case 1: filteringName = "Bilinear";  break;
-                    case 2: filteringName = "Trilinear"; break;
+                    case 1: filteringName = "Hard"; break;
+                    case 2: filteringName = "Soft"; break;
                 }
 
                 string kernelName = blendModeName + filteringName;

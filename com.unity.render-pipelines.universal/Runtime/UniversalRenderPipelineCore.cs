@@ -71,11 +71,14 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
     {
         public bool supportsMainLightShadows;
+        public bool supportsMainLightVxShadows; //seongdae;vxsm
         public bool requiresScreenSpaceShadowResolve;
+        public bool requiresScreenSpaceShadowCompute; //seongdae;vxsm
         public int mainLightShadowmapWidth;
         public int mainLightShadowmapHeight;
         public int mainLightShadowCascadesCount;
         public Vector3 mainLightShadowCascadesSplit;
+        public int mainLightVxShadowQuality; //seongdae;vxsm
         public bool supportsAdditionalLightShadows;
         public int additionalLightsShadowmapWidth;
         public int additionalLightsShadowmapHeight;

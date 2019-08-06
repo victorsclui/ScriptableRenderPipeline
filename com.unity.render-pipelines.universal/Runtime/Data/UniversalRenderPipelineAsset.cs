@@ -30,6 +30,15 @@ namespace UnityEngine.Rendering.Universal
         SoftShadows,
     }
 
+    //seongdae;vxsm
+    public enum VxShadowsQuality
+    {
+        Nearest = 0,
+        Bilinear = 1,
+        Trilinear = 2,
+    }
+    //seongdae;vxsm
+
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowResolution
     {
         _256 = 256,
@@ -131,6 +140,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_VxShadowsSupported = false; //seongdae;vxsm
+        [SerializeField] VxShadowsQuality m_VxShadowsQuality = VxShadowsQuality.Bilinear; //seongdae;vxsm
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -424,6 +435,19 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SoftShadowsSupported; }
         }
+
+        //seongdae;vxsm
+        public bool supportsVxShadows
+        {
+            get { return m_VxShadowsSupported; }
+        }
+
+        public VxShadowsQuality vxShadowsQuality
+        {
+            get { return m_VxShadowsQuality; }
+            set { m_VxShadowsQuality = value; }
+        }
+        //seongdae;vxsm
 
         public bool supportsDynamicBatching
         {

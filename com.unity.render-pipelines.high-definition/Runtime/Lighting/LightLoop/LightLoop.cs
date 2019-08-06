@@ -3045,7 +3045,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, contactShadowsRT);
         }
         //seongdae;vxsm
-        void SetVxShadowsTexture(HDCamera hdCamera, RTHandleSystem.RTHandle vxShadowsRT, CommandBuffer cmd)
+        void SetVxShadowsTexture(HDCamera hdCamera, RTHandle vxShadowsRT, CommandBuffer cmd)
         {
             if (!WillRenderVxShadows())
             {

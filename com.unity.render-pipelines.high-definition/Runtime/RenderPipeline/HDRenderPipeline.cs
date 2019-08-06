@@ -1816,7 +1816,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 //seongdae;vxsm
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VxShadows) && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.VxShadows)
                 {
-                    HDUtils.SetRenderTarget(cmd, m_VxShadowBuffer, ClearFlag.Color, Color.clear);
+                    CoreUtils.SetRenderTarget(cmd, m_VxShadowBuffer, ClearFlag.Color, Color.clear);
                 }
                 //seongdae;vxsm
 
