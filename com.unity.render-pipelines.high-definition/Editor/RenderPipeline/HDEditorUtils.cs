@@ -41,6 +41,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return AssetDatabase.LoadAssetAtPath<T>(HDUtils.GetHDRenderPipelinePath() + relativePath);
         }
 
+        const string kMaterialFilter = "t:Material";
+
+        internal static void UpdateShaderGraphMaterials(Shader shader)
+        {
+            // Iterate all Materials
+            string[] materialGuids = AssetDatabase.FindAssets(kMaterialFilter);
+            foreach(string guid in materialGuids)
+            {
+                // Get Material object
+                string materialPath = AssetDatabase.GUIDToAssetPath(guid);
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+
+                // Reset keywords
+                if(material.shader.name == shader.name)
+                    ResetMaterialKeywords(material);
+            }
+        }
+
         /// <summary>
         /// Reset the dedicated Keyword and Pass regarding the shader kind.
         /// Also re-init the drawers and set the material dirty for the engine.
