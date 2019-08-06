@@ -51,11 +51,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 for(int i = 0, length = materialGuids.Length; i < length; i++)
                 {
-                    EditorUtility.DisplayProgressBar(
-                        "Updating dependent materials...",
-                        string.Format("{0} / {1} materials updated.", i, length),
-                        i / (float)(length - 1));
-
+                    // Only update progress bar every 10 materials
+                    if(i % 10 == 9)
+                    {
+                        EditorUtility.DisplayProgressBar(
+                            "Updating dependent materials...",
+                            string.Format("{0} / {1} materials updated.", i, length),
+                            i / (float)(length - 1));
+                    }
+                    
                     // Get Material object
                     string materialPath = AssetDatabase.GUIDToAssetPath(materialGuids[i]);
                     Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
