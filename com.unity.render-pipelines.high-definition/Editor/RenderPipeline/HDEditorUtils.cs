@@ -47,15 +47,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // Iterate all Materials
             string[] materialGuids = AssetDatabase.FindAssets(kMaterialFilter);
-            foreach(string guid in materialGuids)
+            try
             {
-                // Get Material object
-                string materialPath = AssetDatabase.GUIDToAssetPath(guid);
-                Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+                for(int i = 0, length = materialGuids.Length; i < length; i++)
+                {
+                    EditorUtility.DisplayProgressBar(
+                        "Updating dependent materials...",
+                        string.Format("{0} / {1} materials updated.", i, length),
+                        i / (float)(length - 1));
 
-                // Reset keywords
-                if(material.shader.name == shader.name)
-                    ResetMaterialKeywords(material);
+                    // Get Material object
+                    string materialPath = AssetDatabase.GUIDToAssetPath(materialGuids[i]);
+                    Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+
+                    // Reset keywords
+                    if(material.shader.name == shader.name)
+                        ResetMaterialKeywords(material);
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
             }
         }
 
