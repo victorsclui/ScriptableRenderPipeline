@@ -13,7 +13,7 @@ Most of the effects that come with PPv2 work with UniversalRP by default. Howeve
 - Motion Vector-based effects, including Motion Blur and Temporal Anti-aliasing. 
 
 - Screen Space Reflections (SSR), because they require a G-Buffer and expensive rendering calculations. To be able to scale across hardware, UniversalRP doesn’t use SSR.
-- Compute-based effects by default, including Auto-exposure, Ambient Occlusion (MSVO) and Debug Monitors. You _can_ use these effects in UniversalRP, but only if your target hardware supports [Compute Shaders](<https://docs.unity3d.com/Manual/class-ComputeShader.html>). If your target hardware does not support compute shaders, Unity disables the post-processing effect at run time.
+- Compute-based effects by default, including Auto-exposure, Ambient Occlusion (MSVO) and Debug Monitors. 
 
 ## Post-processing in UniversalRP for mobile devices
 
