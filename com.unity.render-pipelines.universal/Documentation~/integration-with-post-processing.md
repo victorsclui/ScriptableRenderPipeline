@@ -1,6 +1,6 @@
 # Post-processing in the Universal Render Pipeline
 
-The Universal Render Pipeline (Universal RP) includes its own implementation of [post-processing](https://docs.unity3d.com/Manual/PostProcessingOverview.html), so you do not need to install any other package.
+The Universal Render Pipeline (Universal RP) includes its own implementation of [post-processing](https://docs.unity3d.com/Manual/PostProcessingOverview.html), so you do not need to install any other package. Universal RP is not compatible with the post-processing version 2 package. 
 
 This implementation uses the same [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@6.9/manual/Volumes.html) system as the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?preview=1). You can add post-processing effects to your Camera in the same way you add any other [Volume Override](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@6.9/manual/Volume-Components.html).
 
