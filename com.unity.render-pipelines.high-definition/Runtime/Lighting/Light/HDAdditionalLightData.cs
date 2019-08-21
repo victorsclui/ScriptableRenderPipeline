@@ -1140,11 +1140,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region HDShadow Properties API (from AdditionalShadowData)
 
+        [Obsolete]
         [SerializeField]
         ShadowResolutionTier m_ShadowResolutionTier = ShadowResolutionTier.Medium;
         /// <summary>
         /// Get/Set the quality level for shadow map resoluton.
         /// </summary>
+        [Obsolete]
         public ShadowResolutionTier shadowResolutionTier
         {
             get => m_ShadowResolutionTier;
@@ -1157,11 +1159,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [Obsolete]
         [SerializeField]
         bool m_UseShadowQualitySettings = false;
         /// <summary>
         /// Toggle the usage of quality settings to determine shadow resolution.
         /// </summary>
+        [Obsolete]
         public bool useShadowQualitySettings
         {
             get => m_UseShadowQualitySettings;
@@ -1174,13 +1178,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
+        {
+            @override = k_DefaultShadowResolution,
+            level = ScalableSetting.Level.Medium
+        };
+        public IntScalableSettingValue shadowResolution => m_ShadowResolution;
 
+        [Obsolete]
         [SerializeField]
         int m_CustomShadowResolution = k_DefaultShadowResolution;
         /// <summary>
         /// Get/Set the resolution of shadow maps in case quality settings are not used.
         /// </summary>
         /// <value></value>
+        [Obsolete]
         public int customResolution
         {
             get => m_CustomShadowResolution;
@@ -1534,18 +1546,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
         {
-            bool customRes = !useShadowQualitySettings;
             switch (shadowMapType)
             {
                 case ShadowMapType.CascadedDirectional:
-                    return customRes ? Math.Min(customResolution, initParameters.maxDirectionalShadowMapResolution) : initParameters.directionalLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionDirectional), initParameters.maxDirectionalShadowMapResolution);
                 case ShadowMapType.PunctualAtlas:
-                    return customRes ? Math.Min(customResolution, initParameters.maxPunctualShadowMapResolution) : initParameters.punctualLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionPunctual), initParameters.maxPunctualShadowMapResolution);
                 case ShadowMapType.AreaLightAtlas:
-                    return customRes ? Math.Min(customResolution, initParameters.maxAreaShadowMapResolution) : initParameters.areaLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionArea), initParameters.maxAreaShadowMapResolution);
+                default:
+                    return 0;
             }
-
-            return 0;
         }
 
         internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, Rect screenRect)
@@ -2034,7 +2045,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.angularDiameter = angularDiameter;
             data.distance = distance;
 
-            data.customResolution = customResolution;
+            shadowResolution.CopyTo(data.shadowResolution);
             data.shadowDimmer = shadowDimmer;
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
@@ -2603,7 +2614,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the shadow resolution.
         /// </summary>
         /// <param name="resolution">Must be between 16 and 16384</param>
-        public void SetShadowResolution(int resolution) => customResolution = resolution;
+        public void SetShadowResolution(int resolution) => shadowResolution.@override = resolution;
+
+        /// <summary>
+        /// Set the shadow resolution quality level.
+        /// </summary>
+        /// <param name="level">The quality level to use</param>
+        public void SetShadowResolutionLevel(ScalableSetting.Level level) => shadowResolution.level = level;
+
+        /// <summary>
+        /// Set whether the shadow resolution use the override value.
+        /// </summary>
+        /// <param name="@override">True to use the override value, false otherwise.</param>
+        public void SetShadowResolutionOverride(bool useOverride) => shadowResolution.useOverride = useOverride;
 
         /// <summary>
         /// Set the near plane of the shadow.

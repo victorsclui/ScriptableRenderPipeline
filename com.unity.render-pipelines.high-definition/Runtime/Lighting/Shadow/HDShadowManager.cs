@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public struct HDShadowInitParameters
     {
 
+        [Obsolete]
         [Serializable]
         public struct HDShadowTierParams
         {
@@ -180,12 +181,12 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
-            directionalLightsResolutionTiers    = HDShadowTierParams.GetDefault(),
-            punctualLightsResolutionTiers       = HDShadowTierParams.GetDefault(),
-            areaLightsResolutionTiers           = HDShadowTierParams.GetDefault(),
+            shadowResolutionDirectional         = new IntScalableSetting { low = 256, med = 512, high = 1024, ultra = 2048 },
+            shadowResolutionArea                = new IntScalableSetting { low = 256, med = 512, high = 1024, ultra = 2048 },
+            shadowResolutionPunctual            = new IntScalableSetting { low = 256, med = 512, high = 1024, ultra = 2048 },
             shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
-            supportScreenSpaceShadows   = false,
-            maxScreenSpaceShadows       = 2,
+            supportScreenSpaceShadows           = false,
+            maxScreenSpaceShadows               = 2,
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
@@ -205,9 +206,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
         public HDShadowAtlasInitParams areaLightShadowAtlas;
 
+        [Obsolete]
         public HDShadowTierParams directionalLightsResolutionTiers;
+        [Obsolete]
         public HDShadowTierParams punctualLightsResolutionTiers;
+        [Obsolete]
         public HDShadowTierParams areaLightsResolutionTiers;
+
+        public IntScalableSetting shadowResolutionDirectional;
+        public IntScalableSetting shadowResolutionPunctual;
+        public IntScalableSetting shadowResolutionArea;
 
         public int maxDirectionalShadowMapResolution;
         public int maxPunctualShadowMapResolution;
@@ -228,7 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int              lightID;
         public int              indexInLight = 0;
         public int              lastFrameActive = 0;
-        public bool             emptyRequest = false; 
+        public bool             emptyRequest = false;
         public bool             hasBeenStoredInCachedList = false;
 
         public HDShadowResolutionRequest ShallowCopy()
