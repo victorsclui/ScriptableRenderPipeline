@@ -327,19 +327,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowDirectionalLightSection)
             {
                 ++EditorGUI.indentLevel;
-                {
-                    EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_DirectionalShadowPrecisionContent);
-
-                    EditorGUILayout.LabelField(k_DirectionalLightsShadowTiers);
-                    ++EditorGUI.indentLevel;
-                    {
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedDirectionalLightTiers.lowQualityShadowMap, k_LowQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedDirectionalLightTiers.mediumQualityShadowMap, k_MediumQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedDirectionalLightTiers.highQualityShadowMap, k_HighQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedDirectionalLightTiers.veryHighQualityShadowMap, k_VeryHighQualityContent);
-                    }
-                    --EditorGUI.indentLevel;
-                }
+                EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_DirectionalShadowPrecisionContent);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.IntGUI(k_DirectionalLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxDirectionalShadowMapResolution, k_MaxShadowResolution);
                 --EditorGUI.indentLevel;
             }
@@ -361,17 +350,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
 
                 ++EditorGUI.indentLevel;
-                {
-                    EditorGUILayout.LabelField(k_PunctualLightsShadowTiers);
-                    ++EditorGUI.indentLevel;
-                    {
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualLightTiers.lowQualityShadowMap, k_LowQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualLightTiers.mediumQualityShadowMap, k_MediumQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualLightTiers.highQualityShadowMap, k_HighQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualLightTiers.veryHighQualityShadowMap, k_VeryHighQualityContent);
-                    }
-                    --EditorGUI.indentLevel;
-                }
+                EditorGUILayout.LabelField(k_PunctualLightsShadowTiers);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual.IntGUI(k_DirectionalLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxPunctualShadowMapResolution, k_MaxShadowResolution);
                 --EditorGUI.indentLevel;
             }
@@ -393,17 +373,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
 
                 ++EditorGUI.indentLevel;
-                {
-                    EditorGUILayout.LabelField(k_AreaLightsShadowTiers);
-                    ++EditorGUI.indentLevel;
-                    {
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaLightTiers.lowQualityShadowMap, k_LowQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaLightTiers.mediumQualityShadowMap, k_MediumQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaLightTiers.highQualityShadowMap, k_HighQualityContent);
-                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaLightTiers.veryHighQualityShadowMap, k_VeryHighQualityContent);
-                    }
-                    --EditorGUI.indentLevel;
-                }
+                EditorGUILayout.LabelField(k_AreaLightsShadowTiers);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionArea.IntGUI(k_DirectionalLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxAreaShadowMapResolution, k_MaxShadowResolution);
                 --EditorGUI.indentLevel;
             }
@@ -681,7 +652,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportMotionVectors, k_SupportMotionVectorContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRuntimeDebugDisplay, k_SupportRuntimeDebugDisplayContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDitheringCrossFade, k_SupportDitheringCrossFadeContent);
-            AppendSupport(builder, serialized.renderPipelineSettings.supportTerrainHole, k_SupportTerrainHoleContent);            
+            AppendSupport(builder, serialized.renderPipelineSettings.supportTerrainHole, k_SupportTerrainHoleContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDistortion, k_SupportDistortion);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentBackface, k_SupportTransparentBackface);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, k_SupportTransparentDepthPrepass);
