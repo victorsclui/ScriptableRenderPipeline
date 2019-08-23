@@ -47,6 +47,12 @@ namespace UnityEngine.Rendering.Universal
             public Shader samplingPS;
         }
 
+        [Serializable]
+        public sealed class RendererSettings
+        {
+            public bool readonlyDepth = false;
+        }
+
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
@@ -56,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
         [SerializeField] StencilStateData m_DefaultStencilState = null;
+        [SerializeField] RendererSettings m_RendererSettings;
 
         protected override ScriptableRenderer Create()
         {
@@ -76,6 +83,8 @@ namespace UnityEngine.Rendering.Universal
         public LayerMask transparentLayerMask => m_TransparentLayerMask;
 
         public StencilStateData defaultStencilState => m_DefaultStencilState;
+
+        public RendererSettings settings => m_RendererSettings;
 
         protected override void OnEnable()
         {
