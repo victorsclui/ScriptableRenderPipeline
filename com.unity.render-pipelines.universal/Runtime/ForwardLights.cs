@@ -3,7 +3,7 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal class ForwardLights
+    public class ForwardLights
     {
         static class LightConstantBuffer
         {

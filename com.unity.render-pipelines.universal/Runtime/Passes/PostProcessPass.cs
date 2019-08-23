@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal
 
     // TODO: TAA
     // TODO: Motion blur
-    internal class PostProcessPass : ScriptableRenderPass
+    public class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
         RenderTargetHandle m_Source;

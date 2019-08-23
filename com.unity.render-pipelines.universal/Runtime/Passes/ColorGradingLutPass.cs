@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.Universal
 {
     // Note: this pass can't be done at the same time as post-processing as it needs to be done in
     // advance in case we're doing on-tile color grading.
-    internal class ColorGradingLutPass : ScriptableRenderPass
+    public class ColorGradingLutPass : ScriptableRenderPass
     {
         const string m_ProfilerTag = "Color Grading LUT";
 

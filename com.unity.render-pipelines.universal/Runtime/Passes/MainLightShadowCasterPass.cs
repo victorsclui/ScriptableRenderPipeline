@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal class MainLightShadowCasterPass : ScriptableRenderPass
+    public class MainLightShadowCasterPass : ScriptableRenderPass
     {
         private static class MainLightShadowConstantBuffer
         {

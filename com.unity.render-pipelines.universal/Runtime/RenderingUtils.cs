@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderTextureFormatSupport.Clear();
         }
 
-        internal static bool SupportsRenderTextureFormat(RenderTextureFormat format)
+        public static bool SupportsRenderTextureFormat(RenderTextureFormat format)
         {
             if (!m_RenderTextureFormatSupport.TryGetValue(format, out var support))
             {
