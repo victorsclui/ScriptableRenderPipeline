@@ -36,7 +36,6 @@ namespace UnityEngine.Rendering.Universal
 
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
-        ForwardRendererData.RendererSettings m_RendererSettings;
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
@@ -52,8 +51,6 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetPassOperation(stencilData.passOperation);
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
-
-            m_RendererSettings = data.settings;
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
@@ -192,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            if (createDepthTexture && !m_RendererSettings.readonlyDepth)
+            if (createDepthTexture)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
