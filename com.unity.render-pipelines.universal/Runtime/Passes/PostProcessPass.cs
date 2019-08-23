@@ -123,6 +123,7 @@ namespace UnityEngine.Rendering.Universal
             desc.msaaSamples = 1;
             desc.depthBufferBits = 0;
             cmd.GetTemporaryRT(m_Destination.id, desc, FilterMode.Point);
+            ConfigureTarget(m_Destination.Identifier(), BuiltinRenderTextureType.None);
         }
 
         public void ResetHistory()
