@@ -1,5 +1,5 @@
-* [About Universa lRP](index.md)
-* [Getting started(getting-started-with-universalrp.md)
+* [About Universal RP](index.md)
+* [Getting started](getting-started-with-universalrp.md)
   * [Creating a new Project](creating-a-new-project-with-universalrp.md)
   * [Upgrading your existing Project](installing-universalrp-into-an-existing-project.md)
   * [Configuring Universal RP for use](configuring-universalrp-for-use.md)

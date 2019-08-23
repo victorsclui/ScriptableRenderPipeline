@@ -108,8 +108,8 @@ This table provides an overview of the current features supported in the Univers
 | OnPreCull                                                    | Yes                                                          | Not supported                                                |
 | OnPreRender                                                  | Yes                                                          | Not supported                                                |
 | OnPostRender                                                 | Yes                                                          | Not supported                                                |
-| OnRenderImage                                                | Yes                                                          | Yes                                                          |
-| OnRenderObject                                               | Yes                                                          | Not supported                                                |
+| OnRenderImage                                                | Yes                                                          | Not supported                                                |
+| OnRenderObject                                               | Yes                                                          | Yes                                                          |
 | OnWillRenderObject                                           | Yes                                                          | Yes                                                          |
 | OnBecameVisible                                              | Yes                                                          | Yes                                                          |
 | OnBecameInvisible                                            | Yes                                                          | Yes                                                          |
@@ -121,7 +121,7 @@ This table provides an overview of the current features supported in the Univers
 | UniversalRenderPipeline.RenderSingleCamera                   | Not supported                                                | Yes                                                          |
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | Yes                                                          |
-| ***Post-processing***                                        |                                                              |                                                              |
+| ***Post-processing***                                        | Uses post-processing version 2 package.                      | Uses a more performant, native [post-processing solution](integration-with-post-processing.md). Incompatible with post-processing version 2 package. |
 | Ambient Occlusion (MSVO)                                     | Yes                                                          | In research                                                  |
 | Auto Exposure                                                | Yes                                                          | Yes                                                          |
 | Bloom                                                        | Yes                                                          | Yes                                                          |
