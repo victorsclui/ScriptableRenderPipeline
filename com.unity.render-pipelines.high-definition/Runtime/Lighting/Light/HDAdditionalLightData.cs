@@ -10,6 +10,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+
     // This enum extent the original LightType enum with new light type from HD
     public enum LightTypeExtent
     {
@@ -139,6 +140,16 @@ namespace UnityEngine.Rendering.HighDefinition
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour
     {
+        internal static class ScalableSettings
+        {
+            public static IntScalableSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionArea;
+            public static IntScalableSetting ShadowResolutionPunctual(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual;
+            public static IntScalableSetting ShadowResolutionDirectional(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional;
+        }
+
         /// <summary>
         /// The default intensity value for directional lights in Lux
         /// </summary>

@@ -72,9 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent ColorTemperature = EditorGUIUtility.TrTextContent("Color Temperature");
             public static readonly GUIContent Shadows = EditorGUIUtility.TrTextContent("Shadows");
             public static readonly GUIContent ContactShadows = EditorGUIUtility.TrTextContent("Contact Shadows");
-            public static readonly GUIContent ShadowResolutionTier = EditorGUIUtility.TrTextContent("Shadows Resolution");
-            public static readonly GUIContent UseShadowQualitySettings = EditorGUIUtility.TrTextContent("Use Shadow Quality Settings");
-            public static readonly GUIContent CustomShadowResolution = EditorGUIUtility.TrTextContent("Shadow Resolution");
+            public static readonly GUIContent ShadowResolutionSource = EditorGUIUtility.TrTextContent("Shadows Resolution Source");
+            public static readonly GUIContent ShadowResolutionValue = EditorGUIUtility.TrTextContent("Shadow Resolution Value");
             public static readonly GUIContent ShapeWidth = EditorGUIUtility.TrTextContent("Shape Width");
             public static readonly GUIContent VolumeProfile = EditorGUIUtility.TrTextContent("Volume Profile");
             public static readonly GUIContent ColorTemperatureMode = EditorGUIUtility.TrTextContent("Use Color Temperature");
@@ -243,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         lightDataPairing[light].hdAdditionalLightData.contactShadows = contactShadows;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.UseShadowQualitySettings, "m_Intensity", 60, (r, prop, dep) =>           // 13: Use Custom Shadow Res
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ShadowResolutionSource, "m_Intensity", 60, (r, prop, dep) =>           // 14: Shadow Resolution Source
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
@@ -251,46 +250,35 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.LabelField(r,"null");
                         return;
                     }
-                    bool useQualitySettings = lightDataPairing[light].hdAdditionalLightData.useShadowQualitySettings;
+                    var shadowResolution = lightDataPairing[light].hdAdditionalLightData.shadowResolution;
                     EditorGUI.BeginChangeCheck();
-                    useQualitySettings = EditorGUI.Toggle(r, useQualitySettings);
+                    var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(r, GUIContent.none, shadowResolution.level,
+                        shadowResolution.useOverride);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        lightDataPairing[light].hdAdditionalLightData.useShadowQualitySettings = useQualitySettings;
+                        shadowResolution.level = level;
+                        shadowResolution.useOverride = useOverride;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ShadowResolutionTier, "m_Intensity", 60, (r, prop, dep) =>           // 14: Shadow tiers
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowResolutionValue, "m_Intensity", 60, (r, prop, dep) =>           // 15: Shadow resolution value
                 {
+                    var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                     Light light = prop.serializedObject.targetObject as Light;
-                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
+                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null || hdrp == null)
                     {
                         EditorGUI.LabelField(r,"null");
                         return;
                     }
-                    ShadowResolutionTier resTier = lightDataPairing[light].hdAdditionalLightData.shadowResolutionTier;
-                    EditorGUI.BeginChangeCheck();
-                    resTier = (ShadowResolutionTier)EditorGUI.EnumPopup(r, resTier);
-                    if (EditorGUI.EndChangeCheck())
+                    var shadowResolution = lightDataPairing[light].hdAdditionalLightData.shadowResolution;
+                    if (shadowResolution.useOverride)
+                        shadowResolution.@override = EditorGUI.IntField(r, shadowResolution.@override);
+                    else
                     {
-                        lightDataPairing[light].hdAdditionalLightData.shadowResolutionTier = resTier;
+                        var lightShape = SerializedHDLight.ResolveLightShape(lightDataPairing[light].hdAdditionalLightData.lightTypeExtent, light.type);
+                        var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightShape, hdrp);
+                        EditorGUI.LabelField(r, defaultValue[shadowResolution.level].ToString());
                     }
-                }),
 
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.CustomShadowResolution, "m_Intensity", 60, (r, prop, dep) =>           // 15: Custom Shadow resolution
-                {
-                    Light light = prop.serializedObject.targetObject as Light;
-                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
-                    {
-                        EditorGUI.LabelField(r,"null");
-                        return;
-                    }
-                    int customResolution = lightDataPairing[light].hdAdditionalLightData.customResolution;
-                    EditorGUI.BeginChangeCheck();
-                    customResolution = EditorGUI.IntField(r, customResolution);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        lightDataPairing[light].hdAdditionalLightData.customResolution = customResolution;
-                    }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 90, (r, prop, dep) =>         // 16: Affect Diffuse
                 {

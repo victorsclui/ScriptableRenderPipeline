@@ -212,30 +212,33 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            var lightTypeExtent = (LightTypeExtent)serializedLightData.lightTypeExtent.enumValueIndex;
-            switch (lightTypeExtent)
+            editorLightShape = ResolveLightShape(
+                (LightTypeExtent) serializedLightData.lightTypeExtent.enumValueIndex,
+                (LightType)type.enumValueIndex
+            );
+        }
+
+        internal static LightShape ResolveLightShape(LightTypeExtent typeExtent, LightType type)
+        {
+            switch (typeExtent)
             {
                 case LightTypeExtent.Punctual:
-                    switch ((LightType)type.enumValueIndex)
+                    switch (type)
                     {
                         case LightType.Directional:
-                            editorLightShape = LightShape.Directional;
-                            break;
+                            return LightShape.Directional;
                         case LightType.Point:
-                            editorLightShape = LightShape.Point;
-                            break;
+                            return LightShape.Point;
                         case LightType.Spot:
-                            editorLightShape = LightShape.Spot;
-                            break;
+                            return LightShape.Spot;
                     }
                     break;
                 case LightTypeExtent.Rectangle:
-                    editorLightShape = LightShape.Rectangle;
-                    break;
+                    return LightShape.Rectangle;
                 case LightTypeExtent.Tube:
-                    editorLightShape = LightShape.Tube;
-                    break;
+                    return LightShape.Tube;
             }
+            throw new Exception("Unknown light type");
         }
     }
 }

@@ -10,6 +10,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static partial class HDLightUI
     {
+        public static class ScalableSettings
+        {
+            public static IntScalableSetting ShadowResolution(LightShape shape, HDRenderPipelineAsset hdrp)
+            {
+                switch (shape)
+                {
+                    case LightShape.Spot: return HDAdditionalLightData.ScalableSettings.ShadowResolutionPunctual(hdrp);
+                    case LightShape.Point: return HDAdditionalLightData.ScalableSettings.ShadowResolutionPunctual(hdrp);
+                    case LightShape.Rectangle: return HDAdditionalLightData.ScalableSettings.ShadowResolutionArea(hdrp);
+                    case LightShape.Tube: return HDAdditionalLightData.ScalableSettings.ShadowResolutionArea(hdrp);
+                    case LightShape.Directional: return HDAdditionalLightData.ScalableSettings.ShadowResolutionDirectional(hdrp);
+                    default: throw new ArgumentOutOfRangeException(nameof(shape));
+                }
+            }
+        }
+
         // LightType + LightTypeExtent combined
         internal enum LightShape
         {
@@ -607,34 +623,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        SerializedScalableSettingValueUI.FromScalableSetting<int> defaultResolution;
-                        switch (serialized.editorLightShape)
-                        {
-                            case LightShape.Directional:
-                                defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
-                                    hdrp?.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional,
-                                    hdrp
-                                );
-                                break;
-                            case LightShape.Spot:
-                            case LightShape.Point:
-                                defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
-                                    hdrp?.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual,
-                                    hdrp
-                                );
-                                break;
-                            case LightShape.Tube:
-                            case LightShape.Rectangle:
-                            {
-                                defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
-                                    hdrp?.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionArea,
-                                    hdrp
-                                );
-                                break;
-                            }
-                            default: throw new ArgumentOutOfRangeException(nameof(serialized.editorLightShape));
-                        }
-                        serialized.serializedLightData.shadowResolution.IntGUI(s_Styles.shadowResolution, defaultResolution);
+                        var defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
+                            ScalableSettings.ShadowResolution(serialized.editorLightShape, hdrp),
+                            hdrp
+                        );
+                        serialized.serializedLightData.shadowResolution.LevelAndIntGUILayout(s_Styles.shadowResolution, defaultResolution);
 
 
                         if (change.changed)
@@ -827,7 +820,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
                     //m_BaseData.type.enumValueIndex = (int)LightType.Rectangle;
                     // In case of change, think to update InitDefaultHDAdditionalLightData()
-                    
+
                     serialized.settings.lightType.enumValueIndex = (int)LightType.Point;
                     serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     if (serialized.settings.isRealtime)

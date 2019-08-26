@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Source = source;
             }
 
-            public string GetValue(ScalableSetting.Level level) => m_Value != null && m_Source != null ? $"({m_Value[level]} from {m_Source.name})" : string.Empty;
+            public string GetValue(ScalableSetting.Level level) => m_Value != null && m_Source != null ? $"{m_Value[level]} ({m_Source.name})" : string.Empty;
         }
 
         private static readonly GUIContent k_Level = new GUIContent("Level");
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new GUIContent("Override"),
         };
 
-        static Rect DoGUI(SerializedScalableSettingValue self, GUIContent label)
+        static Rect DoGUILayout(SerializedScalableSettingValue self, GUIContent label)
         {
             var rect = GUILayoutUtility.GetRect(0, float.Epsilon, 0, EditorGUIUtility.singleLineHeight);
 
@@ -72,15 +72,12 @@ namespace UnityEditor.Rendering.HighDefinition
             var enumRect = new Rect(contentRect);
             enumRect.x -= k_EnumOffset;
             enumRect.width = k_EnumWidth + k_EnumOffset;
-            var enumValue = self.useOverride.boolValue ? k_LevelOptions.Length - 1 : self.level.intValue;
 
-            var newEnumValues = EditorGUI.Popup(enumRect, GUIContent.none, enumValue, k_LevelOptions);
-            if (newEnumValues != enumValue)
-            {
-                self.useOverride.boolValue = newEnumValues == k_LevelOptions.Length - 1;
-                if (!self.useOverride.boolValue)
-                    self.level.intValue = newEnumValues;
-            }
+            var (level, isOverride) =
+                LevelFieldGUI(enumRect, GUIContent.none, (ScalableSetting.Level)self.level.intValue, self.useOverride.boolValue);
+            self.useOverride.boolValue = isOverride;
+            if (!self.useOverride.boolValue)
+                self.level.intValue = (int)level;
 
             // Return the rect fo user can render the field there
             var fieldRect = new Rect(contentRect);
@@ -90,19 +87,27 @@ namespace UnityEditor.Rendering.HighDefinition
             return fieldRect;
         }
 
-        public static void IntGUI<T>(this SerializedScalableSettingValue self, GUIContent label, T @default)
+        public static (ScalableSetting.Level, bool) LevelFieldGUI(Rect rect, GUIContent label, ScalableSetting.Level level, bool useOverride)
+        {
+            var enumValue = useOverride ? k_LevelOptions.Length - 1 : (int)level;
+            var newEnumValues = EditorGUI.Popup(rect, GUIContent.none, enumValue, k_LevelOptions);
+            var isOverride = newEnumValues == k_LevelOptions.Length - 1;
+            return (isOverride ? level : (ScalableSetting.Level) newEnumValues, isOverride);
+        }
+
+        public static void LevelAndIntGUILayout<T>(this SerializedScalableSettingValue self, GUIContent label, T @default)
             where T: struct, IValueFormatter
         {
-            var fieldRect = DoGUI(self, label);
+            var fieldRect = DoGUILayout(self, label);
             if (self.useOverride.boolValue)
                 self.@override.intValue = EditorGUI.IntField(fieldRect, self.@override.intValue);
             else
                 EditorGUI.LabelField(fieldRect, @default.GetValue((ScalableSetting.Level)self.level.intValue));
         }
 
-        public static void IntGUI(this SerializedScalableSettingValue self, GUIContent label)
+        public static void LevelAndIntGUILayout(this SerializedScalableSettingValue self, GUIContent label)
         {
-            IntGUI(self, label, new NoopFormatter());
+            LevelAndIntGUILayout(self, label, new NoopFormatter());
         }
     }
 }
