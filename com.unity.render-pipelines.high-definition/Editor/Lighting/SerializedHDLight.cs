@@ -1,5 +1,6 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
+using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -73,12 +74,16 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedProperty shadowDimmer;
             public SerializedProperty volumetricShadowDimmer;
             public SerializedProperty shadowFadeDistance;
+            [Obsolete]
             public SerializedProperty shadowResolutionTier;
+            [Obsolete]
             public SerializedProperty useShadowQualitySettings;
+            [Obsolete]
             public SerializedProperty customResolution;
             public SerializedProperty contactShadows;
             public SerializedProperty shadowTint;
             public SerializedProperty shadowUpdateMode;
+            public SerializedScalableSettingValue shadowResolution;
 
             // Bias control
             public SerializedProperty constantBias;
@@ -171,12 +176,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     shadowDimmer = o.Find("m_ShadowDimmer"),
                     volumetricShadowDimmer = o.Find("m_VolumetricShadowDimmer"),
                     shadowFadeDistance = o.Find("m_ShadowFadeDistance"),
-                    useShadowQualitySettings = o.Find("m_UseShadowQualitySettings"),
-                    customResolution = o.Find("m_CustomShadowResolution"),
-                    shadowResolutionTier = o.Find("m_ShadowResolutionTier"),
                     contactShadows = o.Find("m_ContactShadows"),
                     shadowTint = o.Find("m_ShadowTint"),
                     shadowUpdateMode = o.Find("m_ShadowUpdateMode"),
+                    shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution)),
 
                     constantBias = o.Find("m_ConstantBias"),
                     normalBias = o.Find("m_NormalBias"),

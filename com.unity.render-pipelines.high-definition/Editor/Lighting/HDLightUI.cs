@@ -581,6 +581,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)
         {
+            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+
             bool oldShadowEnabled = serialized.settings.shadowsType.enumValueIndex != 0;
             bool newShadowsEnabled = EditorGUILayout.Toggle(s_Styles.enableShadowMap, oldShadowEnabled);
             if (oldShadowEnabled ^ newShadowsEnabled)
@@ -603,19 +605,40 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.PropertyField(serialized.serializedLightData.shadowUpdateMode, s_Styles.shadowUpdateMode);
                     }
 
-                    EditorGUILayout.PropertyField(serialized.serializedLightData.useShadowQualitySettings, s_Styles.useShadowQualityResolution);
-
-                    if (serialized.serializedLightData.useShadowQualitySettings.boolValue)
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.shadowResolutionTier, s_Styles.shadowResolution);
-
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        if (!serialized.serializedLightData.useShadowQualitySettings.boolValue)
+                        SerializedScalableSettingValueUI.FromScalableSetting<int> defaultResolution;
+                        switch (serialized.editorLightShape)
                         {
-                            EditorGUILayout.DelayedIntField(serialized.serializedLightData.customResolution, s_Styles.shadowResolution);
-                            if (change.changed)
-                                serialized.serializedLightData.customResolution.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.customResolution.intValue);
+                            case LightShape.Directional:
+                                defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
+                                    hdrp?.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional,
+                                    hdrp
+                                );
+                                break;
+                            case LightShape.Spot:
+                            case LightShape.Point:
+                                defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
+                                    hdrp?.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual,
+                                    hdrp
+                                );
+                                break;
+                            case LightShape.Tube:
+                            case LightShape.Rectangle:
+                            {
+                                defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
+                                    hdrp?.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionArea,
+                                    hdrp
+                                );
+                                break;
+                            }
+                            default: throw new ArgumentOutOfRangeException(nameof(serialized.editorLightShape));
                         }
+                        serialized.serializedLightData.shadowResolution.IntGUI(s_Styles.shadowResolution, defaultResolution);
+
+
+                        if (change.changed)
+                            serialized.serializedLightData.shadowResolution.@override.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.shadowResolution.@override.intValue);
                     }
 
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
