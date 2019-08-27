@@ -12,11 +12,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static protected GlobalPostProcessingQualitySettings GetPostProcessingQualitySettings()
         {
-
             var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
             if(pipeline != null)
             {
                 return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings;
+            }
+            // This shouldn't happen ever.
+            return null;
+        }
+
+        static protected GlobalLightingQualitySettings GetLightingQualitySettings()
+        {
+            var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+            if (pipeline != null)
+            {
+                return pipeline.currentPlatformRenderPipelineSettings.lightingQualitySettings;
             }
             // This shouldn't happen ever.
             return null;
