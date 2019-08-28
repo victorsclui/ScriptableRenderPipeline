@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// You can use this pass to prime a depth buffer for subsequent rendering.
     /// Use it as a z-prepass, or use it to generate a depth buffer.
     /// </summary>
-    internal class DepthOnlyPass : ScriptableRenderPass
+    public class DepthOnlyPass : ScriptableRenderPass
     {
         int kDepthBufferBits = 32;
 
