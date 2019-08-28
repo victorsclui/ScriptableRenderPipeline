@@ -168,6 +168,9 @@ namespace UnityEditor.ShaderGraph
 
         public void Dispose()
         {
+            if(m_ScopeStack.Count == 0)
+                return;
+            
             switch (m_ScopeStack.Pop())
             {
                 case ScopeType.Indent:
@@ -203,6 +206,18 @@ namespace UnityEditor.ShaderGraph
             int start = m_CurrentMapping.startIndex;
             int end = m_StringBuilder.Length - start;
             m_StringBuilder.Replace(oldValue, newValue, start, end );
+        }
+
+        public string ToCodeBlack()
+        {
+            // Remove new line
+            if(m_StringBuilder.Length > 0)
+                m_StringBuilder.Length = m_StringBuilder.Length - 1;
+
+            // Set indentations
+            m_StringBuilder.Replace(Environment.NewLine, Environment.NewLine + k_IndentationString);
+
+            return m_StringBuilder.ToString();
         }
 
         public override string ToString()

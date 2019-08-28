@@ -183,9 +183,10 @@ namespace UnityEditor.ShaderGraph
             return conditional;
         }
 
-        public static void BuildType(System.Type t, ActiveFields activeFields, ShaderGenerator result)
+        public static void BuildType(System.Type t, ActiveFields activeFields, ShaderGenerator result, bool isDebug)
         {
-            result.AddShaderChunk("struct " + t.Name + " {");
+            result.AddShaderChunk("struct " + t.Name);
+            result.AddShaderChunk("{");
             result.Indent();
 
             foreach (FieldInfo field in t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
@@ -229,13 +230,13 @@ namespace UnityEditor.ShaderGraph
                         if (!string.IsNullOrEmpty(keywordIfdefs))
                             result.AddShaderChunk(keywordIfdefs);
 
-                        var fieldDecl = fieldType + " " + field.Name + semanticString + ";" + (isOptional ? " // optional" : string.Empty);
+                        var fieldDecl = fieldType + " " + field.Name + semanticString + ";" + (isOptional & isDebug ? " // optional" : string.Empty);
                         result.AddShaderChunk(fieldDecl);
 
                         if (!string.IsNullOrEmpty(keywordIfdefs))
-                            result.AddShaderChunk("#endif // Shader Graph Keywords");
+                            result.AddShaderChunk("#endif" + (isDebug ? " // Shader Graph Keywords" : string.Empty));
                         if (conditional != null)
-                            result.AddShaderChunk("#endif // " + conditional);
+                            result.AddShaderChunk("#endif" + (isDebug ? $" // {conditional}" : string.Empty));
                     }
                 }
             }
@@ -245,14 +246,15 @@ namespace UnityEditor.ShaderGraph
             object[] packAttributes = t.GetCustomAttributes(typeof(InterpolatorPack), false);
             if (packAttributes.Length > 0)
             {
-                var generatedPackedTypes = new Dictionary<string, (ShaderGenerator, List<int>)>();
+                result.AddNewLine();
 
                 if (activeFields.permutationCount > 0)
                 {
+                    var generatedPackedTypes = new Dictionary<string, (ShaderGenerator, List<int>)>();
                     foreach (var instance in activeFields.allPermutations.instances)
                     {
                         var instanceGenerator = new ShaderGenerator();
-                        BuildPackedType(t, instance, instanceGenerator);
+                        BuildPackedType(t, instance, instanceGenerator, isDebug);
                         var key = instanceGenerator.GetShaderString(0);
                         if (generatedPackedTypes.TryGetValue(key, out var value))
                             value.Item2.Add(instance.permutationIndex);
@@ -278,18 +280,19 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    BuildPackedType(t, activeFields.baseInstance, result);
+                    BuildPackedType(t, activeFields.baseInstance, result, isDebug);
                 }
             }
         }
 
-        public static void BuildPackedType(System.Type unpacked, IActiveFields activeFields, ShaderGenerator result)
+        public static void BuildPackedType(System.Type unpacked, IActiveFields activeFields, ShaderGenerator result, bool isDebug)
         {
             // for each interpolator, the number of components used (up to 4 for a float4 interpolator)
             List<int> packedCounts = new List<int>();
+            ShaderGenerator packingStruct = new ShaderGenerator();
             ShaderGenerator packer = new ShaderGenerator();
             ShaderGenerator unpacker = new ShaderGenerator();
-            ShaderGenerator structEnd = new ShaderGenerator();
+            ShaderGenerator systemGenerated = new ShaderGenerator();
 
             string unpackedStruct = unpacked.Name.ToString();
             string packedStruct = "Packed" + unpacked.Name;
@@ -298,13 +301,16 @@ namespace UnityEditor.ShaderGraph
 
             // declare struct header:
             //   struct packedStruct {
-            result.AddShaderChunk("struct " + packedStruct + " {");
-            result.Indent();
+            packingStruct.AddShaderChunk("// Generated Type: Packed" + unpacked.Name);
+            packingStruct.AddShaderChunk("struct " + packedStruct);
+            packingStruct.AddShaderChunk("{");
+            packingStruct.Indent();
 
             // declare function headers:
             //   packedStruct packerFunction(unpackedStruct input)
             //   {
             //      packedStruct output;
+            packer.AddShaderChunk("// Packed Type: " + unpacked.Name);
             packer.AddShaderChunk(packedStruct + " " + packerFunction + "(" + unpackedStruct + " input)");
             packer.AddShaderChunk("{");
             packer.Indent();
@@ -313,6 +319,7 @@ namespace UnityEditor.ShaderGraph
             //   unpackedStruct unpackerFunction(packedStruct input)
             //   {
             //      unpackedStruct output;
+            unpacker.AddShaderChunk("// Unpacked Type: " + unpacked.Name);
             unpacker.AddShaderChunk(unpackedStruct + " " + unpackerFunction + "(" + packedStruct + " input)");
             unpacker.AddShaderChunk("{");
             unpacker.Indent();
@@ -333,15 +340,32 @@ namespace UnityEditor.ShaderGraph
                         string fieldType = GetFieldType(field, out floatVectorCount);
                         string conditional = GetFieldConditional(field);
 
+                        // System generated fields must appear last in struct definitions
+                        bool isSystemGenerated = field.IsDefined(typeof(SystemGenerated), false);
+
                         if (conditional != null)
                         {
-                            structEnd.AddShaderChunk("#if " + conditional);
+                            if(isSystemGenerated)
+                            {
+                                systemGenerated.AddShaderChunk("#if " + conditional);
+                            }
+                            else
+                            {
+                                packingStruct.AddShaderChunk("#if " + conditional);
+                            }
                             packer.AddShaderChunk("#if " + conditional);
                             unpacker.AddShaderChunk("#if " + conditional);
                         }
                         if ((semanticString != null) || (floatVectorCount == 0))
                         {
-                            structEnd.AddShaderChunk(fieldType + " " + field.Name + semanticString + "; // unpacked");
+                            if(isSystemGenerated)
+                            {
+                                systemGenerated.AddShaderChunk(fieldType + " " + field.Name + semanticString + ";" + (isDebug ? " // unpacked" : string.Empty));
+                            }
+                            else
+                            {
+                                packingStruct.AddShaderChunk(fieldType + " " + field.Name + semanticString + ";" + (isDebug ? " // unpacked" : string.Empty));
+                            }
                             packer.AddShaderChunk("output." + field.Name + " = input." + field.Name + ";");
                             unpacker.AddShaderChunk("output." + field.Name + " = input." + field.Name + ";");
                         }
@@ -373,9 +397,16 @@ namespace UnityEditor.ShaderGraph
                         }
                         if (conditional != null)
                         {
-                            structEnd.AddShaderChunk("#endif // " + conditional);
-                            packer.AddShaderChunk("#endif // " + conditional);
-                            unpacker.AddShaderChunk("#endif // " + conditional);
+                            if(isSystemGenerated)
+                            {
+                                systemGenerated.AddShaderChunk("#endif" + (isDebug ? $" // conditional" : string.Empty));
+                            }
+                            else
+                            {
+                                packingStruct.AddShaderChunk("#endif" + (isDebug ? $" // conditional" : string.Empty));
+                            }
+                            packer.AddShaderChunk("#endif" + (isDebug ? $" // conditional" : string.Empty));
+                            unpacker.AddShaderChunk("#endif" + (isDebug ? $" // conditional" : string.Empty));
                         }
                     }
                 }
@@ -385,23 +416,29 @@ namespace UnityEditor.ShaderGraph
             for (int index = 0; index < packedCounts.Count; index++)
             {
                 int count = packedCounts[index];
-                result.AddShaderChunk(string.Format("{0} interp{1:00} : TEXCOORD{1}; // auto-packed", vectorTypeNames[count], index));
+                packingStruct.AddShaderChunk(string.Format("{0} interp{1:00} : TEXCOORD{1};" + (isDebug ? " // auto-packed" : string.Empty), vectorTypeNames[count], index));
             }
 
-            // add unpacked data declarations to struct (must be at end)
-            result.AddGenerator(structEnd);
+            // Add system generated fields at the end
+            if(systemGenerated.numberOfChunks > 0)
+            {
+                packingStruct.AddGenerator(systemGenerated);
+            }
 
             // close declarations
-            result.Deindent();
-            result.AddShaderChunk("};");
+            packingStruct.Deindent();
+            packingStruct.AddShaderChunk("};");
+            packingStruct.AddNewLine();
             packer.AddShaderChunk("return output;");
             packer.Deindent();
             packer.AddShaderChunk("}");
+            packer.AddNewLine();
             unpacker.AddShaderChunk("return output;");
             unpacker.Deindent();
             unpacker.AddShaderChunk("}");
 
             // combine all of the code into the result
+            result.AddGenerator(packingStruct);
             result.AddGenerator(packer);
             result.AddGenerator(unpacker);
         }
@@ -429,8 +466,9 @@ namespace UnityEditor.ShaderGraph
             ActiveFields activeFields;
             Dictionary<string, string> namedFragments;
             string templatePath;
-            bool debugOutput;
-            string buildTypeAssemblyNameFormat;
+            bool isDebug;
+            string assemblyName;
+            string resourceClassName;
 
             // intermediates
             HashSet<string> includedFiles;
@@ -439,14 +477,15 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder result;
             List<string> sourceAssetDependencyPaths;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool debugOutput, string templatePath, List<string> sourceAssetDependencyPaths, string buildTypeAssemblyNameFormat, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string templatePath, List<string> sourceAssetDependencyPaths, string assemblyName, string resourceClassName, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
-                this.debugOutput = debugOutput;
+                this.isDebug = isDebug;
                 this.templatePath = templatePath;
                 this.sourceAssetDependencyPaths = sourceAssetDependencyPaths;
-                this.buildTypeAssemblyNameFormat = buildTypeAssemblyNameFormat;
+                this.assemblyName = assemblyName;
+                this.resourceClassName = resourceClassName;
                 this.result = outShaderCodeResult ?? new ShaderStringBuilder();
                 includedFiles = new HashSet<string>();
             }
@@ -542,6 +581,7 @@ namespace UnityEditor.ShaderGraph
                             if (command.Is("include"))
                             {
                                 ProcessIncludeCommand(command, end);
+                                appendEndln = false;
                                 break;      // include command always ignores the rest of the line, error or not
                             }
                             else if (command.Is("splice"))
@@ -555,6 +595,7 @@ namespace UnityEditor.ShaderGraph
                             else if (command.Is("buildType"))
                             {
                                 ProcessBuildTypeCommand(command, end);
+                                appendEndln = false;
                                 break;      // buildType command always ignores the rest of the line, error or not
                             }
                             else
@@ -603,16 +644,39 @@ namespace UnityEditor.ShaderGraph
                         }
                         else
                         {
-                            // skip a line, just to be sure we've cleaned up the current line
-                            result.AppendNewLine();
-                            result.AppendLine("//-------------------------------------------------------------------------------------");
-                            result.AppendLine("// TEMPLATE INCLUDE : " + param.GetString());
-                            result.AppendLine("//-------------------------------------------------------------------------------------");
-                            ProcessTemplateFile(includeLocation);
-                            result.AppendNewLine();
-                            result.AppendLine("//-------------------------------------------------------------------------------------");
-                            result.AppendLine("// END TEMPLATE INCLUDE : " + param.GetString());
-                            result.AppendLine("//-------------------------------------------------------------------------------------");
+                            int endIndex = result.length;
+                            using(var temp = new ShaderStringBuilder())
+                            {
+                                // Wrap in debug mode
+                                if(isDebug)
+                                {
+                                    result.AppendLine("//-------------------------------------------------------------------------------------");
+                                    result.AppendLine("// TEMPLATE INCLUDE : " + param.GetString());
+                                    result.AppendLine("//-------------------------------------------------------------------------------------");
+                                    result.AppendNewLine();
+                                }
+
+                                // Recursively process templates
+                                ProcessTemplateFile(includeLocation);
+
+                                // Wrap in debug mode
+                                if(isDebug)
+                                {
+                                    result.AppendNewLine();
+                                    result.AppendLine("//-------------------------------------------------------------------------------------");
+                                    result.AppendLine("// END TEMPLATE INCLUDE : " + param.GetString());
+                                    result.AppendLine("//-------------------------------------------------------------------------------------");
+                                }
+
+                                result.AppendNewLine();
+
+                                // Required to enforce indentation rules
+                                // Append lines from this include into temporary StringBuilder
+                                // Reduce result length to remove this include
+                                temp.AppendLines(result.ToString(endIndex, result.length - endIndex));
+                                result.length = endIndex;
+                                result.AppendLines(temp.ToCodeBlack());
+                            }
                         }
                     }
                 }
@@ -670,17 +734,17 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         string typeName = param.GetString();
-                        string assemblyQualifiedTypeName = string.Format(buildTypeAssemblyNameFormat, typeName);
-                        Type type = Type.GetType(assemblyQualifiedTypeName);
+                        Type type = GenerationUtils.GetTypeForStruct(typeName, resourceClassName, assemblyName);
                         if (type == null)
                         {
                             Error("ERROR: buildType could not find type : " + typeName, command.s, param.start);
                         }
                         else
                         {
-                            result.AppendLine("// Generated Type: " + typeName);
                             ShaderGenerator temp = new ShaderGenerator();
-                            BuildType(type, activeFields, temp);
+                            temp.Indent();
+                            temp.AddShaderChunk("// Generated Type: " + typeName);
+                            BuildType(type, activeFields, temp, isDebug);
                             result.AppendLine(temp.GetShaderString(0, false));
                         }
                     }
@@ -731,7 +795,7 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         // predicate is not active
-                        if (debugOutput)
+                        if (isDebug)
                         {
                             // append everything before the beginning of the escape sequence
                             AppendSubstring(predicate.s, cur, true, predicate.start-1, false);
