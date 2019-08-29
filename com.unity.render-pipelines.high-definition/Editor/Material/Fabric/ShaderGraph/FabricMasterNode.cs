@@ -532,7 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // tangent in Vertex 
-            if (MaterialTypeUsesSlotMask(SlotMask.Tangent))
+            if (MaterialTypeUsesSlotMask(SlotMask.VertexTangent))
             {
                 AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(VertexTangentSlotId);
