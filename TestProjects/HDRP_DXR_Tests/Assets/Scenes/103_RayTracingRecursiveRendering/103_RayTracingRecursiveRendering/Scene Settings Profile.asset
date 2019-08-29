@@ -181,19 +181,6 @@ MonoBehaviour:
     m_Value: 1
     min: 0.001
     max: 10
-  temporalAccumulationWeight:
-    m_OverrideState: 0
-    m_Value: 0.1
-    min: 0.001
-    max: 1
-  spatialFilterRadius:
-    m_OverrideState: 0
-    m_Value: 4
-  numSamples:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 1
-    max: 32
   enableFilter:
     m_OverrideState: 0
     m_Value: 0
@@ -202,6 +189,28 @@ MonoBehaviour:
     m_Value: 16
     min: 1
     max: 32
+  spatialFilterRadius:
+    m_OverrideState: 0
+    m_Value: 4
+  fullResolution:
+    m_OverrideState: 0
+    m_Value: 0
+  deferredMode:
+    m_OverrideState: 0
+    m_Value: 0
+  rayBinning:
+    m_OverrideState: 0
+    m_Value: 0
+  numSamples:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 1
+    max: 32
+  numBounces:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 1
+    max: 31
 --- !u!114 &-1317218713227126393
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -271,10 +280,8 @@ MonoBehaviour:
   components:
   - {fileID: -9100393190897107445}
   - {fileID: 2943865517305467186}
-  - {fileID: 8140916672878358342}
   - {fileID: -4010664606289485424}
   - {fileID: -3095400059584499379}
-  - {fileID: -5282388557704554314}
 --- !u!114 &2943865517305467186
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -291,9 +298,9 @@ MonoBehaviour:
   m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 4
   skyAmbientMode:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   fogType:
     m_OverrideState: 1
