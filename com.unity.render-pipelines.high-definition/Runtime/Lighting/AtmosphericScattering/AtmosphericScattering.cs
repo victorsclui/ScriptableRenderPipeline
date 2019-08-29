@@ -53,10 +53,9 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     public enum FogType // 7 bits max, 8th bit is for the PBR sky atmosphere flag
     {
-        None,
-        Linear,
-        Exponential,
-        Volumetric,
+        None = 0,
+        Exponential = 2,
+        Volumetric = 3,
     }
 
     [GenerateHLSL]

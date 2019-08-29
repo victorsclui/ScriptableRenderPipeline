@@ -272,13 +272,6 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
     switch (fogType)
     {
-        case FOGTYPE_LINEAR:
-        {
-            fogColor   = GetFogColor(V, fogFragDist);
-            fogOpacity = _FogDensity * saturate((fogFragDist - _LinearFogStart) * _LinearFogOneOverRange) * saturate((_LinearFogHeightEnd - GetAbsolutePositionWS(posInput.positionWS).y) * _LinearFogHeightOneOverRange);
-            fogColor  *= fogOpacity;
-            break;
-        }
         case FOGTYPE_EXPONENTIAL:
         {
             float fogHeight = max(0.0, GetAbsolutePositionWS(posInput.positionWS).y - _ExpFogBaseHeight);

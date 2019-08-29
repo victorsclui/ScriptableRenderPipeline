@@ -58,12 +58,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, physicallyBasedSkyAtmosphereFlag | (int)FogType.None);
                     break;
                 }
-                case FogType.Linear:
-                {
-                    var fogSettings = VolumeManager.instance.stack.GetComponent<LinearFog>();
-                    fogSettings.PushShaderParameters(hdCamera, cmd);
-                    break;
-                }
                 case FogType.Exponential:
                 {
                     var fogSettings = VolumeManager.instance.stack.GetComponent<ExponentialFog>();
