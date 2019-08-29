@@ -446,9 +446,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // use standard shader pass generation
                 bool vertexActive = false;
-                if (masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId) ||
-                    masterNode.IsSlotConnected(HDLitMasterNode.VertexNormalSlotID) ||
-                    masterNode.IsSlotConnected(HDLitMasterNode.VertexTangentSlotID) )
+                if (masterNode.IsSlotConnected(EyeMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(EyeMasterNode.VertexNormalSlotID) ||
+                    masterNode.IsSlotConnected(EyeMasterNode.VertexTangentSlotID) )
                 {
                     vertexActive = true;
                 }
