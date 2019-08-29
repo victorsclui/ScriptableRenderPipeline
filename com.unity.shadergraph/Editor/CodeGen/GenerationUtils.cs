@@ -288,7 +288,7 @@ namespace UnityEditor.ShaderGraph
 
             using (var graphDefines = new ShaderStringBuilder())
             {
-                graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
+                graphDefines.AppendLine("#define {0}", pass.referenceName);
 
                 if (graphRequirements.permutationCount > 0)
                 {

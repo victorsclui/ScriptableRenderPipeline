@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
         {
             // Definition
             displayName = "Universal Forward",
-            referenceName = "FORWARD",
+            referenceName = "SHADERPASS_FORWARD",
             lightMode = "UniversalForward",
             passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl",
             varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.Universal
         {
             // Definition
             displayName = "DepthOnly",
-            referenceName = "DEPTHONLY",
+            referenceName = "SHADERPASS_DEPTHONLY",
             lightMode = "DepthOnly",
             passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl",
             varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.Universal
         {
             // Definition
             displayName = "ShadowCaster",
-            referenceName = "SHADOWCASTER",
+            referenceName = "SHADERPASS_SHADOWCASTER",
             lightMode = "ShadowCaster",
             passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl",
             varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
@@ -186,7 +186,7 @@ namespace UnityEditor.Rendering.Universal
         {
             // Definition
             displayName = "Meta",
-            referenceName = "META",
+            referenceName = "SHADERPASS_META",
             lightMode = "Meta",
             passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl",
             varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
@@ -232,6 +232,44 @@ namespace UnityEditor.Rendering.Universal
             keywords = new KeywordDescriptor[]
             {
                 s_SmoothnessChannelKeyword,
+            },
+        };
+
+        ShaderPass m_2DPass = new ShaderPass()
+        {
+            // Definition
+            referenceName = "SHADERPASS_2D",
+            lightMode = "Universal2D",
+            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl",
+            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
+
+            // Port mask
+            vertexPorts = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            },
+            pixelPorts = new List<int>()
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+
+            // Pass setup
+            includes = new List<string>()
+            {
+                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
+                "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+            },
+            pragmas = new List<string>()
+            {
+                "prefer_hlslcc gles",
+                "exclude_renderers d3d11_9x",
+                "target 2.0",
+                "multi_compile_instancing",
             },
         };
 #endregion
@@ -422,6 +460,7 @@ namespace UnityEditor.Rendering.Universal
                 GenerateShaderPass(pbrMasterNode, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(pbrMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(pbrMasterNode, m_LitMetaPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(pbrMasterNode, m_2DPass, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
