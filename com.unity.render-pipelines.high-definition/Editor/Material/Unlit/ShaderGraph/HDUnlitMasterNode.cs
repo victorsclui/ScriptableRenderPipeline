@@ -29,6 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string DistortionBlurSlotName = "DistortionBlur";
         public const string PositionSlotName = "Position";
         public const string EmissionSlotName = "Emission";
+        public const string VertexNormalSlotName = "Vertex Normal";
+        public const string VertexTangentSlotName = "Vertex Tangent";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
@@ -37,6 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int DistortionSlotId = 10;
         public const int DistortionBlurSlotId = 11;
         public const int EmissionSlotId = 12;
+        public const int VertexNormalSlotId = 13;
+        public const int VertexTangentSlotId = 14;
 
         // Don't support Multiply
         public enum AlphaModeLit
@@ -311,6 +315,10 @@ namespace UnityEditor.Rendering.HighDefinition
             List<int> validSlots = new List<int>();
             AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(PositionSlotId);
+            AddSlot(new NormalMaterialSlot(VertexNormalSlotId, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            validSlots.Add(VertexNormalSlotId);
+            AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            validSlots.Add(VertexTangentSlotId);
             AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
             validSlots.Add(ColorSlotId);
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
