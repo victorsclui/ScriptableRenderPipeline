@@ -43,11 +43,7 @@ Varyings BuildVaryings(Attributes input)
 #endif
     
 #ifdef VARYINGS_NEED_NORMAL_WS
-    #if !SHADER_HINT_NICE_QUALITY
-        output.normalWS = normalize(normalWS);
-    #else
-        output.normalWS = normalWS;
-    #endif    
+    output.normalWS = NormalizeNormalPerVertex(normalWS);
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_WS

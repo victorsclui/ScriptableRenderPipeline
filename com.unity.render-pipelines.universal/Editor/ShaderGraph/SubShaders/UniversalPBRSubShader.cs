@@ -393,9 +393,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 baseActiveFields.Add("AlphaClip");
             }
-
-            if (masterNode.IsSlotConnected(PBRMasterNode.NormalSlotId))
-                baseActiveFields.Add("NormalMap");
+            
             if (masterNode.model == PBRMasterNode.Model.Specular)
                 baseActiveFields.Add("SpecularSetup");
 
