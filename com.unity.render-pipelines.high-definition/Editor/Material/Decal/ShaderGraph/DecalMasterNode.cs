@@ -53,7 +53,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string EmissionSlotName = "Emission";
         public const string EmissionDisplaySlotName = "Emission";
         public const int EmissionSlotId = 9;
+        
+        public const string VertexNormalSlotName = "Vertex Normal";
+         public const int VertexNormalSlotID = 10;
 
+        public const string VertexTangentSlotName = "Vertex Tangent";
+        public const int VertexTangentSlotID = 11;
 
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
@@ -62,6 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             None = 0,
             Position = 1 << PositionSlotId,
+            VertexNormal = 1 << VertexNormalSlotID,
+            VertexTangent = 1 << VertexTangentSlotID,
             Albedo = 1 << AlbedoSlotId,
             AlphaAlbedo = 1 << BaseColorOpacitySlotId,
             Normal = 1 << NormalSlotId,
@@ -73,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Emission = 1 << EmissionSlotId
         }
 
-        const SlotMask decalParameter = SlotMask.Position | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS | SlotMask.Emission;
+        const SlotMask decalParameter = SlotMask.Position | SlotMask.VertexNormal | SlotMask.VertexTangent | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS | SlotMask.Emission;
 
 
         // This could also be a simple array. For now, catch any mismatched data.
@@ -112,6 +119,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 validSlots.Add(PositionSlotId);
             }
 
+            //Normal in Vertex
+            if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
+            {
+                AddSlot(new NormalMaterialSlot(VertexNormalSlotID, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                validSlots.Add(VertexNormalSlotID);
+            }
+
+            //Tangent in Vertex
+            if (MaterialTypeUsesSlotMask(SlotMask.VertexTangent))
+            {
+                AddSlot(new TangentMaterialSlot(VertexTangentSlotID, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                validSlots.Add(VertexTangentSlotID);
+            }
+            
             // Albedo
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
             {
