@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         ShaderPass m_LitPass = new ShaderPass
         {
             // Definition
-            displayName = "Lit Pass",
+            displayName = "Sprite Lit",
             referenceName = "SPRITE_LIT",
             lightMode = "Universal2D",
             passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteLitPass.hlsl",
@@ -51,7 +51,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
                 "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl",
-                "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/CombinedShapeLightShared.hlsl",
             },
             pragmas = new List<string>()
             {

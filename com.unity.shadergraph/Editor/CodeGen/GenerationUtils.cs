@@ -81,8 +81,27 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Pass Setup
 
-            spliceCommands.Add("PassName", pass.displayName);
-            spliceCommands.Add("LightMode", pass.lightMode);
+            // Name
+            if(!string.IsNullOrEmpty(pass.displayName))
+            {
+                spliceCommands.Add("PassName", $"Name \"{pass.displayName}\"");
+            }
+            else
+            {
+                spliceCommands.Add("PassName", "// Name: <None>");
+            }
+
+            // Tags
+            if(!string.IsNullOrEmpty(pass.lightMode))
+            {
+                spliceCommands.Add("LightMode", $"\"LightMode\" = \"{pass.lightMode}\"");
+            }
+            else
+            {
+                spliceCommands.Add("LightMode", "// LightMode: <None>");
+            }
+
+            // Render state
             BuildRenderStatesFromPass(pass, ref spliceCommands);
 
             // --------------------------------------------------

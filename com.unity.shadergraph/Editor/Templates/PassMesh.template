@@ -1,9 +1,9 @@
 Pass
 {
-    Name "$splice(PassName)"
+    $splice(PassName)
     Tags 
     { 
-        "LightMode" = "$splice(LightMode)"
+        $splice(LightMode)
     }
    
     // Render State
