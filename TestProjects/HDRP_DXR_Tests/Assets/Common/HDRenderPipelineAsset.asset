@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_Version: 7
+  m_Version: 8
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -274,9 +274,30 @@ MonoBehaviour:
       enabled: 1
       checkerboardDepthBuffer: 1
       upsampleType: 1
+    xrSettings:
+      occlusionMesh: 1
+    postProcessQualitySettings:
+      NearBlurSampleCount: 030000000500000008000000
+      NearBlurMaxRadius:
+      - 2
+      - 4
+      - 7
+      FarBlurSampleCount: 04000000070000000e000000
+      FarBlurMaxRadius:
+      - 5
+      - 8
+      - 13
+      DoFResolution: 040000000200000001000000
+      DoFHighQualityFiltering: 000101
+      MotionBlurSampleCount: 04000000080000000c000000
+      BloomRes: 040000000200000002000000
+      BloomHighQualityFiltering: 000101
+      ChromaticAberrationMaxSamples: 03000000060000000c000000
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0
+  materialQualityLevels: -1
+  m_CurrentMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}

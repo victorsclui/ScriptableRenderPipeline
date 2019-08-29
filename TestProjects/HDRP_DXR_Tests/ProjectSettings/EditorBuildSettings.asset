@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/101_RTReflections.unity
+    guid: 7c94f7315cc5f9948836ed2db6950643
+  - enabled: 1
+    path: Assets/Scenes/102_RTAmbientOcclusion.unity
+    guid: 41a04a0db6c8e4e4eb54296e4521c3e5
+  - enabled: 1
+    path: Assets/Scenes/103_RTRecursiveRendering.unity
+    guid: 9a47aa07fa8a82341a976363fec6b1d2
   m_configObjects: {}
