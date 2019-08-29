@@ -759,12 +759,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
             {
-                AddSlot(new PositionMaterialSlot(VertexNormalSlotID, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                AddSlot(new NormalMaterialSlot(VertexNormalSlotID, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(VertexNormalSlotID);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.VertexTangent))
             {
-                AddSlot(new PositionMaterialSlot(VertexTangentSlotID, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                AddSlot(new TangentMaterialSlot(VertexTangentSlotID, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(VertexTangentSlotID);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
