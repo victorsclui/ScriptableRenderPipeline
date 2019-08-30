@@ -44,7 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string AlphaClipThresholdDepthPrepassSlotName = "AlphaClipThresholdDepthPrepass";
         public const string AlphaClipThresholdDepthPostpassSlotName = "AlphaClipThresholdDepthPostpass";
         public const string AnisotropySlotName = "Anisotropy";
-        public const string PositionSlotName = "Position";
+        public const string PositionSlotName = "Position";        
+        public const string PositionSlotDisplayName = "Vertex Position";
         public const string VertexNormalSlotName = "Vertex Normal";
         public const string VertexTangentSlotName = "Vertex Tangent";
         public const string SpecularAAScreenSpaceVarianceSlotName = "SpecularAAScreenSpaceVariance";
@@ -754,7 +755,7 @@ namespace UnityEditor.Rendering.HighDefinition
             List<int> validSlots = new List<int>();
             if (MaterialTypeUsesSlotMask(SlotMask.Position))
             {
-                AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))

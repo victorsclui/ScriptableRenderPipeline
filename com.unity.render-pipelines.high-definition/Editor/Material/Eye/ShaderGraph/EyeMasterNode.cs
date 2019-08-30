@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class EyeMasterNode : MasterNode<IEyeSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Position";
+        public const string PositionSlotDisplayName = "Vertex Position";
         public const int PositionSlotId = 0;
 
         public const string AlbedoSlotName = "Albedo";
@@ -484,7 +485,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Position
             if (MaterialTypeUsesSlotMask(SlotMask.Position))
             {
-                AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
             }            
 

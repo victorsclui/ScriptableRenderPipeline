@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string DistortionSlotName = "Distortion";
         public const string DistortionBlurSlotName = "DistortionBlur";
         public const string PositionSlotName = "Position";
+        public const string PositionSlotDisplayName = "Vertex Position";
         public const string EmissionSlotName = "Emission";
         public const string VertexNormalSlotName = "Vertex Normal";
         public const string VertexTangentSlotName = "Vertex Tangent";
@@ -313,7 +314,7 @@ namespace UnityEditor.Rendering.HighDefinition
             name = "Unlit Master";
 
             List<int> validSlots = new List<int>();
-            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(PositionSlotId);
             AddSlot(new NormalMaterialSlot(VertexNormalSlotId, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(VertexNormalSlotId);
@@ -360,7 +361,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
         }
-        
+
          public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
