@@ -2024,11 +2024,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="data">Destination component</param>
         public void CopyTo(HDAdditionalLightData data)
         {
-#pragma warning disable 618
-            data.directionalIntensity = directionalIntensity;
-            data.punctualIntensity = punctualIntensity;
-            data.areaIntensity = areaIntensity;
-#pragma warning restore 618
             data.enableSpotReflector = enableSpotReflector;
             data.luxAtDistance = luxAtDistance;
             data.m_InnerSpotPercent = m_InnerSpotPercent;
