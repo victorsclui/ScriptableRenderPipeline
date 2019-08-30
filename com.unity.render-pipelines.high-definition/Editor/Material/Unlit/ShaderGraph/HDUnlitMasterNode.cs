@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitMasterNode")]
     [Title("Master", "HDRP/Unlit")]
-    class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition
+    class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -359,6 +359,38 @@ namespace UnityEditor.Rendering.HighDefinition
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+        }
+        
+         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetSlots(slots);
+
+            List<MaterialSlot> validSlots = new List<MaterialSlot>();
+            for (int i = 0; i < slots.Count; i++)
+            {
+                if (slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
+                    continue;
+
+                validSlots.Add(slots[i]);
+            }
+            return validSlots.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
+        }
+
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetSlots(slots);
+
+            List<MaterialSlot> validSlots = new List<MaterialSlot>();
+            for (int i = 0; i < slots.Count; i++)
+            {
+                if (slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
+                    continue;
+
+                validSlots.Add(slots[i]);
+            }
+            return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
         }
 
         public override void ProcessPreviewMaterial(Material previewMaterial)
