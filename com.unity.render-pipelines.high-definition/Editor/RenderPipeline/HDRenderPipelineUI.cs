@@ -323,14 +323,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, k_MaxScreenSpaceShadows);
             --EditorGUI.indentLevel;
 
-            SerializedScalableSettingUI.BoolGUI(serialized.renderPipelineSettings.lightSettings.useContactShadows, k_UseContactShadows);
+            SerializedScalableSettingUI.ValueGUI<bool>(serialized.renderPipelineSettings.lightSettings.useContactShadows, k_UseContactShadows);
 
             m_ShowDirectionalLightSection = EditorGUILayout.Foldout(m_ShowDirectionalLightSection, k_DirectionalShadowsSubTitle);
             if (m_ShowDirectionalLightSection)
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_DirectionalShadowPrecisionContent);
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.IntGUI(k_DirectionalLightsShadowTiers);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.ValueGUI<int>(k_DirectionalLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxDirectionalShadowMapResolution, k_MaxShadowResolution);
                 --EditorGUI.indentLevel;
             }
@@ -353,7 +353,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.LabelField(k_PunctualLightsShadowTiers);
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual.IntGUI(k_DirectionalLightsShadowTiers);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual.ValueGUI<int>(k_DirectionalLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxPunctualShadowMapResolution, k_MaxShadowResolution);
                 --EditorGUI.indentLevel;
             }
@@ -376,7 +376,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.LabelField(k_AreaLightsShadowTiers);
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionArea.IntGUI(k_DirectionalLightsShadowTiers);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionArea.ValueGUI<int>(k_DirectionalLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxAreaShadowMapResolution, k_MaxShadowResolution);
                 --EditorGUI.indentLevel;
             }
