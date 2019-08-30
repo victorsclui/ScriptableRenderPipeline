@@ -137,6 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual;
             public static IntScalableSetting ShadowResolutionDirectional(HDRenderPipelineAsset hdrp) =>
                 hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional;
+
+            public static BoolScalableSetting UseContactShadow(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.lightSettings.useContactShadow;
         }
 
         /// <summary>
@@ -1200,21 +1203,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_ContactShadows = false;
-        /// <summary>
-        /// Toggle the contact shadows.
-        /// </summary>
-        public bool contactShadows
-        {
-            get => m_ContactShadows;
-            set
-            {
-                if (m_ContactShadows == value)
-                    return;
-
-                m_ContactShadows = value;
-            }
-        }
+        BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = false, level = ScalableSetting.Level.Low };
+        public BoolScalableSettingValue useContactShadow => m_UseContactShadow;
 
         [SerializeField]
         Color m_ShadowTint = Color.black;
@@ -1985,7 +1975,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.shadowDimmer = shadowDimmer;
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
-            data.contactShadows = contactShadows;
+            useContactShadow.CopyTo(data.useContactShadow);
             data.constantBias = constantBias;
             data.normalBias = normalBias;
             data.shadowCascadeRatios = new float[shadowCascadeRatios.Length];
@@ -2614,12 +2604,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="distance"></param>
         public void SetShadowFadeDistance(float distance) => shadowFadeDistance = distance;
-
-        /// <summary>
-        /// Enable/Disable the contact shadows, the feature must be enable in the HDRP asset to work.
-        /// </summary>
-        /// <param name="enabled"></param>
-        public void EnableContactShadows(bool enabled) => contactShadows = enabled;
 
         /// <summary>
         /// Set the Shadow tint for the directional light.

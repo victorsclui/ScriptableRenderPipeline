@@ -3,6 +3,16 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    class SerializedLightSettings
+    {
+        public SerializedScalableSetting useContactShadows;
+
+        public SerializedLightSettings(SerializedProperty root)
+        {
+            useContactShadows = new SerializedScalableSetting(root.Find((RenderPipelineSettings.LightSettings s) => s.useContactShadow));
+        }
+    }
+
     class SerializedRenderPipelineSettings
     {
         public SerializedProperty root;
@@ -42,6 +52,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedDynamicResolutionSettings dynamicResolutionSettings;
         public SerializedLowResTransparencySettings lowresTransparentSettings;
 
+        public SerializedLightSettings lightSettings;
+
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
             this.root = root;
@@ -56,13 +68,13 @@ namespace UnityEditor.Rendering.HighDefinition
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             colorBufferFormat               = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
-            
+
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
-            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
+            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
-            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);            
+            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
             supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);
             supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
@@ -77,6 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
             postProcessSettings = new SerializedGlobalPostProcessSettings(root.Find((RenderPipelineSettings s) => s.postProcessSettings));
             dynamicResolutionSettings = new SerializedDynamicResolutionSettings(root.Find((RenderPipelineSettings s) => s.dynamicResolutionSettings));
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
+
+            lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
         }
     }
 }

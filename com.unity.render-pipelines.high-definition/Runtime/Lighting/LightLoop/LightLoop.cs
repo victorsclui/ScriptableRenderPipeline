@@ -1128,7 +1128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.shadowDimmer           = additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
-            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.contactShadows);
+            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.useContactShadow.Value(HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset)));
             lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // fix up shadow information
@@ -1379,13 +1379,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
             lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = shadowDistanceFade * additionalLightData.volumetricShadowDimmer;
-            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.contactShadows);
+            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.useContactShadow.Value(HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset)));
             lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
 #if ENABLE_RAYTRACING
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) 
-                && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows 
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows
                 && additionalLightData.WillRenderScreenSpaceShadow())
             {
                 lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;

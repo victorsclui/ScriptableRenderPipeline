@@ -49,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty supportScreenSpaceShadows;
         public SerializedProperty maxScreenSpaceShadows;
+        public SerializedScalableSetting useContactShadow;
 
         public SerializedHDShadowInitParameters(SerializedProperty root)
         {

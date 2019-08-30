@@ -20,17 +20,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
     public static class SerializedScalableSettingValueUI
     {
-        public interface IValueFormatter
+        public interface IValueGetter<T>
         {
-            string GetValue(ScalableSetting.Level level);
+            string sourceDescription { get; }
+            T GetValue(ScalableSetting.Level level);
         }
 
-        public struct NoopFormatter : IValueFormatter
+        public struct NoopGetter<T> : IValueGetter<T>
         {
-            public string GetValue(ScalableSetting.Level level) => string.Empty;
+            public string sourceDescription => string.Empty;
+            public T GetValue(ScalableSetting.Level level) => default;
         }
 
-        public struct FromScalableSetting<T>: IValueFormatter
+        public struct FromScalableSetting<T>: IValueGetter<T>
         {
             private ScalableSetting<T> m_Value;
             private HDRenderPipelineAsset m_Source;
@@ -43,7 +45,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Source = source;
             }
 
-            public string GetValue(ScalableSetting.Level level) => m_Value != null && m_Source != null ? $"{m_Value[level]} ({m_Source.name})" : string.Empty;
+            public string sourceDescription => m_Source != null ? m_Source.name : string.Empty;
+            public T GetValue(ScalableSetting.Level level) => m_Value != null ? m_Value[level] : default;
         }
 
         private static readonly GUIContent k_Level = new GUIContent("Level");
@@ -96,18 +99,41 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public static void LevelAndIntGUILayout<T>(this SerializedScalableSettingValue self, GUIContent label, T @default)
-            where T: struct, IValueFormatter
+            where T: struct, IValueGetter<int>
         {
             var fieldRect = DoGUILayout(self, label);
             if (self.useOverride.boolValue)
                 self.@override.intValue = EditorGUI.IntField(fieldRect, self.@override.intValue);
             else
-                EditorGUI.LabelField(fieldRect, @default.GetValue((ScalableSetting.Level)self.level.intValue));
+                EditorGUI.LabelField(fieldRect, $"{@default.GetValue((ScalableSetting.Level)self.level.intValue)} ({@default.sourceDescription})");
         }
 
         public static void LevelAndIntGUILayout(this SerializedScalableSettingValue self, GUIContent label)
         {
-            LevelAndIntGUILayout(self, label, new NoopFormatter());
+            LevelAndIntGUILayout(self, label, new NoopGetter<int>());
+        }
+
+        public static void LevelAndToggleGUILayout<T>(this SerializedScalableSettingValue self, GUIContent label, T @default)
+            where T: struct, IValueGetter<bool>
+        {
+            var fieldRect = DoGUILayout(self, label);
+            if (self.useOverride.boolValue)
+                self.@override.boolValue = EditorGUI.Toggle(fieldRect, self.@override.boolValue);
+            else
+            {
+                var enabled = GUI.enabled;
+                GUI.enabled = false;
+                EditorGUI.Toggle(fieldRect, @default.GetValue((ScalableSetting.Level)self.level.intValue));
+                fieldRect.x += 25;
+                fieldRect.width -= 25;
+                EditorGUI.LabelField(fieldRect, $"({@default.sourceDescription})");
+                GUI.enabled = enabled;
+            }
+        }
+
+        public static void LevelAndToggleGUILayout(this SerializedScalableSettingValue self, GUIContent label)
+        {
+            LevelAndToggleGUILayout(self, label, new NoopGetter<bool>());
         }
     }
 }

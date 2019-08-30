@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedProperty useShadowQualitySettings;
             [Obsolete]
             public SerializedProperty customResolution;
-            public SerializedProperty contactShadows;
+            public SerializedScalableSettingValue contactShadows;
             public SerializedProperty shadowTint;
             public SerializedProperty shadowUpdateMode;
             public SerializedScalableSettingValue shadowResolution;
@@ -176,7 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     shadowDimmer = o.Find("m_ShadowDimmer"),
                     volumetricShadowDimmer = o.Find("m_VolumetricShadowDimmer"),
                     shadowFadeDistance = o.Find("m_ShadowFadeDistance"),
-                    contactShadows = o.Find("m_ContactShadows"),
+                    contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow)),
                     shadowTint = o.Find("m_ShadowTint"),
                     shadowUpdateMode = o.Find("m_ShadowUpdateMode"),
                     shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution)),

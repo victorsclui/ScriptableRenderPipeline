@@ -104,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_HighQualityContent = EditorGUIUtility.TrTextContent("High", "Specifies the resolution of the shadows set to high quality.");
         static readonly GUIContent k_VeryHighQualityContent = EditorGUIUtility.TrTextContent("Very High", "Specifies the resolution of the shadows set to very high quality.");
 
+        static readonly GUIContent k_UseContactShadows = EditorGUIUtility.TrTextContent("Use Contact Shadows", "Use contact shadows for lights.");
         static readonly GUIContent k_SupportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
         static readonly GUIContent k_MaxScreenSpaceShadows = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxShadowResolution = EditorGUIUtility.TrTextContent("Max shadow resolution", "Specifies the maximum resolution for any single shadow map.");

@@ -67,6 +67,12 @@ namespace UnityEngine.Rendering.HighDefinition
             supportedRaytracingTier = RaytracingTier.Tier2,
         };
 
+        [Serializable]
+        public struct LightSettings
+        {
+            public BoolScalableSetting useContactShadow;
+        }
+
         // Lighting
         public bool supportShadowMask;
         public bool supportSSR;
@@ -108,5 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public GlobalPostProcessSettings postProcessSettings;
         public GlobalDynamicResolutionSettings dynamicResolutionSettings;
         public GlobalLowResolutionTransparencySettings lowresTransparentSettings;
+
+        public LightSettings lightSettings;
     }
 }

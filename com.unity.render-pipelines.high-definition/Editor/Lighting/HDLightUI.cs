@@ -767,7 +767,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.serializedLightData.contactShadows, s_Styles.contactShadows);
+            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            SerializedScalableSettingValueUI.LevelAndToggleGUILayout(
+                serialized.serializedLightData.contactShadows,
+                s_Styles.contactShadows,
+                new SerializedScalableSettingValueUI.FromScalableSetting<bool>(
+                    HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
+                    hdrp
+                )
+            );
         }
 
         static void DrawBakedShadowsContent(SerializedHDLight serialized, Editor owner)

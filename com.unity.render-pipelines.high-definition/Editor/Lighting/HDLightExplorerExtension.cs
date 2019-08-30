@@ -71,7 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent Unit = EditorGUIUtility.TrTextContent("Unit");
             public static readonly GUIContent ColorTemperature = EditorGUIUtility.TrTextContent("Color Temperature");
             public static readonly GUIContent Shadows = EditorGUIUtility.TrTextContent("Shadows");
-            public static readonly GUIContent ContactShadows = EditorGUIUtility.TrTextContent("Contact Shadows");
+            public static readonly GUIContent ContactShadowsSource = EditorGUIUtility.TrTextContent("Contact Shadows Source");
+            public static readonly GUIContent ContactShadowsValue = EditorGUIUtility.TrTextContent("Contact Shadows Value");
             public static readonly GUIContent ShadowResolutionSource = EditorGUIUtility.TrTextContent("Shadows Resolution Source");
             public static readonly GUIContent ShadowResolutionValue = EditorGUIUtility.TrTextContent("Shadow Resolution Value");
             public static readonly GUIContent ShapeWidth = EditorGUIUtility.TrTextContent("Shape Width");
@@ -226,7 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         prop.intValue = shadows ? (int)LightShadows.Soft : (int)LightShadows.None;
                     }
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ContactShadows, "m_Shadows.m_Type", 100, (r, prop, dep) =>  // 12: Contact Shadows
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ContactShadowsSource, "m_Shadows.m_Type", 100, (r, prop, dep) =>  // 12: Contact Shadows
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
@@ -234,12 +235,37 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.LabelField(r,"null");
                         return;
                     }
-                    bool contactShadows = lightDataPairing[light].hdAdditionalLightData.contactShadows;
+
+                    var value = lightDataPairing[light].hdAdditionalLightData.useContactShadow;
                     EditorGUI.BeginChangeCheck();
-                    contactShadows = EditorGUI.Toggle(r, contactShadows);
+                    var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(r, GUIContent.none, value.level,
+                        value.useOverride);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        lightDataPairing[light].hdAdditionalLightData.contactShadows = contactShadows;
+                        value.level = level;
+                        value.useOverride = useOverride;
+                    }
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ContactShadowsValue, "m_Shadows.m_Type", 100, (r, prop, dep) =>  // 12: Contact Shadows
+                {
+                    Light light = prop.serializedObject.targetObject as Light;
+                    if(light == null || lightDataPairing[light].hdAdditionalLightData == null)
+                    {
+                        EditorGUI.LabelField(r,"null");
+                        return;
+                    }
+
+                    var value = lightDataPairing[light].hdAdditionalLightData.useContactShadow;
+                    if (value.useOverride)
+                        value.@override = EditorGUI.Toggle(r, value.@override);
+                    else
+                    {
+                        var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+                        var defaultValue = HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp);
+                        var enabled = GUI.enabled;
+                        GUI.enabled = false;
+                        EditorGUI.Toggle(r, defaultValue[value.level]);
+                        GUI.enabled = enabled;
                     }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ShadowResolutionSource, "m_Intensity", 60, (r, prop, dep) =>           // 14: Shadow Resolution Source

@@ -323,6 +323,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, k_MaxScreenSpaceShadows);
             --EditorGUI.indentLevel;
 
+            SerializedScalableSettingUI.BoolGUI(serialized.renderPipelineSettings.lightSettings.useContactShadows, k_UseContactShadows);
+
             m_ShowDirectionalLightSection = EditorGUILayout.Foldout(m_ShowDirectionalLightSection, k_DirectionalShadowsSubTitle);
             if (m_ShowDirectionalLightSection)
             {

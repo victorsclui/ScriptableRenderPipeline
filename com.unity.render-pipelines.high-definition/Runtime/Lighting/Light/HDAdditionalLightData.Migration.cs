@@ -66,24 +66,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 }),
                 MigrationStep.New(Version.ShadowResolution, (HDAdditionalLightData t) =>
                 {
-                    t.shadowResolution.@override = t.m_ObsoleteCustomShadowResolution;
-                    switch (t.m_ObsoleteShadowResolutionTier)
-                    {
-                        case ShadowResolutionTier.Low: t.shadowResolution.level = ScalableSetting.Level.Low; break;
-                        case ShadowResolutionTier.Medium: t.shadowResolution.level = ScalableSetting.Level.Medium; break;
-                        case ShadowResolutionTier.High: t.shadowResolution.level = ScalableSetting.Level.High; break;
-                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = ScalableSetting.Level.Ultra; break;
-                    }
-                    t.shadowResolution.useOverride = !t.m_ObsoleteUseShadowQualitySettings;
-
                     var additionalShadow = t.GetComponent<AdditionalShadowData>();
                     if (additionalShadow != null)
                     {
-                        t.shadowResolution.@override = additionalShadow.customResolution;
+                        t.m_ObsoleteCustomShadowResolution = additionalShadow.customResolution;
+                        t.m_ObsoleteContactShadows = additionalShadow.contactShadows;
+
                         t.shadowDimmer = additionalShadow.shadowDimmer;
                         t.volumetricShadowDimmer = additionalShadow.volumetricShadowDimmer;
                         t.shadowFadeDistance = additionalShadow.shadowFadeDistance;
-                        t.contactShadows = additionalShadow.contactShadows;
                         t.shadowTint = additionalShadow.shadowTint;
                         t.normalBias = additionalShadow.normalBias;
                         t.constantBias = additionalShadow.constantBias;
@@ -95,6 +86,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         t.shadowPrecision = additionalShadow.shadowPrecision;
                         CoreUtils.Destroy(additionalShadow);
                     }
+
+                    t.shadowResolution.@override = t.m_ObsoleteCustomShadowResolution;
+                    switch (t.m_ObsoleteShadowResolutionTier)
+                    {
+                        case ShadowResolutionTier.Low: t.shadowResolution.level = ScalableSetting.Level.Low; break;
+                        case ShadowResolutionTier.Medium: t.shadowResolution.level = ScalableSetting.Level.Medium; break;
+                        case ShadowResolutionTier.High: t.shadowResolution.level = ScalableSetting.Level.High; break;
+                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = ScalableSetting.Level.Ultra; break;
+                    }
+                    t.shadowResolution.useOverride = !t.m_ObsoleteUseShadowQualitySettings;
+                    t.useContactShadow.@override = t.m_ObsoleteContactShadows;
                 })
             );
 
@@ -139,6 +141,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete]
         [SerializeField]
         int m_ObsoleteCustomShadowResolution = k_DefaultShadowResolution;
+
+        [FormerlySerializedAs("m_ContactShadows")]
+        [Obsolete]
+        [SerializeField]
+        bool m_ObsoleteContactShadows = false;
         #endregion
     }
 }
