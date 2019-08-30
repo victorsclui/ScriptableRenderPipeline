@@ -23,6 +23,18 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResolution,
         }
 
+        /// <summary>
+        /// Shadow Resolution Tier
+        /// </summary>
+        [Obsolete]
+        enum ShadowResolutionTier
+        {
+            Low = 0,
+            Medium,
+            High,
+            VeryHigh
+        }
+
         Version IVersionable<Version>.version
         {
             get => m_Version;

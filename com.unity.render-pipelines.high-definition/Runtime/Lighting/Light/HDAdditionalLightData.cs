@@ -62,17 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
         OnDemand
     }
 
-    /// <summary>
-    /// Shadow Resolution Tier
-    /// </summary>
-    public enum ShadowResolutionTier
-    {
-        Low = 0,
-        Medium,
-        High,
-        VeryHigh
-    }
-
 
     // Light layering
     public enum LightLayerEnum

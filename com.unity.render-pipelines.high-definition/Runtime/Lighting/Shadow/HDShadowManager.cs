@@ -120,42 +120,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public struct HDShadowInitParameters
     {
 
-        [Obsolete]
-        [Serializable]
-        public struct HDShadowTierParams
-        {
-            public int lowQualityResolution;
-            public int mediumQualityResolution;
-            public int highQualityResolution;
-            public int veryHighQualityResolution;
-
-            public int GetResolution(ShadowResolutionTier tier)
-            {
-                switch (tier)
-                {
-                    case ShadowResolutionTier.Low:
-                        return lowQualityResolution;
-                    case ShadowResolutionTier.Medium:
-                        return mediumQualityResolution;
-                    case ShadowResolutionTier.High:
-                        return highQualityResolution;
-                    case ShadowResolutionTier.VeryHigh:
-                        return veryHighQualityResolution;
-                }
-                return mediumQualityResolution;
-            }
-            public static HDShadowTierParams GetDefault()
-            {
-                return new HDShadowTierParams()
-                {
-                    lowQualityResolution = 256,
-                    mediumQualityResolution = 512,
-                    highQualityResolution = 1024,
-                    veryHighQualityResolution = 2048
-                };
-            }
-        }
-
         [Serializable]
         public struct HDShadowAtlasInitParams
         {
@@ -205,13 +169,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
         public HDShadowAtlasInitParams areaLightShadowAtlas;
-
-        [Obsolete]
-        public HDShadowTierParams directionalLightsResolutionTiers;
-        [Obsolete]
-        public HDShadowTierParams punctualLightsResolutionTiers;
-        [Obsolete]
-        public HDShadowTierParams areaLightsResolutionTiers;
 
         public IntScalableSetting shadowResolutionDirectional;
         public IntScalableSetting shadowResolutionPunctual;
