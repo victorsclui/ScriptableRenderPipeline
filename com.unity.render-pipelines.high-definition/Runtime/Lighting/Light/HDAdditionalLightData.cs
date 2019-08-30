@@ -1150,71 +1150,12 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region HDShadow Properties API (from AdditionalShadowData)
-
-        [Obsolete]
-        [SerializeField]
-        ShadowResolutionTier m_ShadowResolutionTier = ShadowResolutionTier.Medium;
-        /// <summary>
-        /// Get/Set the quality level for shadow map resoluton.
-        /// </summary>
-        [Obsolete]
-        public ShadowResolutionTier shadowResolutionTier
-        {
-            get => m_ShadowResolutionTier;
-            set
-            {
-                if (m_ShadowResolutionTier == value)
-                    return;
-
-                m_ShadowResolutionTier = value;
-            }
-        }
-
-        [Obsolete]
-        [SerializeField]
-        bool m_UseShadowQualitySettings = false;
-        /// <summary>
-        /// Toggle the usage of quality settings to determine shadow resolution.
-        /// </summary>
-        [Obsolete]
-        public bool useShadowQualitySettings
-        {
-            get => m_UseShadowQualitySettings;
-            set
-            {
-                if (m_UseShadowQualitySettings == value)
-                    return;
-
-                m_UseShadowQualitySettings = value;
-            }
-        }
-
         [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {
             @override = k_DefaultShadowResolution,
             level = ScalableSetting.Level.Medium
         };
         public IntScalableSettingValue shadowResolution => m_ShadowResolution;
-
-        [Obsolete]
-        [SerializeField]
-        int m_CustomShadowResolution = k_DefaultShadowResolution;
-        /// <summary>
-        /// Get/Set the resolution of shadow maps in case quality settings are not used.
-        /// </summary>
-        /// <value></value>
-        [Obsolete]
-        public int customResolution
-        {
-            get => m_CustomShadowResolution;
-            set
-            {
-                if (m_CustomShadowResolution == value)
-                    return;
-
-                m_CustomShadowResolution = Mathf.Clamp(value, HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MaxShadowMapResolution);
-            }
-        }
 
         [Range(0.0f, 1.0f)]
         [SerializeField]

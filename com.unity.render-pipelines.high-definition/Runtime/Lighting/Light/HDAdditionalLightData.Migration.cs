@@ -19,7 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowNearPlane,
             LightLayer,
             ShadowLayer,
-            Last,
+            _Unused02,
+            ShadowResolution,
         }
 
         Version IVersionable<Version>.version
@@ -29,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Version m_Version = Version.Last;
+        private Version m_Version = Version.ShadowResolution;
 
         private static readonly MigrationDescription<Version, HDAdditionalLightData> k_HDLightMigrationSteps
             = MigrationDescription.New(
@@ -50,6 +51,38 @@ namespace UnityEngine.Rendering.HighDefinition
                     // When we upgrade the option to decouple light and shadow layers will be disabled
                     // so we can sync the shadow layer mask (from the legacyLight) and the new light layer mask
                     t.lightlayersMask = (LightLayerEnum)RenderingLayerMaskToLightLayer(t.legacyLight.renderingLayerMask);
+                }),
+                MigrationStep.New(Version.ShadowResolution, (HDAdditionalLightData t) =>
+                {
+                    t.shadowResolution.@override = t.m_ObsoleteCustomShadowResolution;
+                    switch (t.m_ObsoleteShadowResolutionTier)
+                    {
+                        case ShadowResolutionTier.Low: t.shadowResolution.level = ScalableSetting.Level.Low; break;
+                        case ShadowResolutionTier.Medium: t.shadowResolution.level = ScalableSetting.Level.Medium; break;
+                        case ShadowResolutionTier.High: t.shadowResolution.level = ScalableSetting.Level.High; break;
+                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = ScalableSetting.Level.Ultra; break;
+                    }
+                    t.shadowResolution.useOverride = !t.m_ObsoleteUseShadowQualitySettings;
+
+                    var additionalShadow = t.GetComponent<AdditionalShadowData>();
+                    if (additionalShadow != null)
+                    {
+                        t.shadowResolution.@override = additionalShadow.customResolution;
+                        t.shadowDimmer = additionalShadow.shadowDimmer;
+                        t.volumetricShadowDimmer = additionalShadow.volumetricShadowDimmer;
+                        t.shadowFadeDistance = additionalShadow.shadowFadeDistance;
+                        t.contactShadows = additionalShadow.contactShadows;
+                        t.shadowTint = additionalShadow.shadowTint;
+                        t.normalBias = additionalShadow.normalBias;
+                        t.constantBias = additionalShadow.constantBias;
+                        t.shadowUpdateMode = additionalShadow.shadowUpdateMode;
+                        t.shadowCascadeRatios = additionalShadow.shadowCascadeRatios;
+                        t.shadowCascadeBorders = additionalShadow.shadowCascadeBorders;
+                        t.shadowAlgorithm = additionalShadow.shadowAlgorithm;
+                        t.shadowVariant = additionalShadow.shadowVariant;
+                        t.shadowPrecision = additionalShadow.shadowPrecision;
+                        CoreUtils.Destroy(additionalShadow);
+                    }
                 })
             );
 
@@ -66,7 +99,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShadowMapRenderedSinceLastRequest = false;
         }
 
-        void Awake() => k_HDLightMigrationSteps.Migrate(this);
+        void Awake()
+        {
+            k_HDLightMigrationSteps.Migrate(this);
+            var shadow = GetComponent<AdditionalShadowData>();
+            if (shadow != null)
+                CoreUtils.Destroy(shadow);
+        }
 
         #region Obsolete fields
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
@@ -74,6 +113,20 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Use Light.renderingLayerMask instead")]
         [FormerlySerializedAs("lightLayers")]
         LightLayerEnum m_LightLayers = LightLayerEnum.LightLayerDefault;
+
+        [Obsolete]
+        [SerializeField]
+        [FormerlySerializedAs("m_ShadowResolutionTier")]
+        ShadowResolutionTier m_ObsoleteShadowResolutionTier = ShadowResolutionTier.Medium;
+        [Obsolete]
+        [SerializeField]
+        [FormerlySerializedAs("m_UseShadowQualitySettings")]
+        bool m_ObsoleteUseShadowQualitySettings = false;
+
+        [FormerlySerializedAs("m_CustomShadowResolution")]
+        [Obsolete]
+        [SerializeField]
+        int m_ObsoleteCustomShadowResolution = k_DefaultShadowResolution;
         #endregion
     }
 }
