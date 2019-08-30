@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Position";
+        public const string PositionSlotDisplayName = "Vertex Position";
 
         public const string BaseColorSlotName = "BaseColor";
 
