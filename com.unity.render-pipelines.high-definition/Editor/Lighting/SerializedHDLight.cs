@@ -74,12 +74,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedProperty shadowDimmer;
             public SerializedProperty volumetricShadowDimmer;
             public SerializedProperty shadowFadeDistance;
-            [Obsolete]
-            public SerializedProperty shadowResolutionTier;
-            [Obsolete]
-            public SerializedProperty useShadowQualitySettings;
-            [Obsolete]
-            public SerializedProperty customResolution;
             public SerializedScalableSettingValue contactShadows;
             public SerializedProperty shadowTint;
             public SerializedProperty shadowUpdateMode;
