@@ -51,6 +51,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedGlobalPostProcessSettings postProcessSettings;
         public SerializedDynamicResolutionSettings dynamicResolutionSettings;
         public SerializedLowResTransparencySettings lowresTransparentSettings;
+        public SerializedXRSettings xrSettings;
+        public SerializedPostProcessingQualitySettings postProcessQualitySettings;
 
         public SerializedLightSettings lightSettings;
 
@@ -89,6 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition
             postProcessSettings = new SerializedGlobalPostProcessSettings(root.Find((RenderPipelineSettings s) => s.postProcessSettings));
             dynamicResolutionSettings = new SerializedDynamicResolutionSettings(root.Find((RenderPipelineSettings s) => s.dynamicResolutionSettings));
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
+            xrSettings = new SerializedXRSettings(root.Find((RenderPipelineSettings s) => s.xrSettings));
+            postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
 
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
         }
