@@ -55,6 +55,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
 
         public SerializedLightSettings lightSettings;
+        public SerializedScalableSetting lodBias;
+        public SerializedScalableSetting maximumLODLevel;
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
@@ -95,6 +97,8 @@ namespace UnityEditor.Rendering.HighDefinition
             postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
 
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
+            lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));
+            maximumLODLevel = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.maximumLODLevel));
         }
     }
 }

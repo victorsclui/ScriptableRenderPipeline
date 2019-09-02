@@ -156,6 +156,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 customGetter: () => (LODBiasMode)serialized.lodBiasMode.enumValueIndex,
                 customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
             );
+            area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
+                overridedDefaultValue: ScalableSetting.Level.Low,
+                customGetter: () => (ScalableSetting.Level)serialized.lodBiasQualityLevel.enumValueIndex,
+                customSetter: v => serialized.lodBiasQualityLevel.enumValueIndex = (int)v,
+                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.OverrideQualitySettings);
+
             area.AmmendInfo(FrameSettingsField.LODBias,
                 overridedDefaultValue: QualitySettings.lodBias,
                 customGetter: () => serialized.lodBias.floatValue,
@@ -169,6 +175,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 customGetter: () => (MaximumLODLevelMode)serialized.maximumLODLevelMode.enumValueIndex,
                 customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
             );
+            area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
+                overridedDefaultValue: ScalableSetting.Level.Low,
+                customGetter: () => (ScalableSetting.Level)serialized.maximumLODLevelQualityLevel.enumValueIndex,
+                customSetter: v => serialized.maximumLODLevelQualityLevel.enumValueIndex = (int)v,
+                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.OverrideQualitySettings);
+
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
                 overridedDefaultValue: QualitySettings.maximumLODLevel,
                 customGetter: () => serialized.maximumLODLevel.intValue,

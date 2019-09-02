@@ -85,6 +85,26 @@ namespace UnityEditor.Rendering.HighDefinition
                     self.ultra.intValue = values[3];
                 }
             }
+            else if (typeof(T) == typeof(float))
+            {
+                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh, k_ShortUltra};
+                float[] values =
+                {
+                    self.low.floatValue,
+                    self.med.floatValue,
+                    self.high.floatValue,
+                    self.ultra.floatValue
+                };
+                EditorGUI.BeginChangeCheck();
+                MultiField(contentRect, labels, values);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    self.low.floatValue = values[0];
+                    self.med.floatValue = values[1];
+                    self.high.floatValue = values[2];
+                    self.ultra.floatValue = values[3];
+                }
+            }
 
             EditorGUI.showMixedValue = false;
         }
@@ -107,6 +127,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     values[index] = (T)(object)EditorGUI.IntField(position1, subLabels[index], (int)(object)values[index]);
                 else if (typeof(T) == typeof(bool))
                     values[index] = (T)(object)EditorGUI.Toggle(position1, subLabels[index], (bool)(object)values[index]);
+                else if (typeof(T) == typeof(float))
+                    values[index] = (T)(object)EditorGUI.FloatField(position1, subLabels[index], (float)(object)values[index]);
                 position1.x += num + 4f;
             }
             EditorGUIUtility.labelWidth = labelWidth;
