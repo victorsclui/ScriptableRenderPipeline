@@ -31,49 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public IntParameter skyType = new IntParameter(0);
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
+
+        // Deprecated
         public FogTypeParameter fogType = new FogTypeParameter(FogType.None);
-
-        public void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            if ((fogType.value != FogType.Volumetric) || (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics)))
-            {
-                // If the volumetric fog is not used, we need to make sure that all rendering passes
-                // (not just the atmospheric scattering one) receive neutral parameters.
-                VolumetricFog.PushNeutralShaderParameters(cmd);
-            }
-
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering))
-            {
-                cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)FogType.None);
-                return;
-            }
-
-            // The PBR sky contributes to atmospheric scattering.
-            int physicallyBasedSkyAtmosphereFlag = skyType.value == (int)SkyType.PhysicallyBased ? 128 : 0;
-
-            switch (fogType.value)
-            {
-                case FogType.None:
-                {
-                    cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, physicallyBasedSkyAtmosphereFlag | (int)FogType.None);
-                    break;
-                }
-                case FogType.Exponential:
-                {
-                    var fogSettings = VolumeManager.instance.stack.GetComponent<ExponentialFog>();
-                    fogSettings.PushShaderParameters(hdCamera, cmd);
-                    break;
-                }
-                case FogType.Volumetric:
-                {
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                    {
-                        var fogSettings = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
-                        fogSettings.PushShaderParameters(hdCamera, cmd);
-                    }
-                    break;
-                }
-            }
-        }
     }
 }

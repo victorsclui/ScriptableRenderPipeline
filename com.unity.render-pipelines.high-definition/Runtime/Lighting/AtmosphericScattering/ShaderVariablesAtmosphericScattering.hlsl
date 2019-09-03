@@ -10,14 +10,5 @@
 
     #define _FogDensity                     _FogColorDensity.w
     #define _FogColor                       _FogColorDensity
-
-    #define _LinearFogStart                 _LinearFogParameters.x
-    #define _LinearFogOneOverRange          _LinearFogParameters.y
-    #define _LinearFogHeightEnd             _LinearFogParameters.z
-    #define _LinearFogHeightOneOverRange    _LinearFogParameters.w
-
-    #define _ExpFogDistance                 _ExpFogParameters.x
-    #define _ExpFogBaseHeight               _ExpFogParameters.y
-    #define _ExpFogHeightAttenuation        _ExpFogParameters.z
 #endif
 

@@ -83,10 +83,13 @@ namespace UnityEditor.Rendering.HighDefinition
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
 
             visualEnv.skyType.value = SkySettings.GetUniqueID<PhysicallyBasedSky>();
-            visualEnv.fogType.value = FogType.Volumetric;
             visualEnv.skyAmbientMode.overrideState = false;
             VolumeProfileFactory.CreateVolumeComponent<PhysicallyBasedSky>(profile, false, false);
-            VolumeProfileFactory.CreateVolumeComponent<VolumetricFog>(profile, false, true);
+            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, true);
+            fog.enabled.overrideState = true;
+            fog.enabled.value = true;
+            fog.enableVolumetricFog.overrideState = true;
+            fog.enableVolumetricFog.value = true;
 
             var volume = settings.AddComponent<Volume>();
             volume.isGlobal = true;

@@ -860,8 +860,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PushDecalsGlobalParams(hdCamera, cmd);
 
-                var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-                visualEnv.PushFogShaderParameters(hdCamera, cmd);
+                Fog.PushFogShaderParameters(hdCamera, cmd);
 
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
 
