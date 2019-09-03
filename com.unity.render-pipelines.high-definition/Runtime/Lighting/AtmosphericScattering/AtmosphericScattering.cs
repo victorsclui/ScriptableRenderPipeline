@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Fog Color
         static readonly int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
-        static readonly int m_FogColorDensityParam = Shader.PropertyToID("_FogColorDensity");
+        static readonly int m_FogColorParam = Shader.PropertyToID("_FogColor");
         static readonly int m_MipFogParam = Shader.PropertyToID("_MipFogParameters");
 
         // Fog Color

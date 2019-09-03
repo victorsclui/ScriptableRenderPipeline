@@ -11,7 +11,7 @@
     float _MaxFogDistance;
     float _FogColorMode;
     float _SkyTextureMipCount;
-    float4 _FogColorDensity;
+    float4 _FogColor;
     float4 _MipFogParameters;
     float _VBufferLastSliceDist;
     int _EnableVolumetricFog;

@@ -8,7 +8,6 @@
     #define _MipFogFar                      _MipFogParameters.y
     #define _MipFogMaxMip                   _MipFogParameters.z
 
-    #define _FogDensity                     _FogColorDensity.w
-    #define _FogColor                       _FogColorDensity
+    #define _FogColor                       _FogColor
 #endif
 

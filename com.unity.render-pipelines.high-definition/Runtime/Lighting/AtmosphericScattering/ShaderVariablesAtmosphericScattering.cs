@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   _MaxFogDistance;
         public float   _FogColorMode;
         public float   _SkyTextureMipCount;
-        public Vector4 _FogColorDensity; // color in rgb, density in alpha
+        public Vector4 _FogColor; // color in rgb
         public Vector4 _MipFogParameters;
 
         // Volumetrics

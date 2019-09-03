@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Fog Color
         static readonly int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
-        static readonly int m_FogColorDensityParam = Shader.PropertyToID("_FogColorDensity");
+        static readonly int m_FogColorParam = Shader.PropertyToID("_FogColor");
         static readonly int m_MipFogParam = Shader.PropertyToID("_MipFogParameters");
 
         [Tooltip("Enables the fog.")]
@@ -18,8 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public FogColorParameter     colorMode = new FogColorParameter(FogColorMode.SkyColor);
         [Tooltip("Specifies the constant color of the fog.")]
         public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
-        [Tooltip("Controls the overall density of the fog. Acts as a global multiplier.")]
-        public ClampedFloatParameter density = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         [Tooltip("Sets the maximum fog distance HDRP uses when it shades the skybox or the Far Clipping Plane of the Camera.")]
         public MinFloatParameter     maxFogDistance = new MinFloatParameter(5000.0f, 0.0f);
         [Tooltip("Controls the maximum mip map HDRP uses for mip fog (0 is the lowest mip and 1 is the highest mip).")]
@@ -31,22 +29,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Height Fog
         public FloatParameter baseHeight = new FloatParameter(0.0f);
-        public FloatParameter maximumHeight = new FloatParameter(10.0f);
+        public FloatParameter maximumHeight = new FloatParameter(50.0f);
 
         // Common Fog Parameters (Exponential/Volumetric)
         public ColorParameter albedo = new ColorParameter(Color.white);
-        public MinFloatParameter meanFreePath = new MinFloatParameter(1000000.0f, 1.0f);
+        public MinFloatParameter meanFreePath = new MinFloatParameter(400.0f, 1.0f);
 
         // Optional Volumetric Fog
         public BoolParameter enableVolumetricFog = new BoolParameter(false);
         public ClampedFloatParameter anisotropy = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
+        public static bool IsFogEnabled(HDCamera hdCamera)
+        {
+            var fogComponent = VolumeManager.instance.stack.GetComponent<Fog>();
+            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && fogComponent.enabled.value;
+        }
+
         public static bool IsVolumetricLightingEnabled(HDCamera hdCamera)
         {
             var fogComponent = VolumeManager.instance.stack.GetComponent<Fog>();
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && fogComponent.enableVolumetricFog.value;
         }
+
+        public static bool IsPBRFogEnabled(HDCamera hdCamera)
+        {
+            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            // For now PBR fog (coming from the PBR sky) is disabled until we improve it
+            return false;
+            //return (visualEnv.skyType.value == (int)SkyType.PhysicallyBased) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering);
+        }
+
 
         static float ScaleHeightFromLayerDepth(float d)
         {
@@ -79,6 +92,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             fogSettings.PushShaderParameters(hdCamera, cmd);
+
+            cmd.SetGlobalInt(HDShaderIDs._PBRFogEnabled, IsPBRFogEnabled(hdCamera) ? 1 : 0);
         }
 
         //internal abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
@@ -89,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Fog Color
             cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);
-            cmd.SetGlobalColor(m_FogColorDensityParam, new Color(color.value.r, color.value.g, color.value.b, density.value));
+            cmd.SetGlobalColor(m_FogColorParam, new Color(color.value.r, color.value.g, color.value.b, 0.0f));
             cmd.SetGlobalVector(m_MipFogParam, new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f));
 
             DensityVolumeArtistParameters param = new DensityVolumeArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
