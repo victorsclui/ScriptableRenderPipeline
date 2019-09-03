@@ -2,7 +2,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Lighting/Volumetric fog quality")]
+    [VolumeComponentMenu("Lighting/Volumetric Fog Quality")]
     public class VolumetricLightingController : VolumeComponent
     {
         [Tooltip("Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]

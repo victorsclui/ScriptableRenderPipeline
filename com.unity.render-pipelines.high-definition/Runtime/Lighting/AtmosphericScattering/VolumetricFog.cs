@@ -1,6 +1,7 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
+    [VolumeComponentDeprecated()]
     public class VolumetricFog : AtmosphericScattering
     {
         public ColorParameter        albedo                 = new ColorParameter(Color.white);
