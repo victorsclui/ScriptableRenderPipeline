@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.level.level;
                     return GetPostProcessingQualitySettings().BloomRes[qualityLevel];
                 }
             }
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.level.level;
                     return GetPostProcessingQualitySettings().BloomHighQualityFiltering[qualityLevel];
                 }
             }
