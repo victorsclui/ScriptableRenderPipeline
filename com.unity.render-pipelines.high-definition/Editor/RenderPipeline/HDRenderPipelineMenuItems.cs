@@ -119,13 +119,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             int profileCount = profilePathList.Length;
             int profileIndex = 0;
-            foreach (string path in profilePathList)
+            foreach (string guid in profilePathList)
             {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
                 profileIndex++;
-                if (EditorUtility.DisplayCancelableProgressBar("Upgrade Fog Volume Components", string.Format("({0} of {1}) {2}", profileIndex, profileCount, path), (float)profileIndex / (float)profileCount))
+                if (EditorUtility.DisplayCancelableProgressBar("Upgrade Fog Volume Components", string.Format("({0} of {1}) {2}", profileIndex, profileCount, assetPath), (float)profileIndex / (float)profileCount))
                     break;
 
-                VolumeProfile profile = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(path), typeof(VolumeProfile)) as VolumeProfile;
+                VolumeProfile profile = AssetDatabase.LoadAssetAtPath(assetPath, typeof(VolumeProfile)) as VolumeProfile;
 
                 if (profile.TryGet<Fog>(out var fogComponent))
                 {
@@ -138,13 +139,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         if (profile.TryGet<ExponentialFog>(out var expFog))
                         {
-                            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, true);
+                            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, false);
                             fog.enabled.Override(true);
                             // We only migrate distance because the height parameters are not compatible.
                             if (expFog.fogDistance.overrideState)
                                 fog.meanFreePath.Override(expFog.fogDistance.value);
 
                             OverrideCommonParameters(expFog, fog);
+                            EditorUtility.SetDirty(profile);
                         }
                     }
 
@@ -152,7 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         if (profile.TryGet<VolumetricFog>(out var volFog))
                         {
-                            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, true);
+                            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, false);
                             fog.enabled.Override(true);
                             fog.enableVolumetricFog.Override(true);
                             if (volFog.meanFreePath.overrideState)
@@ -169,11 +171,14 @@ namespace UnityEditor.Rendering.HighDefinition
                                 fog.globalLightProbeDimmer.Override(volFog.globalLightProbeDimmer.value);
 
                             OverrideCommonParameters(volFog, fog);
+                            EditorUtility.SetDirty(profile);
                         }
                     }
                 }
             }
 
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
             EditorUtility.ClearProgressBar();
         }
 
