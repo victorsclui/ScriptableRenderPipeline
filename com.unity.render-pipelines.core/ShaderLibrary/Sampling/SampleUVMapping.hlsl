@@ -68,9 +68,7 @@ struct UVMapping
 #define SAMPLE_UVMAPPING_NORMALMAP_AG_LOD(textureName, samplerName, uvMapping, scale, lod)     SampleUVMappingNormalAGLod(textureName, samplerName, uvMapping, scale, lod)
 #define SAMPLE_UVMAPPING_NORMALMAP_AG_BIAS(textureName, samplerName, uvMapping, scale, bias)   SampleUVMappingNormalAGBias(textureName, samplerName, uvMapping, scale, bias)
 
-#define SAMPLE_UVMAPPING_NORMALMAP_RGB(textureName, samplerName, uvMapping, scale)              SampleUVMappingNormalRGB(TEXTURE2D_ARGS(textureName, samplerName), uvMapping, scale, 0.0)
-#define SAMPLE_UVMAPPING_NORMALMAP_RGB_LOD(textureName, samplerName, uvMapping, scale, lod)     SampleUVMappingNormalRGBLod(TEXTURE2D_ARGS(textureName, samplerName), uvMapping, scale, lod)
-#define SAMPLE_UVMAPPING_NORMALMAP_RGB_BIAS(textureName, samplerName, uvMapping, scale, bias)   SampleUVMappingNormalRGBBias(TEXTURE2D_ARGS(textureName, samplerName), uvMapping, scale, bias)
-
-#endif //__SAMPLEUVMAPPING_HLSL__
+#define SAMPLE_UVMAPPING_NORMALMAP_RGB(textureName, samplerName, uvMapping, scale)              SampleUVMappingNormalRGB(textureName, samplerName, uvMapping, scale, 0.0)
+#define SAMPLE_UVMAPPING_NORMALMAP_RGB_LOD(textureName, samplerName, uvMapping, scale, lod)     SampleUVMappingNormalRGBLod(textureName, samplerName, uvMapping, scale, lod)
+#define SAMPLE_UVMAPPING_NORMALMAP_RGB_BIAS(textureName, samplerName, uvMapping, scale, bias)   SampleUVMappingNormalRGBBias(textureName, samplerName, uvMapping, scale, bias)
 

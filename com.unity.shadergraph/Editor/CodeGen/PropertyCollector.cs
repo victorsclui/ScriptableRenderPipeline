@@ -62,8 +62,6 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            builder.AppendLine("CBUFFER_END");
-
             foreach (var kvp in cbDecls)
             {
                 if (kvp.Key != string.Empty)
