@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Global,
                 value = 0,
-                entries = new List<KeywordEntry>()
+                entries = new KeywordEntry[]
                 {
                     new KeywordEntry("High", "HIGH"),
                     new KeywordEntry("Medium", "MEDIUM"),
@@ -52,13 +52,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string ToDeclarationString(this KeywordDefinitionPrivate keywordDefinition)
+        public static string ToDeclarationString(this KeywordDefinition keywordDefinition)
         {
             switch(keywordDefinition)
             {
-                case KeywordDefinitionPrivate.MultiCompile:
+                case KeywordDefinition.MultiCompile:
                     return "multi_compile";
-                case KeywordDefinitionPrivate.ShaderFeature:
+                case KeywordDefinition.ShaderFeature:
                     return "shader_feature";
                 default:
                     return string.Empty;
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
         {
             // Get definition type using scope
             string scopeString = keyword.scope == KeywordScope.Local ? "_local" : string.Empty;
-            string definitionString = $"{keyword.definition.ToPrivate().ToDeclarationString()}{scopeString}";
+            string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}";
 
             switch(keyword.type)
             {
@@ -82,29 +82,6 @@ namespace UnityEditor.ShaderGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        public static KeywordDefinitionPrivate ToPrivate(this KeywordDefinition keywordDefinition)
-        {
-            switch(keywordDefinition)
-            {
-                case KeywordDefinition.MultiCompile:
-                    return KeywordDefinitionPrivate.MultiCompile;
-                case KeywordDefinition.ShaderFeature:
-                    return KeywordDefinitionPrivate.ShaderFeature;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        public static List<KeywordEntryPrivate> ToPrivate(this List<KeywordEntry> keywordEntries)
-        {
-            var result = new List<KeywordEntryPrivate>();
-            for(int i = 0; i < keywordEntries.Count; i++)
-            {
-                result.Add(new KeywordEntryPrivate(i + 1, keywordEntries[i].displayName, keywordEntries[i].referenceName));
-            }
-            return result;
         }
 
         public static int GetKeywordPermutationCount(this GraphData graph)

@@ -23,15 +23,24 @@ namespace UnityEditor.ShaderGraph
             // Add sensible default entries for Enum type
             if(keywordType == KeywordType.Enum)
             {
-                m_Entries = new List<KeywordEntryPrivate>();
-                m_Entries.Add(new KeywordEntryPrivate(1, "A", "A"));
-                m_Entries.Add(new KeywordEntryPrivate(2, "B", "B"));
-                m_Entries.Add(new KeywordEntryPrivate(3, "C", "C"));
+                m_Entries = new List<KeywordEntry>();
+                m_Entries.Add(new KeywordEntry(1, "A", "A"));
+                m_Entries.Add(new KeywordEntry(2, "B", "B"));
+                m_Entries.Add(new KeywordEntry(3, "C", "C"));
             }
         }
 
         public static ShaderKeyword Create(KeywordDescriptor descriptor)
         {
+            if(descriptor.entries != null)
+            {
+                for(int i = 0; i < descriptor.entries.Length; i++)
+                {
+                    if(descriptor.entries[i].id == -1)
+                        descriptor.entries[i].id = i + 1;
+                }
+            }
+
             return new ShaderKeyword()
             {
                 m_IsExposable = false,
@@ -39,10 +48,10 @@ namespace UnityEditor.ShaderGraph
                 displayName = descriptor.displayName,
                 overrideReferenceName = descriptor.referenceName,
                 keywordType = descriptor.type,
-                keywordDefinition = descriptor.definition.ToPrivate(),
+                keywordDefinition = descriptor.definition,
                 keywordScope = descriptor.scope,
                 value = descriptor.value,
-                entries = descriptor.entries.ToList().ToPrivate(),
+                entries = descriptor.entries.ToList(),
             };
         }
 
@@ -56,9 +65,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private KeywordDefinitionPrivate m_KeywordDefinition = KeywordDefinitionPrivate.ShaderFeature;
+        private KeywordDefinition m_KeywordDefinition = KeywordDefinition.ShaderFeature;
 
-        public KeywordDefinitionPrivate keywordDefinition
+        public KeywordDefinition keywordDefinition
         {
             get => m_KeywordDefinition;
             set => m_KeywordDefinition = value;
@@ -74,9 +83,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private List<KeywordEntryPrivate> m_Entries;
+        private List<KeywordEntry> m_Entries;
 
-        public List<KeywordEntryPrivate> entries
+        public List<KeywordEntry> entries
         {
             get => m_Entries;
             set => m_Entries = value;
@@ -143,7 +152,7 @@ namespace UnityEditor.ShaderGraph
         public string GetKeywordDeclarationString()
         {
             // Predefined keywords do not need to be defined
-            if(keywordDefinition == KeywordDefinitionPrivate.Predefined)
+            if(keywordDefinition == KeywordDefinition.Predefined)
                 return string.Empty;
 
             // Get definition type using scope

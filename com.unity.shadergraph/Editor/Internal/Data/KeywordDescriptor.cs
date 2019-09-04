@@ -10,6 +10,6 @@ namespace UnityEditor.ShaderGraph.Internal
         public KeywordDefinition definition;
         public KeywordScope scope;
         public int value;
-        public IEnumerable<KeywordEntry> entries;
+        public KeywordEntry[] entries;
     }
 }

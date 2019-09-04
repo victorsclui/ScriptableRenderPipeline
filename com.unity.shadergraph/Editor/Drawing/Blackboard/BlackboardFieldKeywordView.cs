@@ -38,15 +38,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             keywordDefinitionField.RegisterValueChangedCallback(evt =>
             {
                 graph.owner.RegisterCompleteObjectUndo("Change Keyword Type");
-                if (m_Keyword.keywordDefinition == (KeywordDefinitionPrivate)evt.newValue)
+                if (m_Keyword.keywordDefinition == (KeywordDefinition)evt.newValue)
                     return;
-                m_Keyword.keywordDefinition = (KeywordDefinitionPrivate)evt.newValue;
+                m_Keyword.keywordDefinition = (KeywordDefinition)evt.newValue;
                 Rebuild();
             });
             AddRow("Definition", keywordDefinitionField, m_Keyword.isEditable);
 
             // KeywordScope
-            if(m_Keyword.keywordDefinition != KeywordDefinitionPrivate.Predefined)
+            if(m_Keyword.keywordDefinition != KeywordDefinition.Predefined)
             {
                 var keywordScopeField = new EnumField((Enum)m_Keyword.keywordScope);
                 keywordScopeField.RegisterValueChangedCallback(evt =>
@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal void RecreateList()
         {           
             // Create reorderable list from entries
-            m_ReorderableList = new ReorderableList(m_Keyword.entries, typeof(KeywordEntryPrivate), true, true, true, true);
+            m_ReorderableList = new ReorderableList(m_Keyword.entries, typeof(KeywordEntry), true, true, true, true);
         }
 
         private void AddCallbacks() 
@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Draw Element
             m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
             {
-                KeywordEntryPrivate entry = ((KeywordEntryPrivate)m_ReorderableList.list[index]);
+                KeywordEntry entry = ((KeywordEntry)m_ReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
                 
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 
                 if(EditorGUI.EndChangeCheck())
                 {
-                    m_Keyword.entries[index] = new KeywordEntryPrivate(index + 1, displayName, referenceName);
+                    m_Keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
                     
                     DirtyNodes();
                     Rebuild();
@@ -195,7 +195,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
 
             // Add new entry
-            m_Keyword.entries.Add(new KeywordEntryPrivate(index, displayName, referenceName));
+            m_Keyword.entries.Add(new KeywordEntry(index, displayName, referenceName));
 
             // Update GUI
             Rebuild();
@@ -209,7 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Remove entry
             m_SelectedIndex = list.index;
-            var selectedEntry = (KeywordEntryPrivate)m_ReorderableList.list[list.index];
+            var selectedEntry = (KeywordEntry)m_ReorderableList.list[list.index];
             m_Keyword.entries.Remove(selectedEntry);
 
             // Clamp value within new entry range
@@ -228,7 +228,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string GetDuplicateSafeDisplayName(int id, string name)
         {
             name = name.Trim();
-            var entryList = m_ReorderableList.list as List<KeywordEntryPrivate>;
+            var entryList = m_ReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
         }
 
@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             name = name.Trim();
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-            var entryList = m_ReorderableList.list as List<KeywordEntryPrivate>;
+            var entryList = m_ReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }
 

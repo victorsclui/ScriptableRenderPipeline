@@ -4,5 +4,6 @@
     {
         ShaderFeature,
         MultiCompile,
+        Predefined
     }
 }
