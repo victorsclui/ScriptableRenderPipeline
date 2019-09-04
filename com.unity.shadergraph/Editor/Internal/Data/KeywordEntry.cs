@@ -1,5 +1,8 @@
-﻿namespace UnityEditor.ShaderGraph.Internal
+﻿using System;
+
+namespace UnityEditor.ShaderGraph.Internal
 {
+    [Serializable]
     public struct KeywordEntry
     {
         public int id;
