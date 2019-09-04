@@ -119,7 +119,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         Pass
         {
             Cull Off    ZWrite Off
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend One OneMinusSrcAlpha // Premultiplied alpha
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
@@ -132,7 +132,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         Pass
         {
             Cull Off    ZWrite Off
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend One OneMinusSrcAlpha // Premultiplied alpha
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
