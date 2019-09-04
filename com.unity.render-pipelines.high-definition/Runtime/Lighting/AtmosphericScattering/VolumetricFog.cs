@@ -15,5 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
         }
+
+        VolumetricFog() => displayName = "Volumetric Fog (Deprecated)";
     }
 }

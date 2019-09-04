@@ -1,8 +1,7 @@
 using System;
 using System.IO;
-using UnityEditor.Rendering;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
@@ -92,6 +91,90 @@ namespace UnityEditor.Rendering.HighDefinition
             var volume = settings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
+        }
+
+        [MenuItem("Edit/Render Pipeline/Upgrade Fog Volume Components", priority = CoreUtils.editMenuPriority2)]
+        static void UpgradeFogVolumeComponents(MenuCommand menuCommand)
+        {
+            void OverrideCommonParameters(AtmosphericScattering input, Fog output)
+            {
+                if (input.colorMode.overrideState)
+                    output.colorMode.Override(input.colorMode.value);
+                if (input.color.overrideState)
+                    output.color.Override(input.color.value);
+                if (input.maxFogDistance.overrideState)
+                    output.maxFogDistance.Override(input.maxFogDistance.value);
+                if (input.mipFogMaxMip.overrideState)
+                    output.mipFogMaxMip.Override(input.mipFogMaxMip.value);
+                if (input.mipFogNear.overrideState)
+                    output.mipFogNear.Override(input.mipFogNear.value);
+                if (input.mipFogFar.overrideState)
+                    output.mipFogFar.Override(input.mipFogFar.value);
+            }
+
+            if (!EditorUtility.DisplayDialog(DialogText.title, "This will upgrade all Volume Profiles containing Exponential or Volumetric Fog components to the new Fog component. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
+                return;
+
+            var profilePathList = AssetDatabase.FindAssets("t:VolumeProfile");
+
+            int profileCount = profilePathList.Length;
+            int profileIndex = 0;
+            foreach (string path in profilePathList)
+            {
+                profileIndex++;
+                if (EditorUtility.DisplayCancelableProgressBar("Upgrade Fog Volume Components", string.Format("({0} of {1}) {2}", profileIndex, profileCount, path), (float)profileIndex / (float)profileCount))
+                    break;
+
+                VolumeProfile profile = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(path), typeof(VolumeProfile)) as VolumeProfile;
+
+                if (profile.TryGet<Fog>(out var fogComponent))
+                {
+                    continue; // Already migrated
+                }
+
+                if (profile.TryGet<VisualEnvironment>(out var visualEnv))
+                {
+                    if (visualEnv.fogType.value == FogType.Exponential)
+                    {
+                        if (profile.TryGet<ExponentialFog>(out var expFog))
+                        {
+                            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, true);
+                            fog.enabled.Override(true);
+                            // We only migrate distance because the height parameters are not compatible.
+                            if (expFog.fogDistance.overrideState)
+                                fog.meanFreePath.Override(expFog.fogDistance.value);
+
+                            OverrideCommonParameters(expFog, fog);
+                        }
+                    }
+
+                    if (visualEnv.fogType.value == FogType.Volumetric)
+                    {
+                        if (profile.TryGet<VolumetricFog>(out var volFog))
+                        {
+                            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, true);
+                            fog.enabled.Override(true);
+                            fog.enableVolumetricFog.Override(true);
+                            if (volFog.meanFreePath.overrideState)
+                                fog.meanFreePath.Override(volFog.meanFreePath.value);
+                            if (volFog.albedo.overrideState)
+                                fog.albedo.Override(volFog.albedo.value);
+                            if (volFog.baseHeight.overrideState)
+                                fog.baseHeight.Override(volFog.baseHeight.value);
+                            if (volFog.maximumHeight.overrideState)
+                                fog.maximumHeight.Override(volFog.maximumHeight.value);
+                            if (volFog.anisotropy.overrideState)
+                                fog.anisotropy.Override(volFog.anisotropy.value);
+                            if (volFog.globalLightProbeDimmer.overrideState)
+                                fog.globalLightProbeDimmer.Override(volFog.globalLightProbeDimmer.value);
+
+                            OverrideCommonParameters(volFog, fog);
+                        }
+                    }
+                }
+            }
+
+            EditorUtility.ClearProgressBar();
         }
 
 #if ENABLE_RAYTRACING

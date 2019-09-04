@@ -7,11 +7,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public abstract class AtmosphericScattering : VolumeComponent
     {
         // Fog Color
-        static readonly int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
-        static readonly int m_FogColorParam = Shader.PropertyToID("_FogColor");
-        static readonly int m_MipFogParam = Shader.PropertyToID("_MipFogParameters");
-
-        // Fog Color
         public FogColorParameter     colorMode = new FogColorParameter(FogColorMode.SkyColor);
         [Tooltip("Specifies the constant color of the fog.")]
         public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
@@ -35,26 +30,5 @@ namespace UnityEngine.Rendering.HighDefinition
         None = 0,
         Exponential = 2,
         Volumetric = 3,
-    }
-
-    [GenerateHLSL]
-    public enum FogColorMode
-    {
-        ConstantColor,
-        SkyColor,
-    }
-
-    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class FogTypeParameter : VolumeParameter<FogType>
-    {
-        public FogTypeParameter(FogType value, bool overrideState = false)
-            : base(value, overrideState) {}
-    }
-
-    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class FogColorParameter : VolumeParameter<FogColorMode>
-    {
-        public FogColorParameter(FogColorMode value, bool overrideState = false)
-            : base(value, overrideState) {}
     }
 }

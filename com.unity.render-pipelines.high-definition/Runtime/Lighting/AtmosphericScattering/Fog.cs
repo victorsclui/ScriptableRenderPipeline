@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Fog/Fog")]
-    public /*abstract*/ class Fog : VolumeComponent
+    public class Fog : VolumeComponent
     {
         // Fog Color
         static readonly int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
@@ -129,5 +129,26 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, anisotropy.value);
             cmd.SetGlobalInt(HDShaderIDs._EnableVolumetricFog, enableVolumetrics ? 1 : 0);
         }
+    }
+
+    [GenerateHLSL]
+    public enum FogColorMode
+    {
+        ConstantColor,
+        SkyColor,
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class FogTypeParameter : VolumeParameter<FogType>
+    {
+        public FogTypeParameter(FogType value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class FogColorParameter : VolumeParameter<FogColorMode>
+    {
+        public FogColorParameter(FogColorMode value, bool overrideState = false)
+            : base(value, overrideState) { }
     }
 }
