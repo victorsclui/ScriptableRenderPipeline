@@ -13,12 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for Material Quality in Shader Graph
 - Material Quality support selection in HDRP Asset
 - Renamed XR shader macro from UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX to UNITY_XR_ASSIGN_VIEW_INDEX
+- Raytracing ShaderGraph node for HDRP shaders
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
 - Fixed with compute shader error about too many threads in threadgroup on low GPU
 - Fixed invalid contact shadow shaders being created on metal
-- Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
+- Fixed a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 - Fixed typo in AXF decal property preventing to compile
 - Fixed reflection probe with XR single-pass and FPTL
 - Fixed force gizmo shown when selecting camera in hierarchy
@@ -27,6 +28,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix FrameSettings names and tooltips
 - Fixed error with XR SDK when the Editor is not in focus
 - Fixed errors with RenderGraph, XR SDK and occlusion mesh
+- Fixed shadow routines compilation errors when "real" type is a typedef on "half".
+- Fixed toggle volumetric lighting in the light UI
+- Fixed post-processing history reset handling rt-scale incorrectly
 
 ### Changed
 - Update Wizard layout.
