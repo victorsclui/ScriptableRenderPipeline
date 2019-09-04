@@ -1162,7 +1162,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {
             @override = k_DefaultShadowResolution,
-            level = ScalableSetting.Level.Medium
+            useOverride = true,
         };
         public IntScalableSettingValue shadowResolution => m_ShadowResolution;
 
@@ -1220,7 +1220,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = false, level = ScalableSetting.Level.Low };
+        BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = true };
         public BoolScalableSettingValue useContactShadow => m_UseContactShadow;
 
         [SerializeField]

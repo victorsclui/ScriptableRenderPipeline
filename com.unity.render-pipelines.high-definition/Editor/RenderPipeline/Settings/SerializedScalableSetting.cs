@@ -8,14 +8,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty low;
         public SerializedProperty med;
         public SerializedProperty high;
-        public SerializedProperty ultra;
 
         public SerializedScalableSetting(SerializedProperty property)
         {
             low = property.FindPropertyRelative("m_Low");
             med = property.FindPropertyRelative("m_Med");
             high = property.FindPropertyRelative("m_High");
-            ultra = property.FindPropertyRelative("m_Ultra");
         }
     }
 
@@ -24,12 +22,10 @@ namespace UnityEditor.Rendering.HighDefinition
         private static readonly GUIContent k_ShortLow = new GUIContent("L", "Low");
         private static readonly GUIContent k_ShortMed = new GUIContent("M", "Medium");
         private static readonly GUIContent k_ShortHigh = new GUIContent("H", "High");
-        private static readonly GUIContent k_ShortUltra = new GUIContent("U", "Ultra");
 
         private static readonly GUIContent k_Low = new GUIContent("Low", "Low");
         private static readonly GUIContent k_Med = new GUIContent("Medium", "Medium");
         private static readonly GUIContent k_High = new GUIContent("High", "High");
-        private static readonly GUIContent k_Ultra = new GUIContent("Ultra", "Ultra");
 
         public static void ValueGUI<T>(this SerializedScalableSetting self, GUIContent label)
         {
@@ -42,18 +38,16 @@ namespace UnityEditor.Rendering.HighDefinition
             var contentRect = EditorGUI.PrefixLabel(rect, label);
             EditorGUI.showMixedValue = self.low.hasMultipleDifferentValues
                                        || self.med.hasMultipleDifferentValues
-                                       || self.high.hasMultipleDifferentValues
-                                       || self.ultra.hasMultipleDifferentValues;
+                                       || self.high.hasMultipleDifferentValues;
 
             if (typeof(T) == typeof(bool))
             {
-                GUIContent[] labels = {k_Low, k_Med, k_High, k_Ultra};
+                GUIContent[] labels = {k_Low, k_Med, k_High};
                 bool[] values =
                 {
                     self.low.boolValue,
                     self.med.boolValue,
-                    self.high.boolValue,
-                    self.ultra.boolValue
+                    self.high.boolValue
                 };
                 EditorGUI.BeginChangeCheck();
                 MultiField(contentRect, labels, values);
@@ -62,18 +56,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     self.low.boolValue = values[0];
                     self.med.boolValue = values[1];
                     self.high.boolValue = values[2];
-                    self.ultra.boolValue = values[3];
                 }
             }
             else if (typeof(T) == typeof(int))
             {
-                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh, k_ShortUltra};
+                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh};
                 int[] values =
                 {
                     self.low.intValue,
                     self.med.intValue,
-                    self.high.intValue,
-                    self.ultra.intValue
+                    self.high.intValue
                 };
                 EditorGUI.BeginChangeCheck();
                 MultiField(contentRect, labels, values);
@@ -82,18 +74,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     self.low.intValue = values[0];
                     self.med.intValue = values[1];
                     self.high.intValue = values[2];
-                    self.ultra.intValue = values[3];
                 }
             }
             else if (typeof(T) == typeof(float))
             {
-                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh, k_ShortUltra};
+                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh};
                 float[] values =
                 {
                     self.low.floatValue,
                     self.med.floatValue,
-                    self.high.floatValue,
-                    self.ultra.floatValue
+                    self.high.floatValue
                 };
                 EditorGUI.BeginChangeCheck();
                 MultiField(contentRect, labels, values);
@@ -102,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     self.low.floatValue = values[0];
                     self.med.floatValue = values[1];
                     self.high.floatValue = values[2];
-                    self.ultra.floatValue = values[3];
                 }
             }
 
@@ -112,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void MultiField<T>(Rect position, GUIContent[] subLabels, T[] values)
         {
             var length = values.Length;
-            var num = (position.width - (float) (length - 1) * 4f) / (float) length;
+            var num = (position.width - (float) (length - 1) * 3f) / (float) length;
             var position1 = new Rect(position)
             {
                 width = num

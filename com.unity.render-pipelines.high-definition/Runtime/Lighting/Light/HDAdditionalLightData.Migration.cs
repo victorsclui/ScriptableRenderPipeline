@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case ShadowResolutionTier.Low: t.shadowResolution.level = ScalableSetting.Level.Low; break;
                         case ShadowResolutionTier.Medium: t.shadowResolution.level = ScalableSetting.Level.Medium; break;
                         case ShadowResolutionTier.High: t.shadowResolution.level = ScalableSetting.Level.High; break;
-                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = ScalableSetting.Level.Ultra; break;
+                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = ScalableSetting.Level.High; break;
                     }
                     t.shadowResolution.useOverride = !t.m_ObsoleteUseShadowQualitySettings;
                     t.useContactShadow.@override = t.m_ObsoleteContactShadows;

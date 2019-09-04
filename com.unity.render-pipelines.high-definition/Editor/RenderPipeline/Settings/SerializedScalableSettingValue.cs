@@ -49,17 +49,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public T GetValue(ScalableSetting.Level level) => m_Value != null ? m_Value[level] : default;
         }
 
-        private static readonly GUIContent k_Level = new GUIContent("Level");
-        private static readonly GUIContent k_UseOverride = new GUIContent("Use Override");
-        private static readonly GUIContent k_Override = new GUIContent("Override");
-
         private static readonly GUIContent[] k_LevelOptions =
         {
             new GUIContent("Low"),
             new GUIContent("Medium"),
             new GUIContent("High"),
-            new GUIContent("Ultra"),
-            new GUIContent("Override"),
+            new GUIContent("Custom"),
         };
 
         static Rect DoGUILayout(SerializedScalableSettingValue self, GUIContent label)

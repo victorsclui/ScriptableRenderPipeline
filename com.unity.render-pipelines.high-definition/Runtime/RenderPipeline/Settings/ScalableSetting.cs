@@ -9,8 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Low,
             Medium,
-            High,
-            Ultra
+            High
         }
     }
 
@@ -23,8 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private T m_Med;
         [SerializeField]
         private T m_High;
-        [SerializeField]
-        private T m_Ultra;
 
         public T this[ScalableSetting.Level index]
         {
@@ -35,7 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     case ScalableSetting.Level.Low: return m_Low;
                     case ScalableSetting.Level.Medium: return m_Med;
                     case ScalableSetting.Level.High: return m_High;
-                    case ScalableSetting.Level.Ultra: return m_Ultra;
                     default: throw new ArgumentOutOfRangeException(nameof(index));
                 }
             }
@@ -46,7 +42,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     case ScalableSetting.Level.Low: m_Low = value; break;
                     case ScalableSetting.Level.Medium: m_Med = value; break;
                     case ScalableSetting.Level.High: m_High = value; break;
-                    case ScalableSetting.Level.Ultra: m_Ultra = value; break;
                     default: throw new ArgumentOutOfRangeException(nameof(index));
                 }
             }
@@ -68,12 +63,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get => m_High;
             set => m_High = value;
-        }
-
-        public T ultra
-        {
-            get => m_Ultra;
-            set => m_Ultra = value;
         }
     }
 
