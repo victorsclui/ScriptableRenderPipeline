@@ -56,7 +56,7 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
-        
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -96,6 +96,14 @@ Shader ""Hidden/GraphErrorShader2""
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");
             ctx.AddObjectToAsset("MainAsset", shader, texture);
             ctx.SetMainObject(shader);
+
+            var metadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
+            metadata.hideFlags = HideFlags.HideInHierarchy;
+            if (graph != null)
+            {
+                metadata.outputNodeTypeName = graph.outputNode.GetType().FullName;
+            }
+            ctx.AddObjectToAsset("Metadata", metadata);
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
             {

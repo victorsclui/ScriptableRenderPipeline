@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for Material Quality in Shader Graph
 - Material Quality support selection in HDRP Asset
 - Renamed XR shader macro from UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX to UNITY_XR_ASSIGN_VIEW_INDEX
+- Raytracing ShaderGraph node for HDRP shaders
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix FrameSettings names and tooltips
 - Fixed error with XR SDK when the Editor is not in focus
 - Fixed errors with RenderGraph, XR SDK and occlusion mesh
+- Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 
 ### Changed
 - Update Wizard layout.
