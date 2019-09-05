@@ -52,7 +52,5 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 			surfaceDescription.Emission,
 			surfaceDescription.Alpha); 
 
-    //TODO: fog factor per vertex
-
     return color;
 }
