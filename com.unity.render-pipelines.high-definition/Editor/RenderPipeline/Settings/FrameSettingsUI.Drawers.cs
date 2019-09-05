@@ -1,14 +1,56 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering;
+using Utilities;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedFrameSettings>;
 
+    // Mirrors MaterialQuality enum and adds `FromQualitySettings`
+    enum MaterialQualityMode
+    {
+        Low,
+        Medium,
+        High,
+        FromQualitySettings,
+    }
+
+    static class MaterialQualityModeExtensions
+    {
+        public static MaterialQuality Into(this MaterialQualityMode quality)
+        {
+            switch (quality)
+            {
+                case MaterialQualityMode.High: return MaterialQuality.High;
+                case MaterialQualityMode.Medium: return MaterialQuality.Medium;
+                case MaterialQualityMode.Low: return MaterialQuality.Low;
+                case MaterialQualityMode.FromQualitySettings: return (MaterialQuality)0;
+                default: throw new ArgumentOutOfRangeException(nameof(quality));
+            }
+        }
+
+        public static MaterialQualityMode Into(this MaterialQuality quality)
+        {
+            if (quality == (MaterialQuality) 0)
+                return MaterialQualityMode.FromQualitySettings;
+            switch (quality)
+            {
+                case MaterialQuality.High: return MaterialQualityMode.High;
+                case MaterialQuality.Medium: return MaterialQualityMode.Medium;
+                case MaterialQuality.Low: return MaterialQualityMode.Low;
+                default: throw new ArgumentOutOfRangeException(nameof(quality));
+            }
+        }
+    }
+
     partial class FrameSettingsUI
     {
+
+
+
         enum Expandable
         {
             RenderingPasses = 1 << 0,
@@ -187,6 +229,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
                 customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings,
                 labelOverride: serialized.maximumLODLevelMode.enumValueIndex == (int)MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level");
+
+            area.AmmendInfo(FrameSettingsField.MaterialQualityLevel,
+                overridedDefaultValue: defaultFrameSettings.materialQuality.Into(),
+                customGetter: () => ((MaterialQuality)serialized.materialQuality.intValue).Into(),
+                customSetter: v => serialized.materialQuality.intValue = (int)((MaterialQualityMode)v).Into()
+            );
 
             area.Draw(withOverride);
         }
