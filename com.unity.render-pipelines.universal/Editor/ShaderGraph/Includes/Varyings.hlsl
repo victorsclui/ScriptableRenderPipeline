@@ -18,6 +18,9 @@ Varyings BuildVaryings(Attributes input)
     input.positionOS = vertexDescription.Position;
 #endif
 
+    // TODO: Avoid path via VertexPositionInputs (Universal)
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+
     // Returns the camera relative position (if enabled)
     float3 positionWS = TransformObjectToWorld(input.positionOS);
 
@@ -105,8 +108,6 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef _MAIN_LIGHT_SHADOWS
-    // TODO: Avoid path via VertexPositionInputs (Universal)
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 
