@@ -22,8 +22,8 @@ namespace UnityEditor.Rendering.Universal
         {
             // Definition
             displayName = "Pass",
-            referenceName = "SHADERPASS_FORWARDUNLIT",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitForwardPass.hlsl",
+            referenceName = "SHADERPASS_UNLIT",
+            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl",
             varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
             useInPreview = true,
 
