@@ -20,10 +20,10 @@ namespace UnityEditor.Rendering.HighDefinition
             string[] materialGuids = AssetDatabase.FindAssets(kMaterialFilter);
             try
             {
-                for(int i = 0, length = materialGuids.Length; i < length; i++)
+                for (int i = 0, length = materialGuids.Length; i < length; i++)
                 {
                     // Only update progress bar every 10 materials
-                    if(i % 10 == 9)
+                    if (i % 10 == 9)
                     {
                         EditorUtility.DisplayProgressBar(
                             "Updating dependent materials...",
@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
 
                      // Reset keywords
-                    if(material.shader.name == shader.name)
+                    if (material.shader.name == shader.name)
                         HDShaderUtils.ResetMaterialKeywords(material);
                 }
             }
