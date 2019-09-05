@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.level.level;
+                    int qualityLevel = (int)quality.levelAndOverride.level;
                     return GetPostProcessingQualitySettings().MotionBlurSampleCount[qualityLevel];
                 }
             }

@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        public (ScalableSetting.Level level, bool useOverride) level
+        public (ScalableSetting.Level level, bool useOverride) levelAndOverride
         {
             get => value == ScalableSetting.LevelCount ? (ScalableSetting.Level.Low, true) : ((ScalableSetting.Level)value, false);
             set

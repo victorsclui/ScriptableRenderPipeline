@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected bool UsesQualitySettings()
         {
-            return !quality.level.useOverride && (HDRenderPipeline)RenderPipelineManager.currentPipeline != null;
+            return !quality.levelAndOverride.useOverride && (HDRenderPipeline)RenderPipelineManager.currentPipeline != null;
         }
 
     }
