@@ -47,14 +47,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static bool IsFogEnabled(HDCamera hdCamera)
         {
-            var fogComponent = VolumeManager.instance.stack.GetComponent<Fog>();
-            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && fogComponent.enabled.value;
+            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && VolumeManager.instance.stack.GetComponent<Fog>().enabled.value;
         }
 
         public static bool IsVolumetricLightingEnabled(HDCamera hdCamera)
         {
-            var fogComponent = VolumeManager.instance.stack.GetComponent<Fog>();
-            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && fogComponent.enableVolumetricFog.value;
+            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && VolumeManager.instance.stack.GetComponent<Fog>().enableVolumetricFog.value;
         }
 
         public static bool IsPBRFogEnabled(HDCamera hdCamera)
