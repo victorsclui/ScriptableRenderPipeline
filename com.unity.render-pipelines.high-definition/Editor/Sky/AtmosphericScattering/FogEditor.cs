@@ -26,12 +26,12 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_SliceDistributionUniformity;
 
         static GUIContent s_Enabled = new GUIContent("Enable", "Check this to enable fog in your scene.");
-        static GUIContent s_AlbedoLabel = new GUIContent("Fog Albedo", "Specifies the color this fog scatters light to.");
+        static GUIContent s_AlbedoLabel = new GUIContent("Albedo", "Specifies the color this fog scatters light to.");
         static GUIContent s_MeanFreePathLabel = new GUIContent("Fog Attenuation Distance", "Controls the density at the base level (per color channel). Distance at which fog reduces background light intensity by 63%. Units: m.");
         static GUIContent s_BaseHeightLabel = new GUIContent("Base Height", "Reference height (e.g. sea level). Sets the height of the boundary between the constant and exponential fog.");
         static GUIContent s_MaximumHeightLabel = new GUIContent("Maximum Height", "Max height of the fog layer. Controls the rate of height-based density falloff. Units: m.");
-        static GUIContent s_AnisotropyLabel = new GUIContent("Global Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering.");
-        static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Global Light Probe Dimmer", "Controls the intensity reduction of the global Light Probe that the sky generates.");
+        static GUIContent s_AnisotropyLabel = new GUIContent("Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering.");
+        static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Ambient Light Probe Dimmer", "Controls the intensity reduction of the global Light Probe that the sky generates.");
         static GUIContent s_EnableVolumetricFog = new GUIContent("Volumetric Fog", "When enabled, activates volumetric fog.");
 
         public override bool hasAdvancedMode => true;
@@ -84,9 +84,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                PropertyField(m_MipFogNear);
-                PropertyField(m_MipFogFar);
-                PropertyField(m_MipFogMaxMip);
+                if (isInAdvancedMode)
+                {
+                    PropertyField(m_MipFogNear);
+                    PropertyField(m_MipFogFar);
+                    PropertyField(m_MipFogMaxMip);
+                }
             }
             EditorGUI.indentLevel--;
 
