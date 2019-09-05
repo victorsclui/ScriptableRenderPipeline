@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_Anisotropy;
         protected SerializedDataParameter m_GlobalLightProbeDimmer;
         protected SerializedDataParameter m_EnableVolumetricFog;
+        protected SerializedDataParameter m_DepthExtent;
+        protected SerializedDataParameter m_SliceDistributionUniformity;
 
         static GUIContent s_Enabled = new GUIContent("Enable", "Check this to enable fog in your scene.");
         static GUIContent s_AlbedoLabel = new GUIContent("Fog Albedo", "Specifies the color this fog scatters light to.");
@@ -31,6 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static GUIContent s_AnisotropyLabel = new GUIContent("Global Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering.");
         static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Global Light Probe Dimmer", "Controls the intensity reduction of the global Light Probe that the sky generates.");
         static GUIContent s_EnableVolumetricFog = new GUIContent("Volumetric Fog", "When enabled, activates volumetric fog.");
+
+        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
@@ -52,6 +56,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Anisotropy = Unpack(o.Find(x => x.anisotropy));
             m_GlobalLightProbeDimmer = Unpack(o.Find(x => x.globalLightProbeDimmer));
             m_EnableVolumetricFog = Unpack(o.Find(x => x.enableVolumetricFog));
+            m_DepthExtent = Unpack(o.Find(x => x.depthExtent));
+            m_SliceDistributionUniformity = Unpack(o.Find(x => x.sliceDistributionUniformity));
 
         }
 
@@ -98,6 +104,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_Albedo, s_AlbedoLabel);
                     PropertyField(m_Anisotropy, s_AnisotropyLabel);
                     PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
+
+                    if (isInAdvancedMode)
+                    {
+                        PropertyField(m_DepthExtent);
+                        PropertyField(m_SliceDistributionUniformity);
+                    }
 
                     EditorGUI.indentLevel--;
                 }

@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Vector3Int viewportResolution = ComputeVBufferResolution(volumetricLightingPreset, hdCamera.actualWidth, hdCamera.actualHeight);
 
-            var controller = VolumeManager.instance.stack.GetComponent<VolumetricLightingController>();
+            var controller = VolumeManager.instance.stack.GetComponent<Fog>();
 
             return new VBufferParameters(viewportResolution, controller.depthExtent.value,
                                          hdCamera.camera.nearClipPlane,

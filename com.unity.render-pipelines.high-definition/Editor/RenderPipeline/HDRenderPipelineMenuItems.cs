@@ -112,6 +112,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     output.mipFogFar.Override(input.mipFogFar.value);
             }
 
+            Fog CreateFogComponentIfNeeded(VolumeProfile profile)
+            {
+                Fog fogComponent = null;
+                if (!profile.TryGet(out fogComponent))
+                {
+                    fogComponent = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, false);
+                }
+
+                return fogComponent;
+            }
+
             if (!EditorUtility.DisplayDialog(DialogText.title, "This will upgrade all Volume Profiles containing Exponential or Volumetric Fog components to the new Fog component. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
                 return;
 
@@ -128,18 +139,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 VolumeProfile profile = AssetDatabase.LoadAssetAtPath(assetPath, typeof(VolumeProfile)) as VolumeProfile;
 
-                if (profile.TryGet<Fog>(out var fogComponent))
-                {
-                    continue; // Already migrated
-                }
-
                 if (profile.TryGet<VisualEnvironment>(out var visualEnv))
                 {
                     if (visualEnv.fogType.value == FogType.Exponential)
                     {
                         if (profile.TryGet<ExponentialFog>(out var expFog))
                         {
-                            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, false);
+                            var fog = CreateFogComponentIfNeeded(profile);
                             fog.enabled.Override(true);
                             // We only migrate distance because the height parameters are not compatible.
                             if (expFog.fogDistance.overrideState)
@@ -154,7 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         if (profile.TryGet<VolumetricFog>(out var volFog))
                         {
-                            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, false);
+                            var fog = CreateFogComponentIfNeeded(profile);
                             fog.enabled.Override(true);
                             fog.enableVolumetricFog.Override(true);
                             if (volFog.meanFreePath.overrideState)
@@ -174,6 +180,17 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorUtility.SetDirty(profile);
                         }
                     }
+                }
+
+                if (profile.TryGet<VolumetricLightingController>(out var volController))
+                {
+                    var fog = CreateFogComponentIfNeeded(profile);
+                    if (volController.depthExtent.overrideState)
+                        fog.depthExtent.Override(volController.depthExtent.value);
+                    if (volController.sliceDistributionUniformity.overrideState)
+                        fog.sliceDistributionUniformity.Override(volController.sliceDistributionUniformity.value);
+
+                    EditorUtility.SetDirty(profile);
                 }
             }
 
@@ -211,7 +228,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
-        
+
         [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]
         static void MenuCreateCustomFullScreenPassShader()
         {

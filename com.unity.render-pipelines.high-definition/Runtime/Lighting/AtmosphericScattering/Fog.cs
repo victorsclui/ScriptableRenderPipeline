@@ -40,6 +40,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter anisotropy = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
+        [Tooltip("Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]
+        public MinFloatParameter depthExtent = new MinFloatParameter(64.0f, 0.1f);
+        [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
+        public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
+
         public static bool IsFogEnabled(HDCamera hdCamera)
         {
             var fogComponent = VolumeManager.instance.stack.GetComponent<Fog>();
