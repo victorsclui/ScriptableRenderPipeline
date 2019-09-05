@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float volumetricDimmer
         {
-            get => m_VolumetricDimmer;
+            get => useVolumetric ? m_VolumetricDimmer : 0.0f;
             set
             {
                 if (m_VolumetricDimmer == value)
@@ -1192,7 +1192,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float volumetricShadowDimmer
         {
-            get => m_VolumetricShadowDimmer;
+            get => useVolumetric ? m_VolumetricShadowDimmer : 0.0f;
             set
             {
                 if (m_VolumetricShadowDimmer == value)
