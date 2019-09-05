@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Matcap view and AxF shader
 - Fixed compilation issue with stacklit and direct specular Occlusion
 - Fixed typo in AXF decal property preventing to compile
+- Fixed ShaderGraph material synchronization issues
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
