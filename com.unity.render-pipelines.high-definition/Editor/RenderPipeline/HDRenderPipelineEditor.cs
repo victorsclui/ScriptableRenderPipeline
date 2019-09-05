@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         SerializedHDRenderPipelineAsset m_SerializedHDRenderPipeline;
 
-        internal bool largeLabelSpace = true;
+        internal bool largeLabelWidth = true;
 
         void OnEnable()
         {
@@ -22,10 +22,10 @@ namespace UnityEditor.Rendering.HighDefinition
             serialized.Update();
 
             // In the quality window use more space for the labels
-            if (!largeLabelSpace)
+            if (!largeLabelWidth)
                 EditorGUIUtility.labelWidth *= 2;
             HDRenderPipelineUI.Inspector.Draw(serialized, this);
-            if (!largeLabelSpace)
+            if (!largeLabelWidth)
                 EditorGUIUtility.labelWidth *= 0.5f;
 
             serialized.Apply();

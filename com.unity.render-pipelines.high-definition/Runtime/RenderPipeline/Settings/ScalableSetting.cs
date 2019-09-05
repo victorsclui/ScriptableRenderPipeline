@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -19,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         private T m_Low;
         [SerializeField]
-        private T m_Med;
+        private T m_Medium;
         [SerializeField]
         private T m_High;
 
@@ -30,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (index)
                 {
                     case ScalableSetting.Level.Low: return m_Low;
-                    case ScalableSetting.Level.Medium: return m_Med;
+                    case ScalableSetting.Level.Medium: return m_Medium;
                     case ScalableSetting.Level.High: return m_High;
                     default: throw new ArgumentOutOfRangeException(nameof(index));
                 }
@@ -40,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (index)
                 {
                     case ScalableSetting.Level.Low: m_Low = value; break;
-                    case ScalableSetting.Level.Medium: m_Med = value; break;
+                    case ScalableSetting.Level.Medium: m_Medium = value; break;
                     case ScalableSetting.Level.High: m_High = value; break;
                     default: throw new ArgumentOutOfRangeException(nameof(index));
                 }
@@ -53,10 +54,10 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_Low = value;
         }
 
-        public T med
+        public T medium
         {
-            get => m_Med;
-            set => m_Med = value;
+            get => m_Medium;
+            set => m_Medium = value;
         }
 
         public T high

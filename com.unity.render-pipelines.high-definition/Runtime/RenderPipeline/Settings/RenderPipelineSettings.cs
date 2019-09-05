@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             postProcessQualitySettings = GlobalPostProcessingQualitySettings.@default,
             supportRayTracing = false,
             supportedRaytracingTier = RaytracingTier.Tier2,
-            lodBias = new FloatScalableSetting { low = 1, med = 1, high = 1 },
+            lodBias = new FloatScalableSetting { low = 1, medium = 1, high = 1 },
             maximumLODLevel = new IntScalableSetting(),
         };
 
