@@ -35,9 +35,9 @@ namespace UnityEditor.Rendering.HighDefinition
         [Obsolete]
         public SerializedHDShadowTiers serializedAreaLightTiers = new SerializedHDShadowTiers();
 
-        public SerializedScalableSetting shadowResolutionDirectional;
-        public SerializedScalableSetting shadowResolutionPunctual;
-        public SerializedScalableSetting shadowResolutionArea;
+        public SerializedShadowResolutionSetting shadowResolutionDirectional;
+        public SerializedShadowResolutionSetting shadowResolutionPunctual;
+        public SerializedShadowResolutionSetting shadowResolutionArea;
 
         public SerializedProperty maxDirectionalShadowMapResolution;
         public SerializedProperty maxPunctualShadowMapResolution;
@@ -65,9 +65,9 @@ namespace UnityEditor.Rendering.HighDefinition
             serializedAreaAtlasInit.useDynamicViewportRescale = root.Find((HDShadowInitParameters s) => s.areaLightShadowAtlas.useDynamicViewportRescale);
             maxShadowRequests = root.Find((HDShadowInitParameters s) => s.maxShadowRequests);
 
-            shadowResolutionDirectional = new SerializedScalableSetting(root.Find((HDShadowInitParameters s) => s.shadowResolutionDirectional));
-            shadowResolutionPunctual = new SerializedScalableSetting(root.Find((HDShadowInitParameters s) => s.shadowResolutionPunctual));
-            shadowResolutionArea = new SerializedScalableSetting(root.Find((HDShadowInitParameters s) => s.shadowResolutionArea));
+            shadowResolutionDirectional = new SerializedShadowResolutionSetting(root.Find((HDShadowInitParameters s) => s.shadowResolutionDirectional));
+            shadowResolutionPunctual = new SerializedShadowResolutionSetting(root.Find((HDShadowInitParameters s) => s.shadowResolutionPunctual));
+            shadowResolutionArea = new SerializedShadowResolutionSetting(root.Find((HDShadowInitParameters s) => s.shadowResolutionArea));
             maxDirectionalShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxDirectionalShadowMapResolution);
             maxPunctualShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxPunctualShadowMapResolution);
             maxAreaShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxAreaShadowMapResolution);

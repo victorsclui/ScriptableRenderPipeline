@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public static class ScalableSettings
         {
-            public static IntScalableSetting ShadowResolution(LightShape shape, HDRenderPipelineAsset hdrp)
+            public static ShadowResolutionSetting ShadowResolution(LightShape shape, HDRenderPipelineAsset hdrp)
             {
                 switch (shape)
                 {
@@ -617,7 +617,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        var defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
+                        var defaultResolution = new SerializedShadowResolutionSettingValueUI.FromScalableSetting(
                             ScalableSettings.ShadowResolution(serialized.editorLightShape, hdrp),
                             hdrp
                         );
@@ -700,7 +700,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 #endif
-                
+
 #endif
             }
         }
