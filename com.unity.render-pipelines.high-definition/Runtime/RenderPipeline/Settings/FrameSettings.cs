@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -153,6 +154,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
         [FrameSettingsField(0, autoName: MaximumLODLevelQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
         MaximumLODLevelQualityLevel = 65,
+        /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
+        [FrameSettingsField(0, autoName: MaterialQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, tooltip: "The material quality level to use.")]
+        MaterialQualityLevel = 66,
 
         //lighting settings from 20 to 39
         [FrameSettingsField(1, autoName: SkyLighting, customOrderInGroup: 0, tooltip: "When enabled, the Sky Ambient Light Probe affects diffuse lighting for Cameras that use these Frame Settings.")]
@@ -167,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Shadowmask = 22,
         [FrameSettingsField(1, displayedName: "Screen Space Reflection", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections.")]
         SSR = 23,
-        [FrameSettingsField(1, displayedName: "Screen Space Ambiant Occlusion", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.")]
+        [FrameSettingsField(1, displayedName: "Screen Space Ambient Occlusion", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.")]
         SSAO = 24,
         [FrameSettingsField(1, autoName: SubsurfaceScattering, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material.")]
         SubsurfaceScattering = 25,
@@ -199,7 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
         LightListAsync = 41,
         [FrameSettingsField(2, displayedName: "Screen Space Reflection", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates screen space reflection asynchronously.")]
         SSRAsync = 42,
-        [FrameSettingsField(2, displayedName: "Screen Space Ambiant Occlusion", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates screen space ambient occlusion asynchronously.")]
+        [FrameSettingsField(2, displayedName: "Screen Space Ambient Occlusion", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates screen space ambient occlusion asynchronously.")]
         SSAOAsync = 43,
         // TODO: Enable thing when the render graph will be the default renderer.
         // [FrameSettingsField(2, displayedName: "Contact Shadows", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates Contact Shadows asynchronously.")]
@@ -431,6 +435,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         public ScalableSetting.Level maximumLODLevelQualityLevel;
 
+        /// <summary>
+        /// The material quality level to use for this rendering.
+        /// if <c>materialQuality == 0</c>, then the material quality from the current quality settings
+        /// (in HDRP Asset) will be used.
+        /// </summary>
+        public MaterialQuality materialQuality;
+
         /// <summary>Helper to see binary saved data on LitShaderMode as a LitShaderMode enum.</summary>
         public LitShaderMode litShaderMode
         {
@@ -500,6 +511,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 overriddenFrameSettings.maximumLODLevelMode = overridingFrameSettings.maximumLODLevelMode;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevelQualityLevel])
                 overriddenFrameSettings.maximumLODLevelQualityLevel = overridingFrameSettings.maximumLODLevelQualityLevel;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaterialQualityLevel])
+                overriddenFrameSettings.materialQuality = overridingFrameSettings.materialQuality;
         }
 
         /// <summary>Check FrameSettings with what is supported in RenderPipelineSettings and change value in order to be compatible.</summary>
@@ -616,7 +629,8 @@ namespace UnityEngine.Rendering.HighDefinition
             && a.lodBiasQualityLevel == b.lodBiasQualityLevel
             && a.maximumLODLevel == b.maximumLODLevel
             && a.maximumLODLevelMode == b.maximumLODLevelMode
-            && a.maximumLODLevelQualityLevel == b.maximumLODLevelQualityLevel;
+            && a.maximumLODLevelQualityLevel == b.maximumLODLevelQualityLevel
+            && a.materialQuality == b.materialQuality;
 
         public static bool operator !=(FrameSettings a, FrameSettings b)
             => a.bitDatas != b.bitDatas
@@ -625,7 +639,8 @@ namespace UnityEngine.Rendering.HighDefinition
             || a.lodBiasQualityLevel != b.lodBiasQualityLevel
             || a.maximumLODLevel != b.maximumLODLevel
             || a.maximumLODLevelMode != b.maximumLODLevelMode
-            || a.maximumLODLevelQualityLevel != b.maximumLODLevelQualityLevel;
+            || a.maximumLODLevelQualityLevel != b.maximumLODLevelQualityLevel
+            || a.materialQuality != b.materialQuality;
 
         public override bool Equals(object obj)
             => (obj is FrameSettings)
@@ -635,7 +650,8 @@ namespace UnityEngine.Rendering.HighDefinition
             && lodBiasQualityLevel.Equals(((FrameSettings)obj).lodBiasQualityLevel)
             && maximumLODLevel.Equals(((FrameSettings)obj).maximumLODLevel)
             && maximumLODLevelMode.Equals(((FrameSettings)obj).maximumLODLevelMode)
-            && maximumLODLevelQualityLevel.Equals(((FrameSettings)obj).maximumLODLevelQualityLevel);
+            && maximumLODLevelQualityLevel.Equals(((FrameSettings)obj).maximumLODLevelQualityLevel)
+            && materialQuality.Equals(((FrameSettings)obj).materialQuality);
 
         public override int GetHashCode()
         {
@@ -647,6 +663,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hashCode = hashCode * -1521134295 + maximumLODLevel.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelMode.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelQualityLevel.GetHashCode();
+            hashCode = hashCode * -1521134295 + materialQuality.GetHashCode();
             return hashCode;
         }
 
@@ -725,6 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebuggerEntry("maximumLODLevel", m_FrameSettings.maximumLODLevel),
                         new DebuggerEntry("maximumLODLevelMode", m_FrameSettings.maximumLODLevelMode),
                         new DebuggerEntry("maximumLODLevelQualityLevel", m_FrameSettings.maximumLODLevelQualityLevel),
+                        new DebuggerEntry("materialQuality", m_FrameSettings.materialQuality),
                     }));
 
                     return groups.ToArray();

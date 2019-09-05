@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maximumLODLevel;
         public SerializedProperty maximumLODLevelMode;
         public SerializedProperty maximumLODLevelQualityLevel;
+        public SerializedProperty materialQuality;
 
         public SerializedObject serializedObject => rootData.serializedObject;
 
@@ -108,6 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maximumLODLevel = rootData.FindPropertyRelative("maximumLODLevel");
             maximumLODLevelMode = rootData.FindPropertyRelative("maximumLODLevelMode");
             maximumLODLevelQualityLevel = rootData.FindPropertyRelative("maximumLODLevelQualityLevel");
+            materialQuality = rootData.Find((FrameSettings s) => s.materialQuality);
         }
     }
 }
