@@ -6,8 +6,11 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public static class ScalableSetting
     {
+<<<<<<< HEAD
         public static readonly int LevelCount = Enum.GetValues(typeof(Level)).Length;
 
+=======
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
         public enum Level
         {
             Low,

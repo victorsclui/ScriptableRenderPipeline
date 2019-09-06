@@ -6,13 +6,21 @@ namespace UnityEditor.Rendering.HighDefinition
     public class SerializedScalableSetting
     {
         public SerializedProperty low;
+<<<<<<< HEAD
         public SerializedProperty medium;
+=======
+        public SerializedProperty med;
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
         public SerializedProperty high;
 
         public SerializedScalableSetting(SerializedProperty property)
         {
             low = property.FindPropertyRelative("m_Low");
+<<<<<<< HEAD
             medium = property.FindPropertyRelative("m_Medium");
+=======
+            med = property.FindPropertyRelative("m_Med");
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
             high = property.FindPropertyRelative("m_High");
         }
     }
@@ -37,7 +45,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var contentRect = EditorGUI.PrefixLabel(rect, label);
             EditorGUI.showMixedValue = self.low.hasMultipleDifferentValues
+<<<<<<< HEAD
                                        || self.medium.hasMultipleDifferentValues
+=======
+                                       || self.med.hasMultipleDifferentValues
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
                                        || self.high.hasMultipleDifferentValues;
 
             if (typeof(T) == typeof(bool))
@@ -46,7 +58,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool[] values =
                 {
                     self.low.boolValue,
+<<<<<<< HEAD
                     self.medium.boolValue,
+=======
+                    self.med.boolValue,
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
                     self.high.boolValue
                 };
                 EditorGUI.BeginChangeCheck();
@@ -54,7 +70,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if(EditorGUI.EndChangeCheck())
                 {
                     self.low.boolValue = values[0];
+<<<<<<< HEAD
                     self.medium.boolValue = values[1];
+=======
+                    self.med.boolValue = values[1];
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
                     self.high.boolValue = values[2];
                 }
             }
@@ -64,7 +84,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 int[] values =
                 {
                     self.low.intValue,
+<<<<<<< HEAD
                     self.medium.intValue,
+=======
+                    self.med.intValue,
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
                     self.high.intValue
                 };
                 EditorGUI.BeginChangeCheck();
@@ -72,7 +96,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if(EditorGUI.EndChangeCheck())
                 {
                     self.low.intValue = values[0];
+<<<<<<< HEAD
                     self.medium.intValue = values[1];
+=======
+                    self.med.intValue = values[1];
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
                     self.high.intValue = values[2];
                 }
             }
@@ -82,7 +110,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 float[] values =
                 {
                     self.low.floatValue,
+<<<<<<< HEAD
                     self.medium.floatValue,
+=======
+                    self.med.floatValue,
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
                     self.high.floatValue
                 };
                 EditorGUI.BeginChangeCheck();
@@ -90,7 +122,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if(EditorGUI.EndChangeCheck())
                 {
                     self.low.floatValue = values[0];
+<<<<<<< HEAD
                     self.medium.floatValue = values[1];
+=======
+                    self.med.floatValue = values[1];
+>>>>>>> f93e1c81f587aecc5ec45a98bd72a57636fcf683
                     self.high.floatValue = values[2];
                 }
             }

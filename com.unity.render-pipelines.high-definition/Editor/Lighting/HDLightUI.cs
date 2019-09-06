@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
         enum Advanceable
         {
             General = 1 << 0,
-            //Shape = 1 << 1, //not used anymore
+            Shape = 1 << 1,
             Emission = 1 << 2,
             Shadow = 1 << 3,
         }
@@ -113,7 +113,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
+                CED.AdvancedFoldoutGroup(s_Styles.generalHeader, Expandable.Shape, k_ExpandedState,
+                    (serialized, owner) => GetAdvanced(Advanceable.Shape, serialized, owner),
+                    (serialized, owner) => SwitchAdvanced(Advanceable.Shape, serialized, owner),
+                    DrawShapeContent,
+                    DrawShapeAdvancedContent
+                    ),
                 CED.AdvancedFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
                     (serialized, owner) => GetAdvanced(Advanceable.Emission, serialized, owner),
                     (serialized, owner) => SwitchAdvanced(Advanceable.Emission, serialized, owner),
@@ -205,20 +210,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     // If we're not in decoupled mode for light layers, we sync light with shadow layers:
                     if (lightData.linkLightLayers.boolValue && change.changed)
                         SyncLightAndShadowLayers(serialized, owner);
-                }
-            }
-
-            if (serialized.editorLightShape == LightShape.Directional)
-            {
-                lightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, lightData.interactsWithSky.boolValue);
-
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(lightData.angularDiameter, s_Styles.angularDiameter);
-                EditorGUILayout.PropertyField(lightData.distance,        s_Styles.distance);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    lightData.angularDiameter.floatValue = Mathf.Max(0, lightData.angularDiameter.floatValue);
-                    lightData.distance.floatValue        = Mathf.Max(0, lightData.distance.floatValue);
                 }
             }
         }
@@ -335,6 +326,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.serializedLightData.shapeRadius.floatValue = Mathf.Max(serialized.serializedLightData.shapeRadius.floatValue, 0.0f);
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
                 ((Light)owner.target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
+            }
+        }
+
+        static void DrawShapeAdvancedContent(SerializedHDLight serialized, Editor owner)
+        {
+            var lightData = serialized.serializedLightData;
+
+            if (serialized.editorLightShape == LightShape.Directional)
+            {
+                EditorGUILayout.PropertyField(lightData.angularDiameter, s_Styles.angularDiameter);
+
+                lightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, lightData.interactsWithSky.boolValue);
+
+                using (new EditorGUI.DisabledScope(!lightData.interactsWithSky.boolValue))
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(lightData.distance, s_Styles.distance);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightData.angularDiameter.floatValue = Mathf.Max(0, lightData.angularDiameter.floatValue);
+                        lightData.distance.floatValue = Mathf.Max(0, lightData.distance.floatValue);
+                    }
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 
@@ -624,9 +640,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         serialized.serializedLightData.shadowResolution.LevelAndIntGUILayout(s_Styles.shadowResolution, defaultResolution);
 
 
-                        if (change.changed)
+                            if (change.changed)
                             serialized.serializedLightData.shadowResolution.@override.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.shadowResolution.@override.intValue);
-                    }
+                        }
 
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
 
@@ -700,7 +716,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 #endif
-
+                
 #endif
             }
         }
@@ -843,7 +859,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
                     //m_BaseData.type.enumValueIndex = (int)LightType.Rectangle;
                     // In case of change, think to update InitDefaultHDAdditionalLightData()
-
+                    
                     serialized.settings.lightType.enumValueIndex = (int)LightType.Point;
                     serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     if (serialized.settings.isRealtime)

@@ -149,8 +149,8 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowResolutionArea                = new ShadowResolutionSetting(new []{ 256, 512, 1024, 2048 }),
             shadowResolutionPunctual            = new ShadowResolutionSetting(new []{ 256, 512, 1024, 2048 }),
             shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
-            supportScreenSpaceShadows           = false,
-            maxScreenSpaceShadows               = 2,
+            supportScreenSpaceShadows   = false,
+            maxScreenSpaceShadows       = 2,
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int              lightID;
         public int              indexInLight = 0;
         public int              lastFrameActive = 0;
-        public bool             emptyRequest = false;
+        public bool             emptyRequest = false; 
         public bool             hasBeenStoredInCachedList = false;
 
         public HDShadowResolutionRequest ShallowCopy()
