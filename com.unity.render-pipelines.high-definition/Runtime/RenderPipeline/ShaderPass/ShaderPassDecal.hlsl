@@ -78,7 +78,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 #endif
 
 // Perform HTile optimization only on platform that support it
-#if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_TEXTURE_ATOMICS)
+#if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
     uint2 htileCoord = input.positionSS.xy / 8;
     int stride = (_ScreenSize.x + 7) / 8;
     uint tileCoord1d = htileCoord.y * stride + htileCoord.x;
@@ -118,7 +118,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     InterlockedOr(_DecalPropertyMaskBuffer[tileCoord1d], mask);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-#endif // ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_TEXTURE_ATOMICS)
+#endif // ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
