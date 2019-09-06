@@ -10,14 +10,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shadowMapDepthBits;
         public SerializedProperty useDynamicViewportRescale;
     }
-    [Obsolete]
-    class SerializedHDShadowTiers
-    {
-        public SerializedProperty lowQualityShadowMap;
-        public SerializedProperty mediumQualityShadowMap;
-        public SerializedProperty highQualityShadowMap;
-        public SerializedProperty veryHighQualityShadowMap;
-    }
 
     class SerializedHDShadowInitParameters
     {
@@ -27,13 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedHDShadowAtlasInitParams serializedPunctualAtlasInit = new SerializedHDShadowAtlasInitParams();
         public SerializedHDShadowAtlasInitParams serializedAreaAtlasInit = new SerializedHDShadowAtlasInitParams();
-
-        [Obsolete]
-        public SerializedHDShadowTiers serializedDirectionalLightTiers = new SerializedHDShadowTiers();
-        [Obsolete]
-        public SerializedHDShadowTiers serializedPunctualLightTiers = new SerializedHDShadowTiers();
-        [Obsolete]
-        public SerializedHDShadowTiers serializedAreaLightTiers = new SerializedHDShadowTiers();
 
         public SerializedShadowResolutionSetting shadowResolutionDirectional;
         public SerializedShadowResolutionSetting shadowResolutionPunctual;
@@ -49,7 +34,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty supportScreenSpaceShadows;
         public SerializedProperty maxScreenSpaceShadows;
-        public SerializedScalableSetting useContactShadow;
 
         public SerializedHDShadowInitParameters(SerializedProperty root)
         {

@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_Version = value;
         }
 
+#pragma warning disable 0618, 0612
         [SerializeField]
         private Version m_Version = Version.ShadowResolution;
 
@@ -99,6 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     t.useContactShadow.@override = t.m_ObsoleteContactShadows;
                 })
             );
+#pragma warning restore 0618, 0612
 
         void ISerializationCallbackReceiver.OnAfterDeserialize() {}
 
@@ -116,9 +118,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void Awake()
         {
             k_HDLightMigrationSteps.Migrate(this);
+#pragma warning disable 0618
             var shadow = GetComponent<AdditionalShadowData>();
             if (shadow != null)
                 CoreUtils.Destroy(shadow);
+#pragma warning restore 0618
         }
 
         #region Obsolete fields
