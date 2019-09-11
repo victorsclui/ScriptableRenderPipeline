@@ -669,7 +669,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 });
             }
 
-            if (DebugNeedsExposure())
+            if (DebugNeedsExposure() || data.lightingDebugSettings.displaySkyReflection)
                 list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
 
 
