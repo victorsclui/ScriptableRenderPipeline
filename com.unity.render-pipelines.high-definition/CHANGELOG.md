@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
 - Fixed Hair and PBR shader graphs double sided modes
 - Fixed issue that caused decals not to modify the roughness in the normal buffer, causing SSR to not behave correctly (case 1178336)
+- Fixed issue of spotlight breaking when minimizing the cone angle via the gizmo (case 1178279)
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
