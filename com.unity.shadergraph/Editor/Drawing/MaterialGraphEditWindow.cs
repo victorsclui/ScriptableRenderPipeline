@@ -87,7 +87,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string selectedGuid
         {
             get { return m_Selected; }
-            private set { m_Selected = value; }
+            private set
+            {
+                m_Selected = value;
+            }
         }
 
         public string assetName
@@ -363,17 +366,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (!string.IsNullOrEmpty(newPath))
                     {
                         var success = FileUtilities.WriteShaderGraphToDisk(newPath, graphObject.graph);
-                        AssetDatabase.Refresh();
+                        AssetDatabase.ImportAsset(newPath);
                         if (success)
                         {
                             ShaderGraphImporterEditor.ShowGraphEditWindow(newPath);
-                            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
                             if (GraphData.onSaveGraph != null)
                             {
+                                var shader = AssetDatabase.LoadAssetAtPath<Shader>(newPath);
                                 GraphData.onSaveGraph(shader);
                             }
                         }
                     }
+                }
+                else
+                {
+                    UpdateAsset();
                 }
 
                 graphObject.isDirty = false;
@@ -761,7 +768,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Texture2D icon = GetThemeIcon(graphObject.graph);
 
                 // This is adding the icon at the front of the tab
-                titleContent = EditorGUIUtility.TrTextContentWithIcon("", icon);
+                titleContent = EditorGUIUtility.TrTextContentWithIcon(selectedGuid, icon);
                 UpdateTitle();
 
                 Repaint();
