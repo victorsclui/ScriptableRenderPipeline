@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderMirrorView(CommandBuffer cmd)
         {
-#if ENABLE_XR_MODULE
+#if false
             if (display == null || !display.running)
                 return;
 

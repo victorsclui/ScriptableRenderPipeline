@@ -762,9 +762,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
 #if HAVE_DECALS
+    DecalSurfaceData decalSurfaceData;
     if (_EnableDecals)
     {
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+        decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
     }
 #endif
@@ -781,7 +782,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #elif defined(_MASKMAP0) || defined(_MASKMAP1) || defined(_MASKMAP2) || defined(_MASKMAP3)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #else
+    // If we have decals, we might still have a mask map to consider as it migth be coming from the decal.
+#if HAVE_DECALS
+    if (_EnableDecals && (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK))
+    {
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+    }
+#else
     surfaceData.specularOcclusion = 1.0;
+#endif
+
 #endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
