@@ -857,7 +857,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MaxCameraHeight = Mathf.Max(m_MaxCameraHeight, hdCamera.actualHeight);
 
                 if (m_MaxCameraWidth > 0 && m_MaxCameraHeight > 0)
+                {
                     LightLoopReleaseResolutionDependentBuffers();
+                    m_DbufferManager.ReleaseResolutionDependentBuffers();
+                }
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
 				m_DbufferManager.AllocResolutionDependentBuffers(hdCamera);
@@ -2905,6 +2908,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(propertyMaskClearShader, propertyMaskClearShaderKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);
             cmd.DispatchCompute(propertyMaskClearShader, propertyMaskClearShaderKernel, propertyMaskBufferSize / 64, 1, 1);
 
+            cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
 
