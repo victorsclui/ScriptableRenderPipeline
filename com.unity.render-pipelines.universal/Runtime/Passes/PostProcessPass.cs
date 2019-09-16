@@ -313,7 +313,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (m_IsStereo)
                 {
-                    Blit(cmd, GetSource(), m_Destination.Identifier(), m_Materials.uber);
+                    // No, XR magic blit uses built-in blit shader. You MUST use  built-in, otherwise things explode 
+                    Blit(cmd, GetSource(), m_Destination.Identifier()/*, m_Materials.uber*/);
                 }
                 else
                 {
@@ -955,7 +956,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.isStereoEnabled)
             {
-                Blit(cmd, m_Source.Identifier(), m_Destination.Identifier(), material);
+                // No, XR magic blit uses built-in blit shader. You MUST use  built-in, otherwise things explode 
+                Blit(cmd, m_Source.Identifier(), m_Destination.Identifier()/*, material*/);
             }
             else
             {
