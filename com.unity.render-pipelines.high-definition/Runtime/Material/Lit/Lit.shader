@@ -255,6 +255,7 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _BENTNORMALMAP
     #pragma shader_feature_local _EMISSIVE_COLOR_MAP
     #pragma shader_feature_local _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+    #pragma shader_feature_local _SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION
     #pragma shader_feature_local _HEIGHTMAP
     #pragma shader_feature_local _TANGENTMAP
     #pragma shader_feature_local _ANISOTROPYMAP

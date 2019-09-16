@@ -207,7 +207,12 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", material.GetInt(kSpecularOcclusionMode) == 2);
+
+            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+            if (specOcclusionMode == 1)
+                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION", true);
+            else if (specOcclusionMode == 2)
+                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", true);
 
             CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 

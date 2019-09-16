@@ -395,36 +395,37 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
     // We can only have 64 shader_feature_local
-    #pragma shader_feature _NORMALMAP0                              // Non-local
-    #pragma shader_feature _NORMALMAP1                              // Non-local
-    #pragma shader_feature _NORMALMAP2                              // Non-local
-    #pragma shader_feature _NORMALMAP3                              // Non-local
-    #pragma shader_feature _MASKMAP0                                // Non-local
-    #pragma shader_feature _MASKMAP1                                // Non-local
-    #pragma shader_feature _MASKMAP2                                // Non-local
-    #pragma shader_feature _MASKMAP3                                // Non-local
-    #pragma shader_feature _BENTNORMALMAP0                          // Non-local
-    #pragma shader_feature _BENTNORMALMAP1                          // Non-local
-    #pragma shader_feature _BENTNORMALMAP2                          // Non-local
-    #pragma shader_feature _BENTNORMALMAP3                          // Non-local
-    #pragma shader_feature _EMISSIVE_COLOR_MAP                      // Non-local
-    #pragma shader_feature _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
-    #pragma shader_feature _DETAIL_MAP0                             // Non-local
-    #pragma shader_feature _DETAIL_MAP1                             // Non-local
-    #pragma shader_feature _DETAIL_MAP2                             // Non-local
-    #pragma shader_feature _DETAIL_MAP3                             // Non-local
-    #pragma shader_feature _HEIGHTMAP0                              // Non-local
-    #pragma shader_feature _HEIGHTMAP1                              // Non-local
-    #pragma shader_feature _HEIGHTMAP2                              // Non-local
-    #pragma shader_feature _HEIGHTMAP3                              // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP0                    // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP1                    // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP2                    // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP3                    // Non-local
-    #pragma shader_feature _THICKNESSMAP0                           // Non-local
-    #pragma shader_feature _THICKNESSMAP1                           // Non-local
-    #pragma shader_feature _THICKNESSMAP2                           // Non-local
-    #pragma shader_feature _THICKNESSMAP3                           // Non-local
+    #pragma shader_feature _NORMALMAP0                                  // Non-local
+    #pragma shader_feature _NORMALMAP1                                  // Non-local
+    #pragma shader_feature _NORMALMAP2                                  // Non-local
+    #pragma shader_feature _NORMALMAP3                                  // Non-local
+    #pragma shader_feature _MASKMAP0                                    // Non-local
+    #pragma shader_feature _MASKMAP1                                    // Non-local
+    #pragma shader_feature _MASKMAP2                                    // Non-local
+    #pragma shader_feature _MASKMAP3                                    // Non-local
+    #pragma shader_feature _BENTNORMALMAP0                              // Non-local
+    #pragma shader_feature _BENTNORMALMAP1                              // Non-local
+    #pragma shader_feature _BENTNORMALMAP2                              // Non-local
+    #pragma shader_feature _BENTNORMALMAP3                              // Non-local
+    #pragma shader_feature _EMISSIVE_COLOR_MAP                          // Non-local
+    #pragma shader_feature _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP     // Non-local
+    #pragma shader_feature _SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION   // Non-local
+    #pragma shader_feature _DETAIL_MAP0                                 // Non-local
+    #pragma shader_feature _DETAIL_MAP1                                 // Non-local
+    #pragma shader_feature _DETAIL_MAP2                                 // Non-local
+    #pragma shader_feature _DETAIL_MAP3                                 // Non-local
+    #pragma shader_feature _HEIGHTMAP0                                  // Non-local
+    #pragma shader_feature _HEIGHTMAP1                                  // Non-local
+    #pragma shader_feature _HEIGHTMAP2                                  // Non-local
+    #pragma shader_feature _HEIGHTMAP3                                  // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP0                        // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP1                        // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP2                        // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP3                        // Non-local
+    #pragma shader_feature _THICKNESSMAP0                               // Non-local
+    #pragma shader_feature _THICKNESSMAP1                               // Non-local
+    #pragma shader_feature _THICKNESSMAP2                               // Non-local
+    #pragma shader_feature _THICKNESSMAP3                               // Non-local
 
     #pragma shader_feature_local _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature_local _MAIN_LAYER_INFLUENCE_MODE

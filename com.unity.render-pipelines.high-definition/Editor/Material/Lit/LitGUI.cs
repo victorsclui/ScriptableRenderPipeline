@@ -148,7 +148,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (material.HasProperty(kSpecularOcclusionMode))
-                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", material.GetInt(kSpecularOcclusionMode) == 2);
+            {
+                int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+                if(specOcclusionMode == 1)
+                    CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION", true);
+                else if(specOcclusionMode == 2)
+                    CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", true);
+            }
             if (material.HasProperty(kHeightMap))
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             if (material.HasProperty(kAnisotropyMap))
