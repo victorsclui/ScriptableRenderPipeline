@@ -209,11 +209,8 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
 
             int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
-            if (specOcclusionMode == 1)
-                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION", true);
-            else if (specOcclusionMode == 2)
-                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", true);
-
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION", specOcclusionMode == 1);
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", specOcclusionMode == 2);
             CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
             VertexColorMode VCMode = (VertexColorMode)material.GetFloat(kVertexColorMode);

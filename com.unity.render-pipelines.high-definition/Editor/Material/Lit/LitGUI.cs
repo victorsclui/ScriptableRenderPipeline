@@ -150,10 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kSpecularOcclusionMode))
             {
                 int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
-                if(specOcclusionMode == 1)
-                    CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION", true);
-                else if(specOcclusionMode == 2)
-                    CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", true);
+                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION", specOcclusionMode == 1);
+                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", specOcclusionMode == 2);
             }
             if (material.HasProperty(kHeightMap))
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
