@@ -2875,6 +2875,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static RenderTargetIdentifier[] m_Dbuffer3RtIds = new RenderTargetIdentifier[3];
+
         static void RenderDBuffer(  bool                        use4RTs,
                                     RenderTargetIdentifier[]    mrt,
                                     RTHandle[]                  rtHandles,
@@ -2887,6 +2889,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     ScriptableRenderContext     renderContext,
                                     CommandBuffer               cmd)
         {
+            
+
             // for alpha compositing, color is cleared to 0, alpha to 1
             // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 
@@ -2898,11 +2902,20 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetRenderTarget(cmd, rtHandles[0], ClearFlag.Color, clearColor);
             CoreUtils.SetRenderTarget(cmd, rtHandles[1], ClearFlag.Color, clearColorNormal);
             CoreUtils.SetRenderTarget(cmd, rtHandles[2], ClearFlag.Color, clearColor);
+
             if (use4RTs)
             {
                 CoreUtils.SetRenderTarget(cmd, rtHandles[3], ClearFlag.Color, clearColorAOSBlend);
+                CoreUtils.SetRenderTarget(cmd, mrt, depthStencilBuffer); // do not clear anymore
             }
-            CoreUtils.SetRenderTarget(cmd, mrt, depthStencilBuffer); // do not clear anymore
+            else
+            {
+                for(int rtindex = 0; rtindex < 3; rtindex++)
+                {                  
+                    m_Dbuffer3RtIds[rtindex] = mrt[rtindex];
+                }              
+                CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, depthStencilBuffer); // do not clear anymore
+            }
 
          // clear decal property mask buffer
             cmd.SetComputeBufferParam(propertyMaskClearShader, propertyMaskClearShaderKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);

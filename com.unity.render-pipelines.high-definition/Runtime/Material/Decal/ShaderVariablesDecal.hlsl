@@ -10,8 +10,6 @@ TEXTURE2D(_DecalAtlas2D);
 SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 
 #ifdef PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER
-RW_TEXTURE2D_X(uint, _DecalHTile); 
-TEXTURE2D_X_UINT(_DecalHTileTexture);
 RWStructuredBuffer<uint> _DecalPropertyMaskBuffer;
 StructuredBuffer<uint> _DecalPropertyMaskBufferSRV;
 #endif
