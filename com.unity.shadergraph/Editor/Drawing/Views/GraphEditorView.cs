@@ -328,7 +328,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (evt.ctrlKey && evt.keyCode == KeyCode.G)
             {
-                if (m_GraphView.selection.OfType<MaterialNodeView>().Any())
+                if (m_GraphView.selection.OfType<GraphElement>().Any())
                 {
                     m_GraphView.GroupSelection();
                 }

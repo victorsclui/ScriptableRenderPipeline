@@ -293,9 +293,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Create Group Node");
             graph.CreateGroup(groupData);
 
-            foreach (var shaderNodeView in selection.OfType<IShaderNodeView>())
+            foreach (var element in selection.OfType<GraphElement>())
             {
-                graph.SetGroup(shaderNodeView.node, groupData);
+                if (element.userData is IGroupItem groupItem)
+                {
+                    graph.SetGroup(groupItem, groupData);
+                }
             }
         }
 
