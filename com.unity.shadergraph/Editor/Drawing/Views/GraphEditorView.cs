@@ -226,7 +226,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var content = new VisualElement { name = "content" };
             {
                 m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
-                m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
+                // Same max scale zoom in settings as VFX graph.
+                m_GraphView.SetupZoom(0.05f, 8);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
