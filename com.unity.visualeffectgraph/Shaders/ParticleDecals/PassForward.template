@@ -93,7 +93,8 @@ o.viewToDecal0 = viewToDecal[0];
 o.viewToDecal1 = viewToDecal[1];
 o.viewToDecal2 = viewToDecal[2];
 	${VFXEnd}
-				
+
+    ${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag

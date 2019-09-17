@@ -27,6 +27,11 @@ struct ps_input
 
 #undef VFX_USE_RIM_LIGHT
 
+#if IS_MOTION_VECTORS_PASS
+${VFXPassVelocityDefine}
+#else
+${VFXPassDepthDefine}
+#endif
 ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 	
 #pragma fragment frag

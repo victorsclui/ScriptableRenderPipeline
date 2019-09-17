@@ -70,7 +70,8 @@ Pass
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
-		
+
+    ${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
 #if VFX_SHADERGRAPH            
     ${SHADERGRAPH_PIXEL_CODE_FORWARD}

@@ -37,7 +37,7 @@ ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 	
 	${VFXInclude("Shaders/ParticleSpheres/Pass.template")}	
-	#define SHADERPASS SHADERPASS_DEPTH_ONLY
+	${VFXPassShadowDefine}
 	${VFXIncludeRP("VFXLit.template")}
 					
 	#pragma fragment frag
