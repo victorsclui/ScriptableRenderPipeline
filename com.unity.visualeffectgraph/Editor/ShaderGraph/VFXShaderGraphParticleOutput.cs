@@ -366,7 +366,14 @@ namespace UnityEditor.VFX
                     foreach (var kvPass in graphCodes)
                     {
                         GraphCode graphCode = kvPass.Value;
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(graphCode.code));
+
+                        var preProcess = new VFXShaderWriter();
+                        if (graphCode.requirements.requiresCameraOpaqueTexture)
+                            preProcess.WriteLine("#define REQUIRE_OPAQUE_TEXTURE");
+                        if (graphCode.requirements.requiresDepthTexture)
+                            preProcess.WriteLine("#define REQUIRE_DEPTH_TEXTURE");
+                        preProcess.WriteLine("${VFXShaderGraphFunctionsInclude}\n");
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(preProcess.ToString() + graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
