@@ -9,7 +9,7 @@
 //  PCF Filtering methods
 // ------------------------------------------------------------------
 
-real SampleShadow_PCF_Tent_3x3(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
+real SampleShadow_PCF_Tent_3x3(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias, float2 maxCoords)
 {
 #if SHADOW_USE_DEPTH_BIAS == 1
     // add the depth bias
@@ -23,7 +23,7 @@ real SampleShadow_PCF_Tent_3x3(float4 shadowAtlasSize, float3 coord, Texture2D t
     SampleShadow_ComputeSamples_Tent_3x3(shadowAtlasSize, coord.xy, fetchesWeights, fetchesUV);
     for (int i = 0; i < 4; i++)
     {
-        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[i].xy, coord.z)).x;
+        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[i].xy, maxCoords), coord.z)).x;
     }
     return shadow;
 }
@@ -33,7 +33,7 @@ real SampleShadow_PCF_Tent_3x3(float4 shadowAtlasSize, float3 coord, Texture2D t
 //
 
 // shadowAtlasSize.xy is the shadow atlas size in pixel and shadowAtlasSize.zw is rcp(shadow atlas size)
-real SampleShadow_PCF_Tent_5x5(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
+real SampleShadow_PCF_Tent_5x5(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias, float2 maxCoords)
 {
 #if SHADOW_USE_DEPTH_BIAS == 1
     // add the depth bias
@@ -52,26 +52,26 @@ real SampleShadow_PCF_Tent_5x5(float4 shadowAtlasSize, float3 coord, Texture2D t
     UNITY_LOOP
     for (i = 0; i < 1; i++)
     {
-        shadow += fetchesWeights[ 0] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 0].xy, coord.z)).x;
-        shadow += fetchesWeights[ 1] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 1].xy, coord.z)).x;
-        shadow += fetchesWeights[ 2] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 2].xy, coord.z)).x;
-        shadow += fetchesWeights[ 3] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 3].xy, coord.z)).x;
+        shadow += fetchesWeights[ 0] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 0].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 1] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 1].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 2] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 2].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 3] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 3].xy, maxCoords), coord.z)).x;
     }
 
     UNITY_LOOP
     for (i = 0; i < 1; i++)
     {
-        shadow += fetchesWeights[ 4] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 4].xy, coord.z)).x;
-        shadow += fetchesWeights[ 5] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 5].xy, coord.z)).x;
-        shadow += fetchesWeights[ 6] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 6].xy, coord.z)).x;
-        shadow += fetchesWeights[ 7] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 7].xy, coord.z)).x;
+        shadow += fetchesWeights[ 4] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 4].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 5] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 5].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 6] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 6].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 7] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 7].xy, maxCoords), coord.z)).x;
     }
 
-    shadow += fetchesWeights[ 8] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 8].xy, coord.z)).x;
+    shadow += fetchesWeights[ 8] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 8].xy, maxCoords), coord.z)).x;
 #else
     for (int i = 0; i < 9; i++)
     {
-        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[i].xy, coord.z), slice).x;
+        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[i].xy, maxCoords), coord.z), slice).x;
     }
 #endif
 
@@ -81,7 +81,7 @@ real SampleShadow_PCF_Tent_5x5(float4 shadowAtlasSize, float3 coord, Texture2D t
 //
 //                  7x7 tent PCF sampling (16 taps)
 //
-real SampleShadow_PCF_Tent_7x7(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
+real SampleShadow_PCF_Tent_7x7(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias, float2 maxCoords)
 {
 #if SHADOW_USE_DEPTH_BIAS == 1
     // add the depth bias
@@ -100,39 +100,39 @@ real SampleShadow_PCF_Tent_7x7(float4 shadowAtlasSize, float3 coord, Texture2D t
     UNITY_LOOP
     for (i = 0; i < 1; i++)
     {
-        shadow += fetchesWeights[ 0] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 0].xy, coord.z)).x;
-        shadow += fetchesWeights[ 1] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 1].xy, coord.z)).x;
-        shadow += fetchesWeights[ 2] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 2].xy, coord.z)).x;
-        shadow += fetchesWeights[ 3] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 3].xy, coord.z)).x;
+        shadow += fetchesWeights[ 0] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 0].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 1] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 1].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 2] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 2].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 3] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 3].xy, maxCoords), coord.z)).x;
     }
     UNITY_LOOP
     for (i = 0; i < 1; i++)
     {
-        shadow += fetchesWeights[ 4] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 4].xy, coord.z)).x;
-        shadow += fetchesWeights[ 5] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 5].xy, coord.z)).x;
-        shadow += fetchesWeights[ 6] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 6].xy, coord.z)).x;
-        shadow += fetchesWeights[ 7] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 7].xy, coord.z)).x;
+        shadow += fetchesWeights[ 4] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 4].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 5] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 5].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 6] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 6].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 7] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 7].xy, maxCoords), coord.z)).x;
     }
     UNITY_LOOP
     for (i = 0; i < 1; i++)
     {
-        shadow += fetchesWeights[ 8] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 8].xy, coord.z)).x;
-        shadow += fetchesWeights[ 9] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[ 9].xy, coord.z)).x;
-        shadow += fetchesWeights[10] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[10].xy, coord.z)).x;
-        shadow += fetchesWeights[11] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[11].xy, coord.z)).x;
+        shadow += fetchesWeights[ 8] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 8].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[ 9] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[ 9].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[10] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[10].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[11] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[11].xy, maxCoords), coord.z)).x;
     }
     UNITY_LOOP
     for (i = 0; i < 1; i++)
     {
-        shadow += fetchesWeights[12] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[12].xy, coord.z)).x;
-        shadow += fetchesWeights[13] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[13].xy, coord.z)).x;
-        shadow += fetchesWeights[14] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[14].xy, coord.z)).x;
-        shadow += fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[15].xy, coord.z)).x;
+        shadow += fetchesWeights[12] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[12].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[13] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[13].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[14] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[14].xy, maxCoords), coord.z)).x;
+        shadow += fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[15].xy, maxCoords), coord.z)).x;
     }
 #else
     for(int i = 0; i < 16; i++)
     {
-        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(fetchesUV[i].xy, coord.z).x;
+        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, float3(min(fetchesUV[i].xy, maxCoords), coord.z).x;
     }
 #endif
 
