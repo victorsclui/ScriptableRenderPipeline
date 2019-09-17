@@ -2,6 +2,23 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#if VFX_SHADERGRAPH
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#if !HDRP_LIT
+    //Define needed values even for unlit
+    #define SHADERPASS SHADERPASS_UNDEFINED
+    #if IS_TRANSPARENT_PARTICLE
+        #define _SURFACE_TYPE_TRANSPARENT
+    #endif
+#endif
+//TODO : should be returned by additionalDefines in VFXShaderGraphParticleOutput.cs
+#define REQUIRE_DEPTH_TEXTURE 1
+#define REQUIRE_OPAQUE_TEXTURE 1
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
+#endif
 
 void VFXEncodeMotionVector(float2 motionVec, out float4 outBuffer)
 {
