@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
             ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData, true);
-            
+
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
             /// * VR Camera Setup and SINGLE_PASS_STEREO props
@@ -256,10 +256,10 @@ namespace UnityEngine.Rendering.Universal
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
             ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
-            
+
             if (stereoEnabled)
                 EndXRRendering(context, camera);
-            
+
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
             Profiling.Profiler.EndSample();
 
