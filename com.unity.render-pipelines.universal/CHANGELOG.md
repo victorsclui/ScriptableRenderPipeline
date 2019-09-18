@@ -4,12 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.2.0] - 2019-XX-XX
+## [8.0.0] - 2019-XX-XX
 ### Added
+- Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
 
 ### Fixed
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
+- Fixed an issue where Terrain hole Shader changes were missing. [case 1179808](https://issuetracker.unity3d.com/issues/terrain-brush-tool-is-not-drawing-when-paint-holes-is-selected)
+- Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

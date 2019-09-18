@@ -263,7 +263,8 @@ namespace UnityEngine.Rendering.Universal
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
             Profiling.Profiler.EndSample();
 
-            InternalFinishRendering(context);
+            //if (renderingData.resolveFinalTarget)
+                InternalFinishRendering(context);
             blockRanges.Dispose();
             Profiling.Profiler.EndSample();
         }
@@ -291,7 +292,7 @@ namespace UnityEngine.Rendering.Universal
             cameraClearFlags = CameraClearFlags.SolidColor;
 #endif
 
-            // LWRP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
+            // Universal RP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
             // CameraClearFlags.DepthOnly has the same effect of CameraClearFlags.SolidColor
             // CameraClearFlags.Nothing clears Depth on PC/Desktop and in mobile it clears both
             // depth and color.
@@ -397,6 +398,12 @@ namespace UnityEngine.Rendering.Universal
 
                 Camera camera = cameraData.camera;
                 ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+
+                // Overlay cameras composite on top of previous ones. They don't clear.
+                // MTT: Commented due to not implemented yet
+//                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
+//                    clearFlag = ClearFlag.None;
+
                 SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
                     CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor), renderPass.loadColorContents);
 
