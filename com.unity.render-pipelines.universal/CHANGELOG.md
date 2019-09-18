@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [8.0.0] - 2019-XX-XX
 ### Fixed
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
-- Fixed an issue where enabling the Stop NaN post-processing pass caused rendering of a fullscreen quad with the pink error shader.
+- Fixed an issue where Unity rendered fullscreen quads with the pink error shader when you enabled the Stop NaN post-processing pass.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
