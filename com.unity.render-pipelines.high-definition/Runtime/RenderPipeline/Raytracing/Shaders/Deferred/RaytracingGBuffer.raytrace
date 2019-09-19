@@ -4,9 +4,6 @@
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
 
-// Given that the algorithm requires BSDF evaluation, we need to define this macro
-#define SKIP_RASTERIZED_SHADOWS
-
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW
 
@@ -59,7 +56,7 @@ int _RaytracingHalfResolution;
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
 {
-    if(_RaytracingIncludeSky != 0)
+    if (_RaytracingIncludeSky != 0)
     {
         rayIntersection.gBufferData.gbuffer3 = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0);
     }

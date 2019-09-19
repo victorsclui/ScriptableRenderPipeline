@@ -81,7 +81,28 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_FrameSettingsHistoryEnabled = false;
 
 #if ENABLE_RAYTRACING
-        internal HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+        HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+
+        public void RegisterEnvironment(HDRaytracingEnvironment targetEnvironment)
+        {
+            m_RayTracingManager.RegisterEnvironment(targetEnvironment);
+        }
+
+        public void UnregisterEnvironment(HDRaytracingEnvironment targetEnvironment)
+        {
+            m_RayTracingManager.UnregisterEnvironment(targetEnvironment);
+        }
+
+        public void SetRayTracingSceneDirty()
+        {
+            m_RayTracingManager.SetDirty();
+        }
+
+        public void UpdateRayTracingSubScenes()
+        {
+            m_RayTracingManager.UpdateEnvironmentSubScenes();
+        }
+
         internal float GetRaysPerFrame(RayCountManager.RayCountValues rayValues) { return m_RayTracingManager.rayCountManager.GetRaysPerFrame(rayValues); }
 #endif
 
@@ -276,7 +297,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
 
-
+#if UNITY_EDITOR
+        bool m_ResourcesInitialized = false;
+#endif
+        
         public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset defaultAsset)
         {
             m_Asset = asset;
@@ -299,6 +323,19 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Asset.EvaluateSettings();
 
             UpgradeResourcesIfNeeded();
+            
+            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
+            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
+            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
+            if (HDRenderPipeline.defaultAsset.renderPipelineResources == null
+                || HDRenderPipeline.defaultAsset.renderPipelineEditorResources == null
+#if ENABLE_RAYTRACING
+                || HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources == null
+#endif
+                )
+                return;
+            else
+                m_ResourcesInitialized = true;
 
             ValidateResources();
 #endif
@@ -414,6 +451,8 @@ namespace UnityEngine.Rendering.HighDefinition
             InitRayTracedIndirectDiffuse();
             InitRaytracingDeferred();
             InitRecursiveRenderer();
+            InitPathTracing();
+
             m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
 #endif
 
@@ -639,9 +678,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!SystemInfo.supportsComputeShaders)
                 return false;
-
-            Debug.Assert(defaultResources != null);
-            if (!defaultResources.shaders.defaultPS.isSupported)
+            
+            if (!(defaultResources?.shaders.defaultPS?.isSupported ?? true))
                 return false;
 
 #if UNITY_EDITOR
@@ -733,6 +771,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ValidAPI)
                 return;
 
+#if UNITY_EDITOR
+            if (!m_ResourcesInitialized)
+                return;
+#endif
+            
             base.Dispose(disposing);
 
             ReleaseScreenSpaceShadows();
@@ -742,6 +785,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRayTracingDeferred();
             ReleaseRayTracedIndirectDiffuse();
             ReleaseRayTracedReflections();
+            ReleasePathTracing();
             m_RayTracingManager.Release();
 #endif
             m_DebugDisplaySettings.UnregisterDebug();
@@ -877,8 +921,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PushDecalsGlobalParams(hdCamera, cmd);
 
-                var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-                visualEnv.PushFogShaderParameters(hdCamera, cmd);
+                Fog.PushFogShaderParameters(hdCamera, cmd);
 
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
 
@@ -1031,11 +1074,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
+#if UNITY_EDITOR
+            if (!m_ResourcesInitialized)
+                return;
+#endif
+
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
-
-            // Set the quality level for this rendering
-            asset.currentMaterialQualityLevel.SetGlobalShaderKeywords();
 
             GetOrCreateDefaultVolume();
 
@@ -1209,7 +1254,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         if (needCulling)
-                            skipRequest = !TryCull(camera, hdCamera, renderContext, cullingParameters, ref cullingResults);
+                            skipRequest = !TryCull(camera, hdCamera, renderContext, cullingParameters, m_Asset, ref cullingResults);
                     }
 
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)
@@ -1409,7 +1454,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 out var cullingParameters
                             )
                             && TryCull(
-                                camera, hdCamera, renderContext, cullingParameters,
+                                camera, hdCamera, renderContext, cullingParameters, m_Asset,
                                 ref _cullingResults
                             )))
                         {
@@ -1655,6 +1700,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AOVRequestData aovRequest
         )
         {
+
             InitializeGlobalResources(renderContext);
 
             var hdCamera = renderRequest.hdCamera;
@@ -1663,6 +1709,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
+
+            if (hdCamera.frameSettings.materialQuality == (MaterialQuality)0)
+                // Set the quality level for this rendering (using current hdrp asset)
+                asset.currentMaterialQualityLevel.SetGlobalShaderKeywords();
+            else
+                // Set the quality level for this rendering (using frame setting value)
+                hdCamera.frameSettings.materialQuality.SetGlobalShaderKeywords();
 
             // Updates RTHandle
             hdCamera.BeginRender();
@@ -1842,6 +1895,28 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
 
 #if ENABLE_RAYTRACING
+            // Update the light clusters that we need to update
+            m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
+
+            HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
+
+            // We only request the light cluster if we are gonna use it for debug mode
+            if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+                var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
+                if (rSettings.rayTracing.value && rtEnv != null)
+                {
+                    HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
+                    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
+                }
+                else if (rrSettings.enable.value && rtEnv != null)
+                {
+                    HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
+                    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
+                }
+            }
+
             bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
             if (validIndirectDiffuse)
             {
@@ -1860,6 +1935,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RenderDebugViewMaterial(cullingResults, hdCamera, renderContext, cmd);
             }
+#if ENABLE_RAYTRACING
+            else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
+                     rtEnv != null &&
+                     VolumeManager.instance.stack.GetComponent<PathTracing>().enable.value)
+            {
+                PathTracingRender(hdCamera, cmd, m_CameraColorBuffer, renderContext, m_FrameCount);
+            }
+#endif
             else
             {
                 if (!hdCamera.frameSettings.SSAORunsAsync())
@@ -1872,29 +1955,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     CoreUtils.SetRenderTarget(cmd, m_ContactShadowBuffer, ClearFlag.Color, Color.clear);
                 }
-
-#if ENABLE_RAYTRACING
-                // Update the light clusters that we need to update
-                m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
-
-                // We only request the light cluster if we are gonna use it for debug mode
-                if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
-                {
-                    var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-                    var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-                    HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
-                    if (rSettings.rayTracing.value && rtEnv != null)
-                    {
-                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
-                    }
-                    else if (rrSettings.enable.value && rtEnv != null)
-                    {
-                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
-                    }
-                }
-#endif
 
                 hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
 
@@ -2052,6 +2112,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_CameraColorBuffer);
                 RenderCustomPass(renderContext, cmd, hdCamera, cullingResults, CustomPassInjectionPoint.BeforeTransparent);
 
+                m_PostProcessSystem.DoUserBeforeTransparent(cmd, hdCamera, m_CameraColorBuffer);
+
                 RenderTransparentDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
 
 #if ENABLE_RAYTRACING
@@ -2106,7 +2168,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render gizmos that should be affected by post processes
                 if (showGizmos)
                 {
-                    Gizmos.exposure = m_PostProcessSystem.GetExposureTexture(hdCamera).rt;
+                    if(m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
+                    { 
+                        Gizmos.exposure = Texture2D.blackTexture;
+                    }
+                    else
+                    {
+                        Gizmos.exposure = m_PostProcessSystem.GetExposureTexture(hdCamera).rt;
+                    }
+
                     RenderGizmos(cmd, camera, renderContext, GizmoSubset.PreImageEffects);
                 }
 #endif
@@ -2392,6 +2462,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             ScriptableRenderContext renderContext,
             ScriptableCullingParameters cullingParams,
+            HDRenderPipelineAsset hdrp,
             ref HDCullingResults cullingResults
         )
         {
@@ -2409,14 +2480,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var initialMaximumLODLevel = QualitySettings.maximumLODLevel;
             try
             {
-                QualitySettings.lodBias = hdCamera.frameSettings.lodBiasMode.ComputeValue(
-                    QualitySettings.lodBias,
-                    hdCamera.frameSettings.lodBias
-                );
-                QualitySettings.maximumLODLevel = hdCamera.frameSettings.maximumLODLevelMode.ComputeValue(
-                    QualitySettings.maximumLODLevel,
-                    hdCamera.frameSettings.maximumLODLevel
-                );
+                QualitySettings.lodBias = hdCamera.frameSettings.GetResolvedLODBias(hdrp);
+                QualitySettings.maximumLODLevel = hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp);
 
             var includePlanarProbe = hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe);
 
@@ -3115,7 +3180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
             m_SkyManager.RenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_CurrentDebugDisplaySettings, m_FrameCount, cmd);
 
-            if ((visualEnv.fogType.value != FogType.None) || (visualEnv.skyType.value == (int)SkyType.PhysicallyBased))
+            if (Fog.IsFogEnabled(hdCamera) || Fog.IsPBRFogEnabled(hdCamera))
             {
                 var pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, m_LightingBufferHandle, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
@@ -3684,6 +3749,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var debugAlbedo = new Vector4(lightingDebugSettings.overrideAlbedo ? 1.0f : 0.0f, lightingDebugSettings.overrideAlbedoValue.r, lightingDebugSettings.overrideAlbedoValue.g, lightingDebugSettings.overrideAlbedoValue.b);
                 var debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
                 var debugNormal = new Vector4(lightingDebugSettings.overrideNormal ? 1.0f : 0.0f, 0.0f, 0.0f, 0.0f);
+                var debugAmbientOcclusion = new Vector4(lightingDebugSettings.overrideAmbientOcclusion ? 1.0f : 0.0f, lightingDebugSettings.overrideAmbientOcclusionValue, 0.0f, 0.0f);
                 var debugSpecularColor = new Vector4(lightingDebugSettings.overrideSpecularColor ? 1.0f : 0.0f, lightingDebugSettings.overrideSpecularColorValue.r, lightingDebugSettings.overrideSpecularColorValue.g, lightingDebugSettings.overrideSpecularColorValue.b);
                 var debugEmissiveColor = new Vector4(lightingDebugSettings.overrideEmissiveColor ? 1.0f : 0.0f, lightingDebugSettings.overrideEmissiveColorValue.r, lightingDebugSettings.overrideEmissiveColorValue.g, lightingDebugSettings.overrideEmissiveColorValue.b);
                 var debugTrueMetalColor = new Vector4(materialDebugSettings.materialValidateTrueMetal ? 1.0f : 0.0f, materialDebugSettings.materialValidateTrueMetalColor.r, materialDebugSettings.materialValidateTrueMetalColor.g, materialDebugSettings.materialValidateTrueMetalColor.b);
@@ -3706,6 +3772,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingNormal, debugNormal);
+                cmd.SetGlobalVector(HDShaderIDs._DebugLightingAmbientOcclusion, debugAmbientOcclusion);                
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingSpecularColor, debugSpecularColor);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingEmissiveColor, debugEmissiveColor);
                 cmd.SetGlobalColor(HDShaderIDs._DebugLightingMaterialValidateHighColor, materialDebugSettings.materialValidateHighColor);
