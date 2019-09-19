@@ -231,7 +231,7 @@ real V_SmithJointGGX(real NdotL, real NdotV, real roughness)
 // Inline D_GGX() * V_SmithJointGGX() together for better code generation.
 real DV_SmithJointGGX(real NdotH, real NdotL, real NdotV, real roughness, real partLambdaV)
 {
-    real a2 = Sq(roughness);
+    real a2 = saturate(Sq(roughness));
     real s = (NdotH * a2 - NdotH) * NdotH + 1.0;
 
     real lambdaV = NdotL * partLambdaV;
