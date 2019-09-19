@@ -369,9 +369,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Debug.Assert(m_DeferredMaterial != null);
 
             m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
-            m_DbufferManager = new DBufferManager();
+            m_DbufferManager = new DBufferManager(asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
             m_DbufferManager.InitializeHDRPResouces(asset);
- 
 
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
@@ -907,9 +906,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
-				m_DbufferManager.AllocResolutionDependentBuffers(hdCamera);
+                m_DbufferManager.AllocResolutionDependentBuffers(hdCamera);
             }
-
         }
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
@@ -2901,6 +2899,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderContext, cmd);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
+
                 m_DbufferManager.BindBufferAsTextures(cmd);
             }
 
@@ -2954,8 +2953,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     ScriptableRenderContext     renderContext,
                                     CommandBuffer               cmd)
         {
-            
-
             // for alpha compositing, color is cleared to 0, alpha to 1
             // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 
@@ -2971,22 +2968,24 @@ namespace UnityEngine.Rendering.HighDefinition
             if (use4RTs)
             {
                 CoreUtils.SetRenderTarget(cmd, rtHandles[3], ClearFlag.Color, clearColorAOSBlend);
+                // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
                 CoreUtils.SetRenderTarget(cmd, mrt, depthStencilBuffer); // do not clear anymore
             }
             else
             {
-                for(int rtindex = 0; rtindex < 3; rtindex++)
-                {                  
-                    m_Dbuffer3RtIds[rtindex] = mrt[rtindex];
-                }              
+                for (int rtindex = 0; rtindex < 3; rtindex++)
+                {
+                     m_Dbuffer3RtIds[rtindex] = mrt[rtindex];
+                }
+                // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
                 CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, depthStencilBuffer); // do not clear anymore
             }
 
-         // clear decal property mask buffer
+            // clear decal property mask buffer
             cmd.SetComputeBufferParam(propertyMaskClearShader, propertyMaskClearShaderKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);
             cmd.DispatchCompute(propertyMaskClearShader, propertyMaskClearShaderKernel, propertyMaskBufferSize / 64, 1, 1);
-
             cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
+
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
 
