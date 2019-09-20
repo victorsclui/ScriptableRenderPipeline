@@ -393,7 +393,7 @@ float GetInverseCurrentExposureMultiplier()
 
 float GetInversePreviousExposureMultiplier()
 {
-    float exposure = GetCurrentExposureMultiplier();
+    float exposure = GetPreviousExposureMultiplier();
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
