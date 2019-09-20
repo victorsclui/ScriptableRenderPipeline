@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.0.0] - 2019-XX-XX
 
+### Added
+- Ray tracing support for VR single-pass
+
+### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
 - Fixed Hair and PBR shader graphs double sided modes
 - Fixed an issue where updating an HDRP asset in the Quality setting panel would not recreate the pipeline.
@@ -31,6 +35,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Decal gizmo that become white after exiting play mode
 - Fixed Decal pivot position to behave like a spotlight
 - Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
+- Fix DebugMenu FrameSettingsHistory persistency on close
+- Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
+- Fix DXR scene serialization in wizard
+- Fixed an issue where Previews would reallocate History Buffers every frame
+
+### Changed
+- Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
 
 ## [7.1.1] - 2019-09-05
 
