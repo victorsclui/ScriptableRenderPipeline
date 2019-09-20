@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Debug.Assert(m_DeferredMaterial != null);
 
             m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
-            m_DbufferManager = new DBufferManager(asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
+            m_DbufferManager = new DBufferManager();
             m_DbufferManager.InitializeHDRPResouces(asset);
 
             m_SharedRTManager.Build(asset);
