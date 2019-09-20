@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NPE when using light module in Shuriken particle systems (1173348).
 - Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
 - Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
+- Fix error first time a preview is created for planar
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
