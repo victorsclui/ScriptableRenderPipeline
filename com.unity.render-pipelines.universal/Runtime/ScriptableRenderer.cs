@@ -145,7 +145,20 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
-        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+            
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+        }
 
         /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to
