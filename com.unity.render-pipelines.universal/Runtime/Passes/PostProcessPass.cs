@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingSample(cmd, "Stop NaN"))
                 {
-                    cmd.Blit(GetSource(), GetDestination(), m_Materials.stopNaN);
+                    cmd.Blit(GetSource(), BlitDstDiscardContent(cmd, GetDestination()), m_Materials.stopNaN);
                     Swap();
                 }
             }
@@ -318,13 +318,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Done with Uber, blit it
                 cmd.SetGlobalTexture("_BlitTex", GetSource());
 
+                var colorLoadAction = RenderBufferLoadAction.DontCare;
+                if (m_Destination == RenderTargetHandle.CameraTarget && !cameraData.isDefaultViewport)
+                    colorLoadAction = RenderBufferLoadAction.Load;
+
+                cmd.SetRenderTarget(m_Destination.Identifier(), colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+
                 if (m_IsStereo)
                 {
-                    Blit(cmd, GetSource(), m_Destination.Identifier(), m_Materials.uber);
+                    Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
                 }
                 else
                 {
-                    cmd.SetRenderTarget(m_Destination.Identifier());
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
                     if (m_Destination == RenderTargetHandle.CameraTarget)
@@ -341,6 +346,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (destination != -1)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget);
             }
+        }
+
+        private BuiltinRenderTextureType BlitDstDiscardContent(CommandBuffer cmd, RenderTargetIdentifier rt)
+        {
+            cmd.SetRenderTarget(rt, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            return BuiltinRenderTextureType.CurrentActive;
         }
 
         #region Sub-pixel Morphological Anti-aliasing
@@ -441,6 +452,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._HalfCoCTexture, GetStereoCompatibleDescriptor(wh, hh, m_GaussianCoCFormat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetStereoCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetStereoCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
+            // Note: fresh temporary RTs don't require explicit RenderBufferLoadAction.DontCare, only when they are reused (such as PingTexture)
 
             // Compute CoC
             cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
@@ -460,12 +472,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
             cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
-            cmd.Blit(ShaderConstants._PongTexture, ShaderConstants._PingTexture, material, 3);
+            cmd.Blit(ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
 
             // Composite
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
-            cmd.Blit(source, destination, material, 4);
+            cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, 4);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
@@ -566,11 +578,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
 
             // Post-filtering
-            cmd.Blit(ShaderConstants._PongTexture, ShaderConstants._PingTexture, material, 3);
+            cmd.Blit(ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
 
             // Composite
             cmd.SetGlobalTexture(ShaderConstants._DofTexture, ShaderConstants._PingTexture);
-            cmd.Blit(source, destination, material, 4);
+            cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, 4);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
@@ -602,7 +614,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
-            cmd.Blit(source, destination, material, (int)m_MotionBlur.quality.value);
+            cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
 
             m_PrevViewProjM = viewProj;
         }
@@ -632,7 +644,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance
             );
 
-            cmd.Blit(source, destination, material);
+            cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material);
         }
 
         Vector2 CalcViewExtents(Camera camera)
@@ -746,7 +758,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int dst = ShaderConstants._BloomMipUp[i];
 
                 cmd.SetGlobalTexture(ShaderConstants._MainTexLowMip, lowMip);
-                cmd.Blit(highMip, dst, bloomMaterial, 3);
+                cmd.Blit(highMip, BlitDstDiscardContent(cmd, dst), bloomMaterial, 3);
             }
 
             // Cleanup
@@ -960,13 +972,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
+            var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+            cmd.SetRenderTarget(m_Destination.Identifier(), colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+
             if (cameraData.isStereoEnabled)
             {
-                Blit(cmd, m_Source.Identifier(), m_Destination.Identifier(), material);
+                Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
             }
             else
             {
-                cmd.SetRenderTarget(m_Destination.Identifier());
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
