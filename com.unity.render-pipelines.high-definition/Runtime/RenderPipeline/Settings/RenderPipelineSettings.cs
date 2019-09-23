@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // RenderPipelineSettings represents settings that are immutable at runtime.
     // There is a dedicated RenderPipelineSettings for each platform
     [Serializable]
-    public struct RenderPipelineSettings
+    internal struct RenderPipelineSettings
     {
         public enum SupportedLitShaderMode
         {

@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.@default;
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
-        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+        internal RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
         [SerializeField]
         internal bool allowShaderVariantStripping = true;
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Shader defaultShader
             => m_RenderPipelineResources?.shaders.defaultPS;
 
-        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
+        static internal bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
         {
             return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
         }

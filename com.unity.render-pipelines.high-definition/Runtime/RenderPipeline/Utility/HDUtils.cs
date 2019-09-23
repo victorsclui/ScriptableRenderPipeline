@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
-        public static RenderPipelineSettings hdrpSettings
+        internal static RenderPipelineSettings hdrpSettings
         {
             get
             {
