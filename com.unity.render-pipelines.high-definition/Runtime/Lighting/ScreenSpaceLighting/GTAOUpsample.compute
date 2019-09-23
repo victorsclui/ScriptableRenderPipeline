@@ -2,6 +2,8 @@
 
 #pragma kernel AOUpsample
 
+#define NEED_TEX_SPACE_GATHER_COORDS (defined(SHADER_API_METAL) && !defined(SHADER_API_MOBILE))
+
 RW_TEXTURE2D_X(float, _OcclusionTexture);
 TEXTURE2D_X_UINT(_AOPackedData);
 
@@ -23,7 +25,12 @@ void AOUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
  
     // Gather half res samples + depths.
     float2 uv = (dispatchThreadId.xy + 0.5f) * _ScreenSize.zw;
-    uint4 currDatas = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, _AOBufferSize.zw));
+    uint4 currDatas = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler,
+        ClampAndScaleUVForBilinear(uv, _AOBufferSize.zw)
+#if NEED_TEX_SPACE_GATHER_COORDS
+        * _AOBufferSize.xy
+#endif
+    );
     float4 currAOs, currDepths;
     UnpackGatheredData(currDatas, currAOs, currDepths);
 
