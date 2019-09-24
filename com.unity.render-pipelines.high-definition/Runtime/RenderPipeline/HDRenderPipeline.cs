@@ -3574,11 +3574,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
 #if ENABLE_RAYTRACING
+            bool usesRaytracedReflections = false;
             var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
+            
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.rayTracing.value)
             {
                 RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
+                usesRaytracedReflections = true;
             }
             else
 #endif
@@ -3597,6 +3600,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 	hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
             	}
 			}
+
+#if ENABLE_RAYTRACING
+            cmd.SetGlobalInt(HDShaderIDs._UseRayTracedReflections, usesRaytracedReflections ? 1 : 0);
+#endif
 
             PushFullScreenDebugTexture(hdCamera, cmd, m_SsrLightingTexture, FullScreenDebugMode.ScreenSpaceReflections);
         }
@@ -4153,14 +4160,14 @@ namespace UnityEngine.Rendering.HighDefinition
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
             needNormalBuffer |= (neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0;
             needDepthBuffer |= (neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0;
-            #if ENABLE_RAYTRACING
+#if ENABLE_RAYTRACING
             HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
             if (rtEnv != null)
             {
                 needNormalBuffer = true;
                 needDepthBuffer = true;
             }
-            #endif
+#endif
 
             // Here if needed for this particular camera, we allocate history buffers.
             // Only one is needed here because the main buffer used for rendering is separate.
