@@ -906,7 +906,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
-                m_DbufferManager.AllocResolutionDependentBuffers(hdCamera);
+                m_DbufferManager.AllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
             }
         }
 

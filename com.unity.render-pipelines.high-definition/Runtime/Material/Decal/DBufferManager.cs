@@ -78,10 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void AllocResolutionDependentBuffers(HDCamera hdCamera)
-        {
-            int width = (int)hdCamera.screenSize.x;
-            int height = (int)hdCamera.screenSize.y;
+        public void AllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
+        {   
             m_PropertyMaskBufferSize = ((width + 7) / 8) * ((height + 7) / 8);
             m_PropertyMaskBufferSize = ((m_PropertyMaskBufferSize + 63) / 64) * 64; // round off to nearest multiple of 64 for ease of use in CS
             m_PropertyMaskBuffer = new ComputeBuffer(m_PropertyMaskBufferSize, 4);
