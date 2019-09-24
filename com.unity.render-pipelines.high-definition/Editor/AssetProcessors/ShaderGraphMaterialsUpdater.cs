@@ -2,7 +2,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [InitializeOnLoad]
     public class ShaderGraphMaterialsUpdater
@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                      // Reset keywords
                     if (material.shader.name == shader.name)
-                        HDShaderUtils.ResetMaterialKeywords(material);
+                        HDEditorUtils.ResetMaterialKeywords(material);
                 }
             }
             finally
