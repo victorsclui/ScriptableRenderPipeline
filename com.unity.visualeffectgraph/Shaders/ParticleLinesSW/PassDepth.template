@@ -24,7 +24,7 @@ Pass
 #define VFX_VARYING_ALPHA builtInInterpolants.y
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 
-    ${VFXPassDepthDefine}
+	${VFXPassDepthDefine}
 	${VFXInclude("Shaders/ParticleLinesSW/Pass.template")}	
 		
 	#pragma fragment frag

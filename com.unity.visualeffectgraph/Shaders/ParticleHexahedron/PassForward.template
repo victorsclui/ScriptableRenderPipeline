@@ -68,7 +68,7 @@ Pass
 #endif
 	${VFXEnd}
 
-    ${VFXPassForwardDefine}
+	${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag

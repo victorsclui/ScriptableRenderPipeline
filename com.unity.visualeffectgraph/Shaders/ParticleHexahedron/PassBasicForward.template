@@ -80,7 +80,7 @@ Pass
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
-    ${VFXPassForwardDefine}
+	${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
