@@ -71,8 +71,11 @@ namespace UnityEngine.VFX.Test
             yield return null;
 
 #if UNITY_EDITOR
-            while (Lightmapping.isRunning)
-                yield return null;
+            //Force bake GI
+            var previousWorkFlowMode = Lightmapping.giWorkflowMode;
+            Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
+            Lightmapping.Bake();
+            Lightmapping.giWorkflowMode = Lightmapping.giWorkflowMode;
 #endif
 
             var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
