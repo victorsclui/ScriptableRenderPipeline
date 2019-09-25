@@ -2,14 +2,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
-
-//TODO : Make an independant merge request to unify shadergraph & vfx interfaces, here, it forces definition of _CameraDepthTexture
-#define REQUIRE_DEPTH_TEXTURE
-#define REQUIRE_OPAQUE_TEXTURE
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl" 
-#undef REQUIRE_DEPTH_TEXTURE
-#undef REQUIRE_OPAQUE_TEXTURE
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
 float3 _LightDirection;
 
@@ -104,11 +97,7 @@ float4x4 VFXGetViewToWorldMatrix()
 
 float VFXSampleDepth(float4 posSS)
 {
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    return LOAD_TEXTURE2D_ARRAY(_CameraDepthTexture, posSS.xy, unity_StereoEyeIndex).r;
-#else
-    return LOAD_TEXTURE2D(_CameraDepthTexture, posSS.xy).r;
-#endif
+    LoadSceneDepth(int2(posSS.xy));
 }
 
 float VFXLinearEyeDepth(float depth)
