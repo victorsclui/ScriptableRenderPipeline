@@ -64,75 +64,7 @@ namespace UnityEditor.Rendering.Universal
                                                 true,
                                                 true);
 
-            m_PassesList.drawElementCallback =
-            (Rect rect, int index, bool isActive, bool isFocused) =>
-            {
-                if(index % 2 != 0)
-                    EditorGUI.DrawRect(new Rect(rect.x - 19f, rect.y, rect.width + 23f, rect.height), new Color(0, 0, 0, 0.1f));
-                EditorGUI.BeginChangeCheck();
-                var element = m_PassesList.serializedProperty.GetArrayElementAtIndex(index);
-                var propRect = new Rect(rect.x,
-                                        rect.y + EditorGUIUtility.standardVerticalSpacing,
-                                        rect.width,
-                                        EditorGUIUtility.singleLineHeight);
-                var headerRect = new Rect(rect.x + EditorUtils.Styles.defaultIndentWidth,
-                                            rect.y + EditorGUIUtility.standardVerticalSpacing,
-                                            rect.width - EditorUtils.Styles.defaultIndentWidth,
-                                            EditorGUIUtility.singleLineHeight);
-
-                if (element.objectReferenceValue != null)
-                {
-                    var name = element.objectReferenceValue.name;
-                    var elementNamespace = element.objectReferenceValue.GetType().Namespace;
-                    if (elementNamespace != null && elementNamespace.Contains("Experimental"))
-                        name += " (Experimental)";
-                    GUIContent header = new GUIContent(name,
-                        element.objectReferenceValue.GetType().Name);
-                    m_Foldouts[index].value =
-                        EditorGUI.Foldout(headerRect,
-                            m_Foldouts[index].value,
-                            header,
-                            true,
-                            Styles.BoldLabelSimple);
-                    if (m_Foldouts[index].value)
-                    {
-                        EditorGUI.indentLevel++;
-                        propRect.y += EditorUtils.Styles.defaultLineSpace;
-                        EditorGUI.BeginChangeCheck();
-                        var objName = EditorGUI.DelayedTextField(propRect, Styles.PassNameField,
-                            element.objectReferenceValue.name);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            objName = ValidatePassName(objName);
-                            element.objectReferenceValue.name = objName;
-                            AssetDatabase.SaveAssets();
-                        }
-
-                        var elementSO = GetElementSO(index);
-                        SerializedProperty settings = elementSO.FindProperty("settings");
-
-                        EditorGUI.BeginChangeCheck();
-                        if (settings != null)
-                        {
-                            propRect.y += EditorUtils.Styles.defaultLineSpace;
-                            EditorGUI.PropertyField(propRect, settings, true);
-                        }
-
-                        if (EditorGUI.EndChangeCheck())
-                            elementSO.ApplyModifiedProperties();
-                        EditorGUI.indentLevel--;
-                    }
-                }
-                else
-                {
-                    EditorGUI.ObjectField(propRect, element, GUIContent.none);
-                }
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    element.serializedObject.ApplyModifiedProperties();
-                }
-            };
+            m_PassesList.drawElementCallback += DrawElementCallback;
 
             m_PassesList.elementHeightCallback = (index) =>
             {
@@ -163,6 +95,75 @@ namespace UnityEditor.Rendering.Universal
             m_PassesList.drawHeaderCallback = (Rect testHeaderRect) => {
                 EditorGUI.LabelField(testHeaderRect, Styles.RenderFeatures);
             };
+        }
+
+        void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
+        {
+            if(index % 2 != 0)
+                    EditorGUI.DrawRect(new Rect(rect.x - 19f, rect.y, rect.width + 23f, rect.height), new Color(0, 0, 0, 0.1f));
+            EditorGUI.BeginChangeCheck();
+            var element = m_PassesList.serializedProperty.GetArrayElementAtIndex(index);
+            var propRect = new Rect(rect.x,
+                                    rect.y + EditorGUIUtility.standardVerticalSpacing,
+                                    rect.width,
+                                    EditorGUIUtility.singleLineHeight);
+            var headerRect = new Rect(rect.x + EditorUtils.Styles.defaultIndentWidth,
+                                        rect.y + EditorGUIUtility.standardVerticalSpacing,
+                                        rect.width - EditorUtils.Styles.defaultIndentWidth,
+                                        EditorGUIUtility.singleLineHeight);
+
+            if (element.objectReferenceValue != null)
+            {
+                var name = element.objectReferenceValue.name;
+                var elementNamespace = element.objectReferenceValue.GetType().Namespace;
+                if (elementNamespace != null && elementNamespace.Contains("Experimental"))
+                    name += " (Experimental)";
+                GUIContent header = new GUIContent(name,
+                    element.objectReferenceValue.GetType().Name);
+                m_Foldouts[index].value =
+                    EditorGUI.Foldout(headerRect,
+                        m_Foldouts[index].value,
+                        header,
+                        true,
+                        Styles.BoldLabelSimple);
+                if (m_Foldouts[index].value)
+                {
+                    EditorGUI.indentLevel++;
+                    propRect.y += EditorUtils.Styles.defaultLineSpace;
+                    EditorGUI.BeginChangeCheck();
+                    var objName = EditorGUI.DelayedTextField(propRect, Styles.PassNameField,
+                        element.objectReferenceValue.name);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        objName = ValidatePassName(objName);
+                        element.objectReferenceValue.name = objName;
+                        AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
+                    }
+
+                    var elementSO = GetElementSO(index);
+                    SerializedProperty settings = elementSO.FindProperty("settings");
+
+                    EditorGUI.BeginChangeCheck();
+                    if (settings != null)
+                    {
+                        propRect.y += EditorUtils.Styles.defaultLineSpace;
+                        EditorGUI.PropertyField(propRect, settings, true);
+                    }
+
+                    if (EditorGUI.EndChangeCheck())
+                        elementSO.ApplyModifiedProperties();
+                    EditorGUI.indentLevel--;
+                }
+            }
+            else
+            {
+                EditorGUI.ObjectField(propRect, element, GUIContent.none);
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                element.serializedObject.ApplyModifiedProperties();
+            }
         }
 
         public override void OnInspectorGUI()
@@ -234,7 +235,7 @@ namespace UnityEditor.Rendering.Universal
                 "Cancel"))
             {
                 DestroyImmediate(obj, true);
-                AssetDatabase.SaveAssets();
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
                 ReorderableList.defaultBehaviours.DoRemoveButton(list);
                 m_RenderPasses.DeleteArrayElementAtIndex(list.index);
                 m_RenderPasses.serializedObject.ApplyModifiedProperties();
@@ -280,7 +281,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_PassesList.serializedProperty != null)
             {
-                var asset = AssetDatabase.GetAssetOrScenePath(m_RenderPasses.serializedObject.targetObject);
+                var asset = AssetDatabase.GetAssetPath(target);
                 var obj = CreateInstance((string)pass);
                 obj.name = $"New{obj.GetType().Name}";
                 AssetDatabase.AddObjectToAsset(obj, asset);
@@ -290,7 +291,7 @@ namespace UnityEditor.Rendering.Universal
                 m_PassesList.serializedProperty.serializedObject.ApplyModifiedProperties();
                 m_PassesList.serializedProperty.GetArrayElementAtIndex(m_PassesList.index).objectReferenceValue = obj;
                 m_PassesList.serializedProperty.serializedObject.ApplyModifiedProperties();
-                AssetDatabase.SaveAssets();
+                AssetDatabase.ImportAsset(asset);
             }
             m_ElementSOs.Clear();
             GetElementSO(m_PassesList.index);
