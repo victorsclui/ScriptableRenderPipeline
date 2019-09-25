@@ -7,7 +7,7 @@
 
 #pragma kernel GTAODenoise_CopyHistory HISTORY_COPY
 
-#define NEED_TEX_SPACE_GATHER_COORDS defined(SHADER_API_METAL)
+#define NEED_TEX_SPACE_GATHER_COORDS (defined(SHADER_API_METAL) && !defined(SHADER_API_MOBILE))
 
 TEXTURE2D_X_UINT(_AOPackedData);
 
@@ -35,11 +35,11 @@ float Blur(float2 centralPos, out float centralDepth)
 {
     float2 temporalOffset = 0;
 
-    uint4 data_12_15 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(0.0, 0.0) + temporalOffset)
-#if !NEED_TEX_SPACE_GATHER_COORDS
-        * _AOBufferSize.zw
-#endif
-        , _AOBufferSize.zw));
+    float2 uvs = ClampAndScaleUVForBilinear((centralPos + float2(0.0, 0.0) + temporalOffset)  * _AOBufferSize.zw, _AOBufferSize.zw);
+#if NEED_TEX_SPACE_GATHER_COORDS
+    uvs *= _AOBufferSize.xy;
+#endif 
+    uint4 data_12_15 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, uvs, _AOBufferSize.zw));
 
     float4 UnpackedAOs, UnpackedDepths;
     UnpackGatheredData(data_12_15, UnpackedAOs, UnpackedDepths);
@@ -65,11 +65,11 @@ float Blur(float2 centralPos, out float centralDepth)
     totalWeight += weight;
 
     // Second set of gathered data.
-    uint4 data_8_11 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(-2.0, 0.0) + temporalOffset)
-#if !NEED_TEX_SPACE_GATHER_COORDS
-        * _AOBufferSize.zw
-#endif
-        , _AOBufferSize.zw));
+    uvs = ClampAndScaleUVForBilinear((centralPos + float2(-2.0f, 0.0) + temporalOffset)  * _AOBufferSize.zw, _AOBufferSize.zw);
+#if NEED_TEX_SPACE_GATHER_COORDS
+    uvs *= _AOBufferSize.xy;
+#endif 
+    uint4 data_8_11 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, uvs);
     UnpackGatheredData(data_8_11, UnpackedAOs, UnpackedDepths);
 
     weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
@@ -89,11 +89,11 @@ float Blur(float2 centralPos, out float centralDepth)
     totalWeight += weight;
 
     // Third set of gathered data.
-    uint4 data_4_7 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(0.0f, 2.0) + temporalOffset)
-#if !NEED_TEX_SPACE_GATHER_COORDS
-        * _AOBufferSize.zw
-#endif
-        , _AOBufferSize.zw));
+    uvs = ClampAndScaleUVForBilinear((centralPos + float2(0.0f, 2.0) + temporalOffset) * _AOBufferSize.zw, _AOBufferSize.zw);
+#if NEED_TEX_SPACE_GATHER_COORDS
+    uvs *= _AOBufferSize.xy;
+#endif 
+    uint4 data_4_7 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, uvs);
     UnpackGatheredData(data_4_7, UnpackedAOs, UnpackedDepths);
 
     weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
@@ -113,11 +113,12 @@ float Blur(float2 centralPos, out float centralDepth)
     totalWeight += weight;
 
     // Fourth set of gathered data.
-    uint4 data_0_3 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(-2.0, 2.0) + temporalOffset)
-#if !NEED_TEX_SPACE_GATHER_COORDS
-        * _AOBufferSize.zw
-#endif
-        , _AOBufferSize.zw));
+    uvs = ClampAndScaleUVForBilinear((centralPos + float2(-2.0, 2.0) + temporalOffset) * _AOBufferSize.zw, _AOBufferSize.zw);
+#if NEED_TEX_SPACE_GATHER_COORDS
+    uvs *= _AOBufferSize.xy;
+#endif 
+
+    uint4 data_0_3 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, uvs);
     UnpackGatheredData(data_0_3, UnpackedAOs, UnpackedDepths);
 
     weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
