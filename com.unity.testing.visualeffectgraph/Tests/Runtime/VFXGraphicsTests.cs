@@ -70,6 +70,11 @@ namespace UnityEngine.VFX.Test
             // Always wait one frame for scene load
             yield return null;
 
+#if UNITY_EDITOR
+            while (Lightmapping.isRunning)
+                yield return null;
+#endif
+
             var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
             if (camera)
             {
