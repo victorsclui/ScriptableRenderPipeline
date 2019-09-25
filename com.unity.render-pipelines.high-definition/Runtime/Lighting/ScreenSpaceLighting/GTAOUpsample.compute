@@ -2,7 +2,7 @@
 
 #pragma kernel AOUpsample
 
-#define NEED_TEX_SPACE_GATHER_COORDS (defined(SHADER_API_METAL) && !defined(SHADER_API_MOBILE))
+#define NEED_TEX_SPACE_GATHER_COORDS (defined(SHADER_API_METAL))
 
 RW_TEXTURE2D_X(float, _OcclusionTexture);
 TEXTURE2D_X_UINT(_AOPackedData);
