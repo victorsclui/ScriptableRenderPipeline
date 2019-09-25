@@ -97,7 +97,7 @@ float4x4 VFXGetViewToWorldMatrix()
 
 float VFXSampleDepth(float4 posSS)
 {
-    LoadSceneDepth(int2(posSS.xy));
+    return LoadSceneDepth(int2(posSS.xy));
 }
 
 float VFXLinearEyeDepth(float depth)
