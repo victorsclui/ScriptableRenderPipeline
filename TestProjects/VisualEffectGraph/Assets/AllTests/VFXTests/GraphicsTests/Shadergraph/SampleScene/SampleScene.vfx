@@ -50,7 +50,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614553}
   - {fileID: 8926484042661614574}
   - {fileID: 8926484042661614554}
-  m_UIPosition: {x: 707, y: 595}
+  m_UIPosition: {x: 708, y: 596}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []

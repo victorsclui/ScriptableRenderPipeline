@@ -70,14 +70,6 @@ namespace UnityEngine.VFX.Test
             // Always wait one frame for scene load
             yield return null;
 
-#if UNITY_EDITOR
-            //Force bake GI
-            var previousWorkFlowMode = Lightmapping.giWorkflowMode;
-            Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
-            Lightmapping.Bake();
-            Lightmapping.giWorkflowMode = Lightmapping.giWorkflowMode;
-#endif
-
             var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
             if (camera)
             {
