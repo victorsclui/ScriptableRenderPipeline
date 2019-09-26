@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
 - Fix error first time a preview is created for planar
 - Fixed an issue where SSR would use an incorrect roughness value on ForwardOnly (StackLit, AxF, Fabric, etc.) materials when the pipeline is configured to also allow deferred Lit.
+- Fix for issue that caused gizmos to render in render textures (case 1174395)
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
