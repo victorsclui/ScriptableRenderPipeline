@@ -8,6 +8,7 @@ float4 _AOBufferSize;
 float4 _AOParams0;
 float4 _AOParams1;
 float4 _AOParams2;
+float4 _AOParams3;
 float4 _AODepthToViewParams;
 CBUFFER_END
 
@@ -29,7 +30,7 @@ CBUFFER_END
 #define HALF_RES_DEPTH_WHEN_FULL_RES_FOR_CENTRAL 0
 
 // This increases the quality when running with half resolution buffer, however it adds a bit of cost. Note that it will not have artifact as we already don't allow samples to be at the edge of the depth buffer.
-#define MIN_DEPTH_GATHERED_FOR_CENTRAL 1
+#define MIN_DEPTH_GATHERED_FOR_CENTRAL 0
 
 #define CENTRAL_AND_SAMPLE_DEPTH_FETCH_SAME_METHOD 0
 
