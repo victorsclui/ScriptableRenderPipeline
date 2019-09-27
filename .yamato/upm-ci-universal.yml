@@ -37,7 +37,7 @@ mac_apis:
 
 {% for testplatform in testplatforms %}
 {{ project.name }}_OSX_OpenGLCore_{{ testplatform.name }}_{{ editor.version }}_1:
-  name : Build and Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
+  name : Build and Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }} 1
   agent:
     type: Unity::VM::osx
     image: buildfarm/mac:stable
@@ -63,7 +63,7 @@ mac_apis:
 
 {% if testplatform.name == "Standalone" %}
 {{ project.name }}_OSX_Standalone_Test_{{ testplatform.name }}_{{ editor.version }}_2:
-  name: Build and Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
+  name: Build and Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }} 2
   agent:
       type: Unity::VM::osx
       image: buildfarm/mac:stable
@@ -86,7 +86,7 @@ mac_apis:
 {% for testplatform in testplatforms %}
 {% for win_api in win_apis %}
 {{ project.name }}_Windows64_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}_1:
-  name : Build and Test {{ project.name }} on Windows64_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }}
+  name : Build and Test {{ project.name }} on Windows64_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }} 1
   agent:
     {% if testplatform.name == "editmode" %}
     flavor: b1.large
@@ -117,7 +117,7 @@ mac_apis:
 
 {% if testplatform.name == "Standalone" %}
 {{ project.name }}_Windows64_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}_2:
-  name : Build and Test {{ project.name }} on Windows64_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }}
+  name : Build and Test {{ project.name }} on Windows64_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }} 2
   agent:
     flavor: b1.large
     type: Unity::VM:GPU
