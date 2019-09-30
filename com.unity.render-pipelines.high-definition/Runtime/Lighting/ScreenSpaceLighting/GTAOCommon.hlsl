@@ -9,6 +9,7 @@ float4 _AOParams0;
 float4 _AOParams1;
 float4 _AOParams2;
 float4 _AOParams3;
+float4 _AOParams4;
 float4 _AODepthToViewParams;
 CBUFFER_END
 
@@ -23,6 +24,7 @@ CBUFFER_END
 #define _AOInvStepCountPlusOne _AOParams2.z
 #define _AOMaxRadiusInPixels (int)_AOParams2.w
 #define _AORTHandleSize _AOParams2.xy
+#define _AODirectionCount _AOParams4.x
 
 // If this is set to 0 best quality is achieved when full res, but performance is significantly lower.
 // If set to 1, when full res, it may lead to extra aliasing and loss of detail, but still significant higher quality than half res.

@@ -173,6 +173,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader GTAODenoiseCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOUpsample.compute")]
             public ComputeShader GTAOUpsampleCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
+            public ComputeShader GTAOBlurAndUpsample;
 
             // MSAA Shaders
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/DepthValues.shader")]

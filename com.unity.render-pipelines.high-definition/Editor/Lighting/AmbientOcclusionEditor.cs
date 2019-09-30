@@ -14,6 +14,15 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FullResolution;
         SerializedDataParameter m_MaximumRadiusInPixels;
         SerializedDataParameter m_DirectLightingStrength;
+        //public ClampedFloatParameter noiseFilterTolerance = new ClampedFloatParameter(-1f, -8f, 0f);
+        //public ClampedFloatParameter blurTolerance = new ClampedFloatParameter(-4.6f, -8f, 1f);
+        //public ClampedFloatParameter upsampleTolerance = new ClampedFloatParameter(-12f, -12f, -1f);
+        SerializedDataParameter noiseFilterTolerance;
+        SerializedDataParameter blurTolerance;
+        SerializedDataParameter upsampleTolerance;
+        SerializedDataParameter temporal;
+
+        SerializedDataParameter dirCount;
 
         // Ray Tracing parameters
         SerializedDataParameter m_RayTracing;
@@ -32,6 +41,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FullResolution = Unpack(o.Find(x => x.fullResolution));
             m_MaximumRadiusInPixels = Unpack(o.Find(x => x.maximumRadiusInPixels));
 
+            noiseFilterTolerance = Unpack(o.Find(x => x.noiseFilterTolerance));
+            blurTolerance = Unpack(o.Find(x => x.blurTolerance));
+            upsampleTolerance = Unpack(o.Find(x => x.upsampleTolerance));
+            temporal = Unpack(o.Find(x => x.temporal));
+            dirCount = Unpack(o.Find(x => x.dirCount));
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
@@ -79,6 +93,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_MaximumRadiusInPixels, EditorGUIUtility.TrTextContent("Maximum Radius In Pixels", "This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions."));
                 PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "The effect runs at full resolution. This increases quality, but also decreases performance significantly."));
                 PropertyField(m_StepCount, EditorGUIUtility.TrTextContent("Step Count", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+
+                PropertyField(temporal, EditorGUIUtility.TrTextContent("temporal", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+                if(!temporal.value.boolValue)
+                    PropertyField(dirCount, EditorGUIUtility.TrTextContent("dirCount", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+                PropertyField(noiseFilterTolerance, EditorGUIUtility.TrTextContent("noiseFilterTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+                PropertyField(blurTolerance, EditorGUIUtility.TrTextContent("blurTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+                PropertyField(upsampleTolerance, EditorGUIUtility.TrTextContent("upsampleTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+
             }
         }
     }

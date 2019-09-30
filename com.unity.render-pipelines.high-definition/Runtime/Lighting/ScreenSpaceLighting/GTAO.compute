@@ -5,6 +5,8 @@
 //#pragma enable_d3d11_debug_symbols
 
 #pragma kernel GTAOMain_HalfRes GTAO_KERNEL_NAME=GTAOMain_HalfRes HALF_RES
+#pragma kernel GTAOMain_HalfRes_Temporal GTAO_KERNEL_NAME=GTAOMain_HalfRes_Temporal HALF_RES TEMPORAL
+
 #pragma kernel GTAOMain_FullRes GTAO_KERNEL_NAME=GTAOMain_FullRes FULL_RES
 
 // --------------------------------------------
@@ -17,8 +19,13 @@
 #define INTEGRAL_TYPE INTEGRAL_COSINE
 
 // Noise options
-#define TEMPORAL_ROTATION 0
-#define ENABLE_TEMPORAL_OFFSET 0
+#ifdef TEMPORAL
+    #define TEMPORAL_ROTATION 1
+    #define ENABLE_TEMPORAL_OFFSET 1
+#else
+    #define TEMPORAL_ROTATION 0
+    #define ENABLE_TEMPORAL_OFFSET 0
+#endif
 
 // Normal fetching options
 #define NORMAL_FROM_GBUFFER 1
@@ -33,8 +40,10 @@
 // Blue noise one sample 
 #define BDN 0
 #define OLD 1
+#define MIXED 2
+#define INTERLEAVED 3
 
-#define NOISE_TYPE BDN
+#define NOISE_TYPE OLD
 
 // --------------------------------------------
 // Integration functions
@@ -87,39 +96,41 @@ float2 GetDirection(uint2 positionSS)
 float2 GetDirection(uint2 positionSS, int offset, out float noise)
 {
 
-#if TEMPORAL_ROTATION
+#if NOISE_TYPE == BDN
+    noise = GetBNDSequenceSample(positionSS, 0, 0) * PI;
+#elif NOISE_TYPE == OLD
+    // Spatial distribution 
+    noise = (1.0 / 16.0) * ((((positionSS.x + positionSS.y) & 0x3) << 2) +
+        // Note: in the original presentation, this has a bug as the following needs to be positionSS.y and not positionSS.x
+        (positionSS.y & 0x3)) * PI;
+#elif NOISE_TYPE == MIXED
+    noise = (1.0 / 16.0) * ((((positionSS.x + positionSS.y) & 0x3) << 2) +
+        // Note: in the original presentation, this has a bug as the following needs to be positionSS.y and not positionSS.x
+        (positionSS.y & 0x3));
+
+    float noise2 = GetBNDSequenceSample(positionSS, 0, 0);
+    noise = 0.02f * (noise2 * 2 - 1) + noise;
+    noise *= PI;
+
+#elif NOISE_TYPE == INTERLEAVED
+    float dither = InterleavedGradientNoise(positionSS, (0));
+    noise = dither * PI;
+
+#endif
+
     // Temporal rotations
     float rotations[] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
+
+
+#if TEMPORAL_ROTATION
     float rotation = (rotations[_AOTemporalRotationIdx] / 360.0);
-
-
+#else
+    float rotation = (rotations[offset] / 360.0);
+#endif
 
     noise += rotation;
 
     float2 dir = float2(cos(noise), sin(noise));
-
-#else
-
-#if NOISE_TYPE == BDN
-     noise = GetBNDSequenceSample(positionSS, 0, 0) * PI;
-#elif NOISE_TYPE == OLD
-    // Spatial distribution 
-     noise = (1.0 / 16.0) * ((((positionSS.x + positionSS.y) & 0x3) << 2) +
-        // Note: in the original presentation, this has a bug as the following needs to be positionSS.y and not positionSS.x
-        (positionSS.y & 0x3)) * PI;
-#endif
-
-    float rotations[] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
-    float rotation = (rotations[offset] / 360.0);
-
-    //// Temporal rotations
-    //float rotations[] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
-    //float rotation = (rotations[offset] / 360.0);
-
-    //noise += rotation;
-
-    float2 dir = float2(cos(noise), sin(noise));
-#endif
 
     return dir;
 }
@@ -142,6 +153,22 @@ float GetOffset(uint2 positionSS)
 #endif
     return frac(offset);
 }
+
+float GetOffset(uint2 positionSS, uint iteration)
+{
+    // Spatial offset
+    float offset = 0.25 * ((positionSS.y - positionSS.x) & 0x3);
+
+    float offsets[] = { 0.0, 0.5, 0.25, 0.75 };
+    // Temporal offset
+#if ENABLE_TEMPORAL_OFFSET
+    offset += offsets[_AOTemporalOffsetIdx];
+#else
+    offset += offsets[iteration];
+#endif
+    return frac(offset);
+}
+
 
 // --------------------------------------------
 // Input generation functions
@@ -217,7 +244,11 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float2 rayStart = dispatchThreadId.xy;
     float integral = 0;
 
+#ifdef TEMPORAL
     const int dirCount = 1;
+#else
+    const int dirCount = _AODirectionCount;
+#endif
 
     float3 V = normalize(-positionVS);
     float fovCorrectedradiusSS = clamp(_AORadius * _AOFOVCorrection * rcp(positionVS.z), _AOStepCount, _AOMaxRadiusInPixels);
