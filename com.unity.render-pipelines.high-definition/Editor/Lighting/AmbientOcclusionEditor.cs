@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter blurTolerance;
         SerializedDataParameter upsampleTolerance;
         SerializedDataParameter temporal;
+        SerializedDataParameter biggerBlur;
 
         SerializedDataParameter dirCount;
 
@@ -46,6 +47,8 @@ namespace UnityEditor.Rendering.HighDefinition
             upsampleTolerance = Unpack(o.Find(x => x.upsampleTolerance));
             temporal = Unpack(o.Find(x => x.temporal));
             dirCount = Unpack(o.Find(x => x.dirCount));
+            biggerBlur = Unpack(o.Find(x => x.biggerBlur));
+
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
@@ -97,6 +100,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(temporal, EditorGUIUtility.TrTextContent("temporal", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
                 if(!temporal.value.boolValue)
                     PropertyField(dirCount, EditorGUIUtility.TrTextContent("dirCount", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+
+                PropertyField(biggerBlur, EditorGUIUtility.TrTextContent("biggerBlur", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+
                 PropertyField(noiseFilterTolerance, EditorGUIUtility.TrTextContent("noiseFilterTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
                 PropertyField(blurTolerance, EditorGUIUtility.TrTextContent("blurTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
                 PropertyField(upsampleTolerance, EditorGUIUtility.TrTextContent("upsampleTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));

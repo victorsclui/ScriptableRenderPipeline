@@ -1,13 +1,18 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
-#pragma kernel BlurUpsample
+#pragma kernel BlurUpsample     BLUR_AND_UPSAMPLE
+#pragma kernel BilateralBlur    JUST_BLUR
 
 #pragma enable_d3d11_debug_symbols
 
 TEXTURE2D_X_UINT(_AOPackedData);
 RW_TEXTURE2D_X(float, _OcclusionTexture);
 RW_TEXTURE2D_X(float4, _OutputTexture);
+
+#ifdef JUST_BLUR
+RW_TEXTURE2D_X(uint, _AOPackedBlurred);
+#endif
 
 groupshared float DepthCache[256];
 groupshared float AOCache1[256];
@@ -148,7 +153,7 @@ float BilateralUpsample(float HiDepth, float HiAO, float4 LowDepths, float4 LowA
     return HiAO * WeightedSum / TotalWeight;
 }
 
-
+#ifdef BLUR_AND_UPSAMPLE
 [numthreads(8,8,1)]
 void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 {
@@ -204,3 +209,62 @@ void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : 
     //_OutputTexture[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = float4(UV0, UV1);
     //_OutputTexture[COORD_TEXTURE2D_X(OutST + int2(-1, 0))] = float4(UV0, UV1);
 }
+#elif JUST_BLUR
+[numthreads(8, 8, 1)]
+void BilateralBlur(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
+{
+    //
+    // Load 4 pixels per thread into LDS to fill the 16x16 LDS cache with depth and AO
+    //
+    float2 pxSize = _AOBufferSize.zw * 2;
+    PrefetchData(GTid.x << 1 | GTid.y << 5, int2(DTid.xy + GTid.xy - 2) * pxSize);
+    GroupMemoryBarrierWithGroupSync();
+
+    // Goal:  End up with a 9x9 patch that is blurred so we can upsample.  Blur radius is 2 pixels, so start with 13x13 area.
+
+    //
+    // Horizontally blur the pixels.    13x13 -> 9x13
+    //
+    if (GI < 39)
+        BlurHorizontally((GI / 3) * 16 + (GI % 3) * 3);
+    GroupMemoryBarrierWithGroupSync();
+
+    //
+    // Vertically blur the pixels.        9x13 -> 9x9
+    //
+    if (GI < 45)
+        BlurVertically((GI / 9) * 32 + GI % 9);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    //
+    // Bilateral upsample
+    //
+    uint Idx0 = GTid.x + GTid.y * 16;
+    float4 LoSSAOs = float4(AOCache1[Idx0 + 16], AOCache1[Idx0 + 17], AOCache1[Idx0 + 1], AOCache1[Idx0]);
+    float4 Depths = float4(DepthCache[Idx0 + 16], DepthCache[Idx0 + 17], DepthCache[Idx0 + 1], DepthCache[Idx0]);
+    Depths = rcp(Depths);
+    // We work on a quad of pixels at once because then we can gather 4 each of high and low-res depth values
+    int2 OutST = DTid.xy << 1;
+
+    //float averagedAO = dot(0.25f, LoSSAOs.zwxy);
+    float2 UV0 = DTid.xy * 2 * _AOBufferSize.zw;
+
+    uint4 data = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, UV0);
+    float4 UnpackedAOs, UnpackedDepths;
+    UnpackGatheredData(data, UnpackedAOs, UnpackedDepths);
+
+
+    // zywx
+    _AOPackedBlurred[COORD_TEXTURE2D_X(OutST + int2(0, -1))] = PackAOOutput(LoSSAOs.z, UnpackedDepths.z);
+    _AOPackedBlurred[COORD_TEXTURE2D_X(OutST)] = PackAOOutput(LoSSAOs.y, UnpackedDepths.y);
+    _AOPackedBlurred[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = PackAOOutput(LoSSAOs.w, UnpackedDepths.w);
+    _AOPackedBlurred[COORD_TEXTURE2D_X(OutST + int2(-1, 0))] = PackAOOutput(LoSSAOs.x, UnpackedDepths.x);
+
+    _OutputTexture[COORD_TEXTURE2D_X(OutST + int2(0, -1))] = float4(LoSSAOs.z, UnpackedAOs.z, LoSSAOs.z, UnpackedDepths.z);
+    _OutputTexture[COORD_TEXTURE2D_X(OutST)] = float4(LoSSAOs.y, UnpackedAOs.y, LoSSAOs.y, UnpackedDepths.y);
+    _OutputTexture[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = float4(LoSSAOs.w, UnpackedAOs.w, LoSSAOs.w, UnpackedDepths.w);
+    _OutputTexture[COORD_TEXTURE2D_X(OutST + int2(-1, 0))] = float4( LoSSAOs.x, UnpackedAOs.x, LoSSAOs.x, UnpackedDepths.x);
+}
+
+#endif
