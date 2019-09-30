@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused decals not to modify the roughness in the normal buffer, causing SSR to not behave correctly (case 1178336)
 - Fixed issue of spotlight breaking when minimizing the cone angle via the gizmo (case 1178279)
 - Fix a potential NaN source with iridescence (case 1183216)
+- Fixed issue that prevented decals from modifying specular occlusion (case 1178272).
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
