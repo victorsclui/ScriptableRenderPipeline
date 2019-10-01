@@ -3,7 +3,7 @@ editors:
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
+    image: slough-ops/gamecode-win10-nvidia436:latest
     flavor: b1.large
 testplatforms:
   - name: Standalone
