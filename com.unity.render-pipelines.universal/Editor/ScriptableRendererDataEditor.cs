@@ -114,10 +114,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (element.objectReferenceValue != null)
             {
-                var name = element.objectReferenceValue.name;
-                var elementNamespace = element.objectReferenceValue.GetType().Namespace;
-                if (elementNamespace != null && elementNamespace.Contains("Experimental"))
-                    name += " (Experimental)";
+                // Get the type and append that to the name
+                name = $"{element.objectReferenceValue.name} ({element.objectReferenceValue.GetType().Name})";
+
                 GUIContent header = new GUIContent(name,
                     element.objectReferenceValue.GetType().Name);
                 m_Foldouts[index].value =
@@ -283,6 +282,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 var asset = AssetDatabase.GetAssetPath(target);
                 var obj = CreateInstance((string)pass);
+                obj.hideFlags = HideFlags.HideInHierarchy;
                 obj.name = $"New{obj.GetType().Name}";
                 AssetDatabase.AddObjectToAsset(obj, asset);
 
