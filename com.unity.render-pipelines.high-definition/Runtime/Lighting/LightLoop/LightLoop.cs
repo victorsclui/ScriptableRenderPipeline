@@ -164,10 +164,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal const int k_MaxCacheSize = 2000000000; //2 GigaByte
         public const int k_MaxDirectionalLightsOnScreen = 16;
         public const int k_MaxPunctualLightsOnScreen    = 512;
-        public const int k_MaxAreaLightsOnScreen        = 64;
+        public const int k_MaxAreaLightsOnScreen        = 128;
         public const int k_MaxDecalsOnScreen = 512;
         public const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
-        public const int k_MaxEnvLightsOnScreen = 64;
+        public const int k_MaxEnvLightsOnScreen = 128;
         public static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         #if UNITY_SWITCH

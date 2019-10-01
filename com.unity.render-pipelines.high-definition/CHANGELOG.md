@@ -44,6 +44,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allow in ShaderGraph to enable pre/post pass when the alpha clip is disabled
 - Call the End/Begin camera rendering callbacks for camera with customRender enabled
 - Replace hidden specular lighting control on framesettings by EnableSkyLighting and ReplaceFresnel0Diffuse.
+- Increase max limit of area light and reflection probe to 128
+- Change default texture for detailmap to grey
 
 ## [6.9.0] - 2019-07-02
 
