@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for issue that caused gizmos to render in render textures (case 1174395)
 - Fixed refresh of baked cubemap by incrementing updateCount at the end of the bake (case 1158677).
 - Fixed decals not affecting lightmap/lightprobe
+- Fixed issue with rectangular area light when seen from the back
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
