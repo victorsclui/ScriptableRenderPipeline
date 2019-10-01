@@ -28,12 +28,8 @@ win_apis:
 {{ project.name }}_Windows64_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}:
   name : Build and Test {{ project.name }} on Windows64_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }}
   agent:
-    {% if testplatform.name == "editmode" %}
-    type: Unity::VM
-    {% else %}
     type: {{ platform.type }}
     model: rtx2080
-    {% endif %}
     image: {{ platform.image }}
     flavor: {{ platform.flavor}}
   commands:
