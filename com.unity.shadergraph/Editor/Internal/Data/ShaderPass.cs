@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public int[] vertexPorts;
         public int[] pixelPorts;
 
-        // Required fields
+        // Fields
         public string[] requiredFields;
 
         // Conditional State
