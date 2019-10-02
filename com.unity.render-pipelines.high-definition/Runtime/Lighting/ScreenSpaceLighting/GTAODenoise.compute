@@ -146,6 +146,22 @@ void GTAODenoise_Spatial(uint3 dispatchThreadId : SV_DispatchThreadID)
     float anotherCentral;
     UnpackData(currData, anotherCentral, centralDepth);
     _AOPackedBlurred[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(final, centralDepth);
+
+
+
+    float2 temporalOffset = 0;
+    // (-,+),(+,+),(+,-),(-,-)
+    uint4 data_12_15 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((dispatchThreadId.xy + float2(0.0, 0.0) + temporalOffset)  * _AOBufferSize.zw, _AOBufferSize.zw));
+
+    float4 UnpackedAOs, UnpackedDepths;
+    UnpackGatheredData(data_12_15, UnpackedAOs, UnpackedDepths);
+
+    currData = _AOPackedData[COORD_TEXTURE2D_X(dispatchThreadId.xy + uint2(-1, -1))];
+    UnpackData(currData, anotherCentral, centralDepth);
+
+     
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(final, centralAO, abs(anotherCentral - UnpackedAOs.w), centralDepth);
 }
 #endif
 
@@ -195,6 +211,45 @@ RW_TEXTURE2D_X(uint, _OcclusionTexture);
 RW_TEXTURE2D_X(float, _OcclusionTexture);
 #endif
 
+float FindMinMaxAO(float2 centralPos)
+{
+
+    //uint4 data0 = GATHER_TEXTURE2D_X(_AOPackedBlurred, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(0.0, 0.0))  * _AOBufferSize.zw, _AOBufferSize.zw));
+    //uint4 data1 = GATHER_TEXTURE2D_X(_AOPackedBlurred, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(2.0, 0.0))  * _AOBufferSize.zw, _AOBufferSize.zw));
+    //uint4 data2 = GATHER_TEXTURE2D_X(_AOPackedBlurred, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(0.0, 2.0))  * _AOBufferSize.zw, _AOBufferSize.zw));
+    //uint4 data3 = GATHER_TEXTURE2D_X(_AOPackedBlurred, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(2.0, 2.0))  * _AOBufferSize.zw, _AOBufferSize.zw));
+
+    float minAO = 0.0;
+    float maxAO = 0.0;
+    for (int i = -1; i < 1; ++i)
+    {
+        for (int j = -1; j < 1; ++j)
+        {
+            uint data = LOAD_TEXTURE2D_X(_AOPackedBlurred, centralPos + uint2(i, j));
+            float currAO, off;
+            UnpackData(data, currAO, off);
+            minAO = min(minAO, currAO);
+            maxAO = max(maxAO, currAO);
+        }
+    }
+
+    //float4 currAOs, currDepths;
+    //UnpackGatheredData(data0, currAOs, currDepths);
+
+    //currAO = currAOs.y;
+    //currDepth = currDepths.y;
+
+    //float minAO = 10.0f;
+    //float maxAO = -10.0f;
+
+    //minAO = Min3(Min3(currAOs.x, currAOs.y, currAOs.z), currAOs.w, minAO);
+    //maxAO = Max3(Max3(currAOs.x, currAOs.y, currAOs.z), currAOs.w, maxAO);
+
+    return float2(minAO, maxAO);
+
+
+}
+
 [numthreads(8, 8, 1)]
 void TEMPORAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -230,14 +285,15 @@ void TEMPORAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float motionVecWeighting = saturate(motionVecLength * 100.0);
     float velWeight = 1.0f - abs(prevMotionVecLen - motionVecWeighting);
 
-    float minAO = min(Min3(currAOs.x, currAOs.y, currAOs.z), currAOs.w);
-    float maxAO = max(Max3(currAOs.x, currAOs.y, currAOs.z), currAOs.w);
+    float2 minMax = FindMinMaxAO(float2(dispatchThreadId.xy));
+    float minAO = minMax.x;
+    float maxAO = minMax.y;// max(Max3(currAOs.x, currAOs.y, currAOs.z), currAOs.w);
 
     // TODO: This require a better investigation. Values in this are pretty much set without too much thought. 
-    float nudge = lerp(10, 2, motionVecWeighting) * abs(dot(currAOs, 0.25) - currAO);
-    nudge *= velWeight;
-    minAO -= nudge;
-    maxAO += nudge;
+    //float nudge = lerp(10, 2, motionVecWeighting) * abs(dot(currAOs, 0.25) - currAO);
+    //nudge *= velWeight;
+    //minAO -= nudge;
+    //maxAO += nudge;
 
     float diff = abs(currAOs.y - prevAO) / Max3(prevAO, currAO, 0.2);
     float weight = 1.0 - diff;
@@ -250,7 +306,7 @@ void TEMPORAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float newAO = (lerp(currAO, prevAO, feedback * depth_similarity * velWeight));
 
     _AOOutputHistory[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackHistoryData(newAO, currDepths.y, motionVecWeighting);
-    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(newAO, currAO, prevAO, abs(currAO - prevAO));
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(minAO, maxAO, prevAO, abs(currAO - prevAO));
 
 #ifdef HALF_RES
     // The conversion and the pow happens in upsample phase.
