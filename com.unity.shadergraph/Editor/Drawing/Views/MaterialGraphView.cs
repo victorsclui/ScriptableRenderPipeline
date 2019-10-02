@@ -83,6 +83,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); });
             }
 
+            evt.menu.AppendAction("Ungroup Selection", RemoveFromGroupNode, (a) =>
+            {
+                List<ISelectable> filteredSelection = new List<ISelectable>();
+
+                foreach (ISelectable selectedObject in selection)
+                {
+                    if (selectedObject is Group)
+                        return DropdownMenuAction.Status.Disabled;
+                    GraphElement ge = selectedObject as GraphElement;
+                    if (ge.userData is IGroupItem)
+                    {
+                        if (ge.GetContainingScope() is Group)
+                            filteredSelection.Add(ge);
+                    }
+                }
+
+                if (filteredSelection.Count > 0)
+                    return DropdownMenuAction.Status.Normal;
+
+                return DropdownMenuAction.Status.Disabled;
+            });
+
             if (evt.target is GraphView || evt.target is Node)
             {
                 InitializeViewSubMenu(evt);
@@ -118,30 +140,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return DropdownMenuAction.Status.Disabled;
                 });
 
-                evt.menu.AppendAction("Ungroup Selection", RemoveFromGroupNode, (a) =>
-                {
-                    List<ISelectable> filteredSelection = new List<ISelectable>();
 
-                    foreach (ISelectable selectedObject in selection)
-                    {
-                        if (selectedObject is Group)
-                            return DropdownMenuAction.Status.Disabled;
-                        VisualElement ve = selectedObject as VisualElement;
-                        if (ve.userData is AbstractMaterialNode)
-                        {
-                            var selectedNode = selectedObject as Node;
-                            if (selectedNode.GetContainingScope() is Group)
-                                filteredSelection.Add(selectedObject);
-                        }
-                    }
 
-                    if (filteredSelection.Count > 0)
-                        return DropdownMenuAction.Status.Normal;
-                    else
-                        return DropdownMenuAction.Status.Disabled;
-                });
 
-                
 
                 var editorView = GetFirstAncestorOfType<GraphEditorView>();
                 if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
@@ -340,16 +341,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         void RemoveFromGroupNode(DropdownMenuAction action)
         {
             graph.owner.RegisterCompleteObjectUndo("Ungroup Node(s)");
-            foreach (ISelectable selectable in selection)
+            foreach (var element in selection.OfType<GraphElement>())
             {
-                var node = selectable as Node;
-                if(node == null)
-                    continue;
-
-                Group group = node.GetContainingScope() as Group;
-                if (group != null)
+                if (element.userData is IGroupItem)
                 {
-                    group.RemoveElement(node);
+                    Group group = element.GetContainingScope() as Group;
+                    if (group != null)
+                    {
+                        group.RemoveElement(element);
+                    }
                 }
             }
         }
@@ -581,7 +581,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Filter nodes that cannot be deleted
             var nodesToDelete = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node);
-            
+
             // Add keyword nodes dependent on deleted keywords
             nodesToDelete = nodesToDelete.Union(keywordNodes);
 
@@ -597,13 +597,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     keywordsDirty = true;
                 }
             }
-            
+
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(nodesToDelete.ToArray(),
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
-            
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -735,7 +735,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (textureArray != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture Array");
-                
+
                 var node = new SampleTexture2DArrayNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
@@ -767,7 +767,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (cubemap != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
-                
+
                 var node = new SampleCubemapNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
@@ -794,7 +794,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var blackboardField = obj as BlackboardField;
             if (blackboardField != null)
-            {   
+            {
                 graph.owner.RegisterCompleteObjectUndo("Drag Graph Input");
 
                 switch(blackboardField.userData)
