@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (UpsampleAOPassData data, RenderGraphContext ctx) =>
                 {
-                    UpsampleAO(data.parameters, ctx.resources.GetTexture(data.input), ctx.resources.GetTexture(data.output), ctx.resources.GetTexture(data.output), ctx.cmd);
+                    UpsampleAO(data.parameters, ctx.resources.GetTexture(data.input), ctx.resources.GetTexture(data.output), ctx.cmd);
                 });
 
                 return passData.output;

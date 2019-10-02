@@ -145,3 +145,8 @@ void UnpackGatheredData(uint4 data, out float4 AOs, out float4 depths)
     UnpackData(data.z, AOs.z, depths.z);
     UnpackData(data.w, AOs.w, depths.w);
 }
+
+float OutputFinalAO(float AO)
+{
+    return 1.0f - PositivePow(AO, _AOIntensity);
+}

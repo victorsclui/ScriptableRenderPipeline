@@ -8,6 +8,8 @@
 #pragma kernel GTAOMain_HalfRes_Temporal GTAO_KERNEL_NAME=GTAOMain_HalfRes_Temporal HALF_RES TEMPORAL
 
 #pragma kernel GTAOMain_FullRes GTAO_KERNEL_NAME=GTAOMain_FullRes FULL_RES
+#pragma kernel GTAOMain_FullRes_Temporal GTAO_KERNEL_NAME=GTAOMain_FullRes_Temporal FULL_RES TEMPORAL
+
 
 // --------------------------------------------
 // Options
@@ -19,31 +21,14 @@
 #define INTEGRAL_TYPE INTEGRAL_COSINE
 
 // Noise options
-#ifdef TEMPORAL
-    #define TEMPORAL_ROTATION 1
-    #define ENABLE_TEMPORAL_OFFSET 1
-#else
-    #define TEMPORAL_ROTATION 0
-    #define ENABLE_TEMPORAL_OFFSET 0
-#endif
+#define TEMPORAL_ROTATION defined(TEMPORAL)
+#define ENABLE_TEMPORAL_OFFSET defined(TEMPORAL)
 
 // Normal fetching options
 #define NORMAL_FROM_GBUFFER 1
 #define NORMAL_COMPUTATION NORMAL_FROM_GBUFFER
 
 #define WEIGHT_WITH_PROJ_N_LENGTH 0
-
-
-
-
-/////// Noise test
-// Blue noise one sample 
-#define BDN 0
-#define OLD 1
-#define MIXED 2
-#define INTERLEAVED 3
-
-#define NOISE_TYPE OLD
 
 // --------------------------------------------
 // Integration functions
@@ -93,34 +78,13 @@ float2 GetDirection(uint2 positionSS)
     return dir;
 }
 
-float2 GetDirection(uint2 positionSS, int offset, out float noise)
+float2 GetDirection(uint2 positionSS, int offset)
 {
-
-#if NOISE_TYPE == BDN
-    noise = GetBNDSequenceSample(positionSS, 0, 0) * PI;
-#elif NOISE_TYPE == OLD
-    // Spatial distribution 
-    noise = (1.0 / 16.0) * ((((positionSS.x + positionSS.y) & 0x3) << 2) +
+    float noise = (1.0 / 16.0) * ((((positionSS.x + positionSS.y) & 0x3) << 2) +
         // Note: in the original presentation, this has a bug as the following needs to be positionSS.y and not positionSS.x
         (positionSS.y & 0x3)) * PI;
-#elif NOISE_TYPE == MIXED
-    noise = (1.0 / 16.0) * ((((positionSS.x + positionSS.y) & 0x3) << 2) +
-        // Note: in the original presentation, this has a bug as the following needs to be positionSS.y and not positionSS.x
-        (positionSS.y & 0x3));
 
-    float noise2 = GetBNDSequenceSample(positionSS, 0, 0);
-    noise = 0.02f * (noise2 * 2 - 1) + noise;
-    noise *= PI;
-
-#elif NOISE_TYPE == INTERLEAVED
-    float dither = InterleavedGradientNoise(positionSS, (0));
-    noise = dither * PI;
-
-#endif
-
-    // Temporal rotations
     float rotations[] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
-
 
 #if TEMPORAL_ROTATION
     float rotation = (rotations[_AOTemporalRotationIdx] / 360.0);
@@ -130,12 +94,8 @@ float2 GetDirection(uint2 positionSS, int offset, out float noise)
 
     noise += rotation;
 
-    float2 dir = float2(cos(noise), sin(noise));
-
-    return dir;
+    return float2(cos(noise), sin(noise));
 }
-
-
 
 // --------------------------------------------
 // Get sample start offset
@@ -232,8 +192,9 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 	UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Read buffers as early as possible.
-    float currDepth = GetDepthForCentral(dispatchThreadId.xy + 0.5f);
+    float currDepth = GetDepthForCentral(dispatchThreadId.xy);
     float3 positionVS = GetPositionVS(dispatchThreadId.xy, currDepth);
+
 #if HALF_RES
     float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, dispatchThreadId.xy * 2);
 #else
@@ -254,10 +215,9 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float fovCorrectedradiusSS = clamp(_AORadius * _AOFOVCorrection * rcp(positionVS.z), _AOStepCount, _AOMaxRadiusInPixels);
     float step = fovCorrectedradiusSS * _AOInvStepCountPlusOne;
 
-    float outNoise = 0;
     for (int i = 0; i < dirCount; ++i)
     {
-        float2 dir = GetDirection(dispatchThreadId.xy, i, outNoise);
+        float2 dir = GetDirection(dispatchThreadId.xy, i);
 
         // NOTE: Work around a shader compilation bug, where removing the tiny epsilon causes
         // incorrect output on some drivers. The epsilon should be small enough to not affect
@@ -292,7 +252,6 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     integral /= dirCount;
 
-//    integral = outNoise;
     if (currDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         integral = 1;

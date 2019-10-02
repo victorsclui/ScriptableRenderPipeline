@@ -93,8 +93,5 @@ void AOUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #endif 
 
-
-
-    // Unpack
-    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 1.0 - pow(final, _AOIntensity);
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = OutputFinalAO(final);
 }

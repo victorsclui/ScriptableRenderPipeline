@@ -1,18 +1,29 @@
+// This is largely based on MiniEngine shader, with some slight modifications. The copyright of said shader is as follow:
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+// Developed by Minigraph
+//
+// Author:  James Stanard 
+//
+
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
-#pragma kernel BlurUpsample     BLUR_AND_UPSAMPLE
-#pragma kernel BilateralBlur    JUST_BLUR
+#define _BlurTolerance _AOParams3.x
+#define _UpsampleTolerance _AOParams3.y
+#define _NoiseFilterStrength _AOParams3.z
+#define _StepSize _AOParams3.w
 
-#pragma enable_d3d11_debug_symbols
+#pragma kernel BlurUpsample
 
 TEXTURE2D_X_UINT(_AOPackedData);
 RW_TEXTURE2D_X(float, _OcclusionTexture);
-RW_TEXTURE2D_X(float4, _OutputTexture);
-
-#ifdef JUST_BLUR
-RW_TEXTURE2D_X(uint, _AOPackedBlurred);
-#endif
 
 groupshared float DepthCache[256];
 groupshared float AOCache1[256];
@@ -46,15 +57,10 @@ float SmartBlur(float a, float b, float c, float d, float e, bool Left, bool Mid
     return ((a + e) / 2.0 + b + c + d) / 4.0;
 }
 
-#define kBlurTolerance _AOParams3.x
-#define StepSize _AOParams3.w
-#define kUpsampleTolerance _AOParams3.y
-#define NoiseFilterStrength _AOParams3.z
-
 bool CompareDeltas(float d1, float d2, float l1, float l2)
 {
-    float temp = d1 * d2 + StepSize;
-    return temp * temp > l1 * l2 * kBlurTolerance;
+    float temp = d1 * d2 + _StepSize;
+    return temp * temp > l1 * l2 * _BlurTolerance;
 }
 
 void BlurHorizontally(uint leftMostIndex)
@@ -82,12 +88,12 @@ void BlurHorizontally(uint leftMostIndex)
     float d45 = d5 - d4;
     float d56 = d6 - d5;
 
-    float l01 = d01 * d01 + StepSize;
-    float l12 = d12 * d12 + StepSize;
-    float l23 = d23 * d23 + StepSize;
-    float l34 = d34 * d34 + StepSize;
-    float l45 = d45 * d45 + StepSize;
-    float l56 = d56 * d56 + StepSize;
+    float l01 = d01 * d01 + _StepSize;
+    float l12 = d12 * d12 + _StepSize;
+    float l23 = d23 * d23 + _StepSize;
+    float l34 = d34 * d34 + _StepSize;
+    float l45 = d45 * d45 + _StepSize;
+    float l56 = d56 * d56 + _StepSize;
 
     bool c02 = CompareDeltas(d01, d12, l01, l12);
     bool c13 = CompareDeltas(d12, d23, l12, l23);
@@ -122,11 +128,11 @@ void BlurVertically(uint topMostIndex)
     float d34 = d4 - d3;
     float d45 = d5 - d4;
 
-    float l01 = d01 * d01 + StepSize;
-    float l12 = d12 * d12 + StepSize;
-    float l23 = d23 * d23 + StepSize;
-    float l34 = d34 * d34 + StepSize;
-    float l45 = d45 * d45 + StepSize;
+    float l01 = d01 * d01 + _StepSize;
+    float l12 = d12 * d12 + _StepSize;
+    float l23 = d23 * d23 + _StepSize;
+    float l34 = d34 * d34 + _StepSize;
+    float l45 = d45 * d45 + _StepSize;
 
     bool c02 = CompareDeltas(d01, d12, l01, l12);
     bool c13 = CompareDeltas(d12, d23, l12, l23);
@@ -145,15 +151,14 @@ void BlurVertically(uint topMostIndex)
 // Note that a perfect match of low to high depths would yield a weight of 10^6, completely superceding any
 // noise filtering.  The noise filter is intended to soften the effects of shimmering when the high-res depth
 // buffer has a lot of small holes in it causing the low-res depth buffer to inaccurately represent it.
-float BilateralUpsample(float HiDepth, float HiAO, float4 LowDepths, float4 LowAO)
+float BilateralUpsample(float HiDepth, float4 LowDepths, float4 LowAO)
 {
-    float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + kUpsampleTolerance);
-    float TotalWeight = dot(weights, 1) + NoiseFilterStrength;
-    float WeightedSum = dot(LowAO, weights) + NoiseFilterStrength;// * HiAO;
-    return HiAO * WeightedSum / TotalWeight;
+    float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
+    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
+    float WeightedSum = dot(LowAO, weights) + _NoiseFilterStrength;
+    return WeightedSum / TotalWeight;
 }
 
-#ifdef BLUR_AND_UPSAMPLE
 [numthreads(8,8,1)]
 void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 {
@@ -190,81 +195,13 @@ void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : 
     float2 UV0 = DTid.xy * _AOBufferSize.zw;
     float2 UV1 = DTid.xy * 2 * _ScreenSize.zw;
 
-    float4 HiSSAOs = 1.0;
-
-    float4 gatheredDepth = GATHER_TEXTURE2D_X(_CameraDepthTexture, s_point_clamp_sampler, UV1);
-    uint4 data = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, UV0);
-    float4 UnpackedAOs, UnpackedDepths;
-    UnpackGatheredData(data, UnpackedAOs, UnpackedDepths);
+    float4 highDepth = GATHER_TEXTURE2D_X(_CameraDepthTexture, s_point_clamp_sampler, UV1);
+    float4 LowDepth = rcp(float4(DepthCache[Idx0 + 16], DepthCache[Idx0 + 17], DepthCache[Idx0 + 1], DepthCache[Idx0]));
 
     int2 OutST = DTid.xy << 1;
 
-    _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(0, -1))] =  1.0f - pow(BilateralUpsample(gatheredDepth.z, HiSSAOs.z, UnpackedDepths.zwxy, LoSSAOs.zwxy), _AOIntensity);
-    _OcclusionTexture[COORD_TEXTURE2D_X(OutST)] = 1.0f - pow(BilateralUpsample(gatheredDepth.y, HiSSAOs.y, UnpackedDepths.yzwx, LoSSAOs.yzwx), _AOIntensity);
-    _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = 1.0f - pow(BilateralUpsample(gatheredDepth.w, HiSSAOs.w, UnpackedDepths.wxyz, LoSSAOs.wxyz), _AOIntensity);
-    _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(-1, 0))] = 1.0f - pow(BilateralUpsample(gatheredDepth.x, HiSSAOs.x, UnpackedDepths.xyzw, LoSSAOs.xyzw), _AOIntensity);
-
-    //_OutputTexture[COORD_TEXTURE2D_X(OutST + int2(0, -1))] = float4(UV0, UV1);
-    //_OutputTexture[COORD_TEXTURE2D_X(OutST)] = float4(UV0, UV1);
-    //_OutputTexture[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = float4(UV0, UV1);
-    //_OutputTexture[COORD_TEXTURE2D_X(OutST + int2(-1, 0))] = float4(UV0, UV1);
+    _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(0, -1))]   = OutputFinalAO(BilateralUpsample(highDepth.z, LowDepth.zwxy, LoSSAOs.zwxy));
+    _OcclusionTexture[COORD_TEXTURE2D_X(OutST)]                 = OutputFinalAO(BilateralUpsample(highDepth.y, LowDepth.yzwx, LoSSAOs.yzwx));
+    _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(-1, -1))]  = OutputFinalAO(BilateralUpsample(highDepth.w, LowDepth.wxyz, LoSSAOs.wxyz));
+    _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(-1, 0))]   = OutputFinalAO(BilateralUpsample(highDepth.x, LowDepth.xyzw, LoSSAOs.xyzw));
 }
-#elif JUST_BLUR
-[numthreads(8, 8, 1)]
-void BilateralBlur(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
-{
-    //
-    // Load 4 pixels per thread into LDS to fill the 16x16 LDS cache with depth and AO
-    //
-    float2 pxSize = _AOBufferSize.zw * 2;
-    PrefetchData(GTid.x << 1 | GTid.y << 5, int2(DTid.xy + GTid.xy - 2) * pxSize);
-    GroupMemoryBarrierWithGroupSync();
-
-    // Goal:  End up with a 9x9 patch that is blurred so we can upsample.  Blur radius is 2 pixels, so start with 13x13 area.
-
-    //
-    // Horizontally blur the pixels.    13x13 -> 9x13
-    //
-    if (GI < 39)
-        BlurHorizontally((GI / 3) * 16 + (GI % 3) * 3);
-    GroupMemoryBarrierWithGroupSync();
-
-    //
-    // Vertically blur the pixels.        9x13 -> 9x9
-    //
-    if (GI < 45)
-        BlurVertically((GI / 9) * 32 + GI % 9);
-
-    GroupMemoryBarrierWithGroupSync();
-
-    //
-    // Bilateral upsample
-    //
-    uint Idx0 = GTid.x + GTid.y * 16;
-    float4 LoSSAOs = float4(AOCache1[Idx0 + 16], AOCache1[Idx0 + 17], AOCache1[Idx0 + 1], AOCache1[Idx0]);
-    float4 Depths = float4(DepthCache[Idx0 + 16], DepthCache[Idx0 + 17], DepthCache[Idx0 + 1], DepthCache[Idx0]);
-    Depths = rcp(Depths);
-    // We work on a quad of pixels at once because then we can gather 4 each of high and low-res depth values
-    int2 OutST = DTid.xy << 1;
-
-    //float averagedAO = dot(0.25f, LoSSAOs.zwxy);
-    float2 UV0 = DTid.xy * 2 * _AOBufferSize.zw;
-
-    uint4 data = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, UV0);
-    float4 UnpackedAOs, UnpackedDepths;
-    UnpackGatheredData(data, UnpackedAOs, UnpackedDepths);
-
-
-    // zywx
-    _AOPackedBlurred[COORD_TEXTURE2D_X(OutST + int2(0, -1))] = PackAOOutput(LoSSAOs.z, UnpackedDepths.z);
-    _AOPackedBlurred[COORD_TEXTURE2D_X(OutST)] = PackAOOutput(LoSSAOs.y, UnpackedDepths.y);
-    _AOPackedBlurred[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = PackAOOutput(LoSSAOs.w, UnpackedDepths.w);
-    _AOPackedBlurred[COORD_TEXTURE2D_X(OutST + int2(-1, 0))] = PackAOOutput(LoSSAOs.x, UnpackedDepths.x);
-
-    _OutputTexture[COORD_TEXTURE2D_X(OutST + int2(0, -1))] = float4(LoSSAOs.z, UnpackedAOs.z, LoSSAOs.z, UnpackedDepths.z);
-    _OutputTexture[COORD_TEXTURE2D_X(OutST)] = float4(LoSSAOs.y, UnpackedAOs.y, LoSSAOs.y, UnpackedDepths.y);
-    _OutputTexture[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = float4(LoSSAOs.w, UnpackedAOs.w, LoSSAOs.w, UnpackedDepths.w);
-    _OutputTexture[COORD_TEXTURE2D_X(OutST + int2(-1, 0))] = float4( LoSSAOs.x, UnpackedAOs.x, LoSSAOs.x, UnpackedDepths.x);
-}
-
-#endif

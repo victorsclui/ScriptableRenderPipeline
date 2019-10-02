@@ -17,13 +17,11 @@ namespace UnityEditor.Rendering.HighDefinition
         //public ClampedFloatParameter noiseFilterTolerance = new ClampedFloatParameter(-1f, -8f, 0f);
         //public ClampedFloatParameter blurTolerance = new ClampedFloatParameter(-4.6f, -8f, 1f);
         //public ClampedFloatParameter upsampleTolerance = new ClampedFloatParameter(-12f, -12f, -1f);
-        SerializedDataParameter noiseFilterTolerance;
         SerializedDataParameter blurTolerance;
         SerializedDataParameter upsampleTolerance;
-        SerializedDataParameter temporal;
-        SerializedDataParameter biggerBlur;
+        SerializedDataParameter m_TemporalAccumulation;
 
-        SerializedDataParameter dirCount;
+        SerializedDataParameter m_DirectionCount;
 
         // Ray Tracing parameters
         SerializedDataParameter m_RayTracing;
@@ -42,12 +40,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FullResolution = Unpack(o.Find(x => x.fullResolution));
             m_MaximumRadiusInPixels = Unpack(o.Find(x => x.maximumRadiusInPixels));
 
-            noiseFilterTolerance = Unpack(o.Find(x => x.noiseFilterTolerance));
+            m_TemporalAccumulation = Unpack(o.Find(x => x.temporalAccumulation));
+            m_DirectionCount = Unpack(o.Find(x => x.directionCount));
             blurTolerance = Unpack(o.Find(x => x.blurTolerance));
             upsampleTolerance = Unpack(o.Find(x => x.upsampleTolerance));
-            temporal = Unpack(o.Find(x => x.temporal));
-            dirCount = Unpack(o.Find(x => x.dirCount));
-            biggerBlur = Unpack(o.Find(x => x.biggerBlur));
 
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
 
@@ -97,13 +93,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "The effect runs at full resolution. This increases quality, but also decreases performance significantly."));
                 PropertyField(m_StepCount, EditorGUIUtility.TrTextContent("Step Count", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
 
-                PropertyField(temporal, EditorGUIUtility.TrTextContent("temporal", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
-                if(!temporal.value.boolValue)
-                    PropertyField(dirCount, EditorGUIUtility.TrTextContent("dirCount", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+                PropertyField(m_TemporalAccumulation, EditorGUIUtility.TrTextContent("Temporal Accumulation", "Whether the results are accumulated over time or not. This can get better results cheaper, but it can lead to temporal artifacts."));
+                if(!m_TemporalAccumulation.value.boolValue)
+                    PropertyField(m_DirectionCount, EditorGUIUtility.TrTextContent("Direction Count", "Number of directions searched for occlusion at each each pixel."));
 
-                PropertyField(biggerBlur, EditorGUIUtility.TrTextContent("biggerBlur", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
-
-                PropertyField(noiseFilterTolerance, EditorGUIUtility.TrTextContent("noiseFilterTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
                 PropertyField(blurTolerance, EditorGUIUtility.TrTextContent("blurTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
                 PropertyField(upsampleTolerance, EditorGUIUtility.TrTextContent("upsampleTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
 
