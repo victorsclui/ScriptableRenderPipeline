@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed typo in AXF decal property preventing to compile
 - Fixed ShaderGraph material synchronization issues
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
+- Fixed Hair and PBR shader graphs double sided modes
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
