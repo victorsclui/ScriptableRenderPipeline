@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix a potential NaN source with iridescence (case 1183216)
 - Fixed issue that prevented decals from modifying specular occlusion (case 1178272).
 - Fixed ShaderGraph time in main preview
+- Fixed an error caused by turning off Volumetrics, fog and other effects via the editor toggle when AO is active. 
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
