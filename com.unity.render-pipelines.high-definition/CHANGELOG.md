@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where SSR would use an incorrect roughness value on ForwardOnly (StackLit, AxF, Fabric, etc.) materials when the pipeline is configured to also allow deferred Lit.
 - Fix for issue that caused gizmos to render in render textures (case 1174395)
 - Fixed refresh of baked cubemap by incrementing updateCount at the end of the bake (case 1158677).
+- Fixed decals not affecting lightmap/lightprobe
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
