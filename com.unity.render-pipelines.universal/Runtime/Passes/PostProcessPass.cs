@@ -440,7 +440,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 DoBokehDepthOfField(cmd, source, destination);
         }
 
-        // TODO: XR isn't working with Gaussian DOF
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.gaussianDepthOfField;
