@@ -171,15 +171,6 @@ RW_TEXTURE2D_X(uint, _AOOutputHistory);
 TEXTURE2D_X_UINT(_AOPackedBlurred);
 TEXTURE2D_X_UINT(_AOPackedHistory);
 
-float3 FetchAO(float2 coords, float2 offset, float2 scale)
-{
-    float2 uv = (coords + offset * _AOBufferSize.zw) * scale;
-    uint data = LOAD_TEXTURE2D_X(_AOPackedBlurred, uv * _AOBufferSize.xy).x;
-    float AO, depth;
-    UnpackData(data, AO, depth);
-    return AO;
-}
-
 #if HALF_RES
 RW_TEXTURE2D_X(uint, _OcclusionTexture);
 #else
