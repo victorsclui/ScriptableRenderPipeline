@@ -1,6 +1,7 @@
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
