@@ -2471,7 +2471,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
 
     preLightData.screenSpaceAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(posInput.positionSS);
 
-#ifdef _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+#ifdef _ENABLESPECULAROCCLUSION
 
     // -We have 3 lobes with different roughnesses, and these have been placed unclamped and modified by vlayering in
     // iblPerceptualRoughness[].
@@ -2588,7 +2588,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
     preLightData.hemiSpecularOcclusion[BASE_LOBEA_IDX] =
     preLightData.hemiSpecularOcclusion[BASE_LOBEB_IDX] = float3(1.0, 1.0, 1.0);
 
-#endif // _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+#endif // _ENABLESPECULAROCCLUSION
 
 } // PreLightData_SetupOcclusion
 
