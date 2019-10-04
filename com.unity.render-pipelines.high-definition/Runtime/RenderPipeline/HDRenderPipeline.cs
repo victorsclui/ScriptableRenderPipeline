@@ -567,10 +567,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             //Debug.isDebugBuild can be changed during DoBuildPlayer, these allocation has to be check on every frames
             //TODO : Clean this with the RenderGraph system
-            if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null && m_IntermediateAfterPostProcessBuffer == null)
+            if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null)
             {
                 m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugColorPicker");
                 m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugFullScreen");
+            }
+
+            if (m_IntermediateAfterPostProcessBuffer == null)
+            {
+                // We always need this target because there could be a custom pass in after post process mode.
+                // In that case, we need to do the flip y after this pass.
                 m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
             }
         }
@@ -1150,7 +1156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
-            using (DictionaryPool<HDProbe, List<int>>.Get(out Dictionary<HDProbe, List<int>> renderRequestIndicesWhereTheProbeIsVisible))
+            using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
             using (ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
             using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
             {
@@ -1328,20 +1334,29 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Notify that we render the probe at this frame
                         probe.SetIsRendered(Time.frameCount);
 
+                        float visibility = ComputeVisibility(visibleInIndex, probe);
+
                         if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
                         {
-                            visibleInIndices = ListPool<int>.Get();
+                            visibleInIndices = ListPool<(int index, float weight)>.Get();
                             renderRequestIndicesWhereTheProbeIsVisible.Add(probe, visibleInIndices);
                         }
-                        if (!visibleInIndices.Contains(visibleInIndex))
-                            visibleInIndices.Add(visibleInIndex);
+                        if (!visibleInIndices.Contains((visibleInIndex, visibility)))
+                            visibleInIndices.Add((visibleInIndex, visibility));
+                    }
+
+                    float ComputeVisibility(int visibleInIndex, HDProbe visibleProbe)
+                    {
+                        var visibleInRenderRequest = renderRequests[visibleInIndex];
+                        var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
+                        return HDUtils.ComputeWeightedLinearFadeDistance(visibleProbe.transform.position, viewerTransform.position, visibleProbe.weight, visibleProbe.fadeDistance);
                     }
                 }
 
                 foreach (var probeToRenderAndDependencies in renderRequestIndicesWhereTheProbeIsVisible)
                 {
                     var visibleProbe = probeToRenderAndDependencies.Key;
-                    var visibleInIndices = probeToRenderAndDependencies.Value;
+                    var visibilities = probeToRenderAndDependencies.Value;
 
                     // Two cases:
                     //   - If the probe is view independent, we add only one render request per face that is
@@ -1352,32 +1367,45 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (isViewDependent)
                     {
-                        for (int i = 0; i < visibleInIndices.Count; ++i)
-                    {
-                            var visibleInIndex = visibleInIndices[i];
-                            var visibleInRenderRequest = renderRequests[visibleInIndices[i]];
+                        for (int i = 0; i < visibilities.Count; ++i)
+                        {
+                            var visibility = visibilities[i];
+                            if (visibility.weight <= 0f)
+                                continue;
+
+                            var visibleInIndex = visibility.index;
+                            var visibleInRenderRequest = renderRequests[visibleInIndex];
                             var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
 
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
-                                Enumerable.Repeat(visibleInIndex, 1),
+                                Enumerable.Repeat(visibility, 1),
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView
                             );
                         }
                     }
                     else
-                        AddHDProbeRenderRequests(visibleProbe, null, visibleInIndices);
+                    {
+                        bool visibleInOneViewer = false;
+                        for (int i = 0; i < visibilities.Count && !visibleInOneViewer; ++i)
+                        {
+                            if (visibilities[i].weight > 0f)
+                                visibleInOneViewer = true;
+                        }
+                        if (visibleInOneViewer)
+                            AddHDProbeRenderRequests(visibleProbe, null, visibilities);
+                    }
                 }
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
-                    ListPool<int>.Release(pair.Value);
+                    ListPool<(int index, float weight)>.Release(pair.Value);
                 renderRequestIndicesWhereTheProbeIsVisible.Clear();
 
                 // Local function to share common code between view dependent and view independent requests
                 void AddHDProbeRenderRequests(
                     HDProbe visibleProbe,
                     Transform viewerTransform,
-                    IEnumerable<int> visibleInIndices,
+                    IEnumerable<(int index, float weight)> visibilities,
                     float referenceFieldOfView = 90
                 )
                 {
@@ -1518,8 +1546,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         renderRequests.Add(request);
 
 
-                        foreach (var visibleInIndex in visibleInIndices)
-                            renderRequests[visibleInIndex].dependsOnRenderRequestIndices.Add(request.index);
+                        foreach (var visibility in visibilities)
+                            renderRequests[visibility.index].dependsOnRenderRequestIndices.Add(request.index);
                     }
                 }
 
@@ -2180,9 +2208,11 @@ namespace UnityEngine.Rendering.HighDefinition
             aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
             RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
 
+            bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, cullingResults, CustomPassInjectionPoint.AfterPostProcess);
+
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
-            if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid)
+            if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid || hasAfterPostProcessCustomPass)
             {
                 hdCamera.ExecuteCaptureActions(m_IntermediateAfterPostProcessBuffer, cmd);
 
@@ -3343,27 +3373,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderCustomPass(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResults, CustomPassInjectionPoint injectionPoint)
+        bool RenderCustomPass(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResults, CustomPassInjectionPoint injectionPoint)
         {
+            // We don't want custom pass in previews
+            if (hdCamera.camera.cameraType == CameraType.Preview)
+                return false;
+
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
-                return;
+                return false;
 
             var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
 
             if (customPass == null)
-                return;
+                return false;
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
             var customPassTargets = new CustomPass.RenderTargets
             {
-                cameraColorBuffer = m_CameraColorBuffer,
+                cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : m_CameraColorBuffer,
                 cameraDepthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaa),
                 customColorBuffer = m_CustomPassColorBuffer,
                 customDepthBuffer = m_CustomPassDepthBuffer,
             };
 
-            customPass.Execute(context, cmd, hdCamera, cullingResults, customPassTargets);
+            return customPass.Execute(context, cmd, hdCamera, cullingResults, customPassTargets);
         }
 
         void RenderTransparentDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
