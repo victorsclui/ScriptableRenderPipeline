@@ -4,14 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.2.0] - 2019-XX-XX
+## [8.0.0] - 2019-XX-XX
+
+### Added
+- Ray tracing support for VR single-pass
+- Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
+- Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
+- Add check in wizard on SRP Batcher enabled.
+- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
+- Added custom pass fade radius
+- Added after post process injection point for custom passes
+- Added basic alpha compositing support - Alpha is available afterpostprocess when using FP16 buffer format.
+- Added falloff distance on Reflection Probe and Planar Reflection Probe
 
 ### Fixed
-- Fixed alpha blending in custom post process
-
-### Fixed
+- Fixed sky settings and materials in Shader Graph Samples package
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
-- Fixed light supported units caching (1182266)
 - Fixed Hair and PBR shader graphs double sided modes
 - Fixed an issue where updating an HDRP asset in the Quality setting panel would not recreate the pipeline.
 - Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
@@ -22,6 +30,58 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed extra jitter for TemporalAA in VR
 - Fixed ShaderGraph time in main preview
 - Fixed issue on some UI elements in HDRP asset not expanding when clicking the arrow (case 1178369)
+- Fixed alpha blending in custom post process
+- Fixed the modification of the _AlphaCutoff property in the material UI when exposed with a ShaderGraph parameter.
+- Fixed HDRP test `1218_Lit_DiffusionProfiles` on Vulkan.
+- Fixed an issue where building a player in non-dev mode would generate render target error logs every frame
+- Fixed crash when upgrading version of HDRP
+- Fixed rendering issues with material previews
+- Fixed NPE when using light module in Shuriken particle systems (1173348).
+- Refresh cached shadow on editor changes
+- Fixed light supported units caching (1182266)
+- Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
+- Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
+- Fixed Decal gizmo that become white after exiting play mode
+- Fixed Decal pivot position to behave like a spotlight
+- Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
+- Fix DebugMenu FrameSettingsHistory persistency on close
+- Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
+- Fix DXR scene serialization in wizard
+- Fixed an issue where Previews would reallocate History Buffers every frame
+- Fixed the SetLightLayer function in HDAdditionalLightData setting the wrong light layer
+- Fix error first time a preview is created for planar
+- Fixed an issue where SSR would use an incorrect roughness value on ForwardOnly (StackLit, AxF, Fabric, etc.) materials when the pipeline is configured to also allow deferred Lit.
+- Fixed issues with light explorer (cases 1183468, 1183269)
+- Fix dot colors in LayeredLit material inspector
+- Fix undo not resetting all value when undoing the material affectation in LayerLit material
+- Fix for issue that caused gizmos to render in render textures (case 1174395)
+- Fixed the light emissive mesh not updated when the light was disabled/enabled
+- Fixed light and shadow layer sync when setting the HDAdditionalLightData.lightlayersMask property
+- Fixed a nullref when a custom post process component that was in the HDRP PP list is removed from the project
+- Fixed issue that prevented decals from modifying specular occlusion (case 1178272).
+- Fixed exposure of volumetric reprojection
+- Fixed multi selection support for Scalable Settings in lights
+- Fixed font shaders in test projects for VR by using a Shader Graph version
+- Fixed refresh of baked cubemap by incrementing updateCount at the end of the bake (case 1158677).
+- Fixed issue with rectangular area light when seen from the back
+- Fixed decals not affecting lightmap/lightprobe
+- Fixed zBufferParams with XR single-pass rendering
+- Fixed moving objects not rendered in custom passes
+- Fixed abstract classes listed in the + menu of the custom pass list
+- Fixed custom pass that was rendered in previews
+- Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
+
+### Changed
+- Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
+- Rename Emission Radius to Radius in UI in Point, Spot
+- Angular Diameter parameter for directional light is no longuer an advanced property
+- DXR: Remove Light Radius and Angular Diamater of Raytrace shadow. Angular Diameter and Radius are used instead. 
+- Remove MaxSmoothness parameters from UI for point, spot and directional light. The MaxSmoothness is now deduce from Radius Parameters
+- DXR: Remove the Ray Tracing Environement Component. Add a Layer Mask to the ray Tracing volume components to define which objects are taken into account for each effect.
+- Removed second cubemaps used for shadowing in lookdev
+- Disable Physically Based Sky below ground
+- Increase max limit of area light and reflection probe to 128
+- Change default texture for detailmap to grey
 
 ## [7.1.1] - 2019-09-05
 
