@@ -209,7 +209,7 @@ half3 MixFog(real3 fragColor, real fogFactor)
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 
     // Only single-pass stereo instancing uses array indexing
-    #if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
         #define SLICE_ARRAY_INDEX   unity_StereoEyeIndex
     #else
         #define SLICE_ARRAY_INDEX   0
