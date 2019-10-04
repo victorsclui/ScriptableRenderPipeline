@@ -6,6 +6,8 @@
 // ----------------------------------------------------------------------------------
 // Common shader data used in most post-processing passes
 
+half4x4 _PostProcessingProjMatrix;
+
 struct Attributes
 {
     float4 positionOS   : POSITION;
@@ -29,8 +31,6 @@ Varyings Vert(Attributes input)
     output.uv = input.uv;
     return output;
 }
-
-half4x4 _PostProcessingProjMatrix;
 
 Varyings VertMesh(Attributes input)
 {

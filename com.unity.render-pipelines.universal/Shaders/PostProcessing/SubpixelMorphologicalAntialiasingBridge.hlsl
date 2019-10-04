@@ -52,7 +52,7 @@ VaryingsEdge VertEdge(Attributes input)
     VaryingsEdge output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+    output.positionCS = mul(_PostProcessingProjMatrix, float4(input.positionOS.xyz, 1));
     output.uv = input.uv;
     SMAAEdgeDetectionVS(output.uv, output.offsets);
     return output;
@@ -81,7 +81,7 @@ VaryingsBlend VertBlend(Attributes input)
     VaryingsBlend output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+    output.positionCS = mul(_PostProcessingProjMatrix, float4(input.positionOS.xyz, 1));
     output.uv = input.uv;
     SMAABlendingWeightCalculationVS(output.uv, output.pixcoord, output.offsets);
     return output;
@@ -110,7 +110,7 @@ VaryingsNeighbor VertNeighbor(Attributes input)
     VaryingsNeighbor output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+    output.positionCS = mul(_PostProcessingProjMatrix, float4(input.positionOS.xyz, 1));
     output.uv = input.uv;
     SMAANeighborhoodBlendingVS(output.uv, output.offset);
     return output;

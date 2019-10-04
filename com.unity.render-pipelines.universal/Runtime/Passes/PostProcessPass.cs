@@ -403,25 +403,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetViewport(camera.pixelRect);
 
             // Pass 1: Edge detection
-            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, m_Depth.Identifier());
+            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, m_Depth.Identifier(), 0, CubemapFace.Unknown, -1);
             cmd.ClearRenderTarget(true, true, Color.clear); // TODO: Explicitly clearing depth/stencil here but we shouldn't have to, FIXME /!\
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
-            cmd.Blit(source, ShaderConstants._EdgeTexture, material, 0);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
 
             // Pass 2: Blend weights
-            cmd.SetRenderTarget(ShaderConstants._BlendTexture, m_Depth.Identifier());
+            cmd.SetRenderTarget(ShaderConstants._BlendTexture, m_Depth.Identifier(), 0, CubemapFace.Unknown, -1);
             cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
-            //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
-            cmd.Blit(source, ShaderConstants._BlendTexture, material, 1);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
 
             // Pass 3: Neighborhood blending
-            cmd.SetRenderTarget(destination);
+            cmd.SetRenderTarget(destination, 0, CubemapFace.Unknown, -1);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
-            //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
-            cmd.Blit(source, destination, material, 2);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
@@ -475,18 +472,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MRT2[0] = ShaderConstants._HalfCoCTexture;
             m_MRT2[1] = ShaderConstants._PingTexture;
 
-
-
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.SetViewport(camera.pixelRect);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
             cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture, 0, CubemapFace.Unknown, -1);
-            //cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
-
-            //cmd.Blit(source, ShaderConstants._PingTexture, material, 1);
-
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
