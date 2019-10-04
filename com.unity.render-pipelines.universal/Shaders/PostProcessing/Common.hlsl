@@ -30,6 +30,18 @@ Varyings Vert(Attributes input)
     return output;
 }
 
+half4x4 _PostProcessingProjMatrix;
+
+Varyings VertMesh(Attributes input)
+{
+    Varyings output;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+    output.positionCS = mul(_PostProcessingProjMatrix, float4(input.positionOS.xyz, 1));
+    output.uv = input.uv;
+    return output;
+}
+
 // ----------------------------------------------------------------------------------
 // Samplers
 
@@ -56,6 +68,11 @@ half GetLuminance(half3 colorLinear)
 
 half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, float roundness, float smoothness, half3 color)
 {
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    center = UnityStereoTransformScreenSpaceTex(center);
+    intensity /= unity_StereoScaleOffset[unity_StereoEyeIndex].x;
+#endif
+
     float2 dist = abs(uv - center) * intensity;
     dist.x *= roundness;
     float vfactor = pow(saturate(1.0 - dot(dist, dist)), smoothness);

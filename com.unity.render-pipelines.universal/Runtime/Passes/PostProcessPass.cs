@@ -232,6 +232,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             void Swap() => CoreUtils.Swap(ref source, ref destination);
 
+            // Setup projection matrix for cmd.DrawMesh()
+            cmd.SetGlobalMatrix("_PostProcessingProjMatrix", GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
+
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
             if (cameraData.isStopNaNEnabled && m_Materials.stopNaN != null)
@@ -311,7 +314,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Only apply dithering & grain if there isn't a final pass.
                 SetupGrain(cameraData.camera, m_Materials.uber);
                 SetupDithering(ref cameraData, m_Materials.uber);
-				
+
 				if (Display.main.requiresSrgbBlitToBackbuffer)
 					m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
@@ -350,13 +353,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private BuiltinRenderTextureType BlitDstDiscardContent(CommandBuffer cmd, RenderTargetIdentifier rt)
         {
-            cmd.SetRenderTarget(rt, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            if (m_IsStereo)
+            {
+                // TODO: XR requires new method to set load/store actions AND depth slice to -1
+                cmd.SetRenderTarget(rt, 0, CubemapFace.Unknown, -1);
+            }
+            else
+            {
+                cmd.SetRenderTarget(rt, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            }
+
             return BuiltinRenderTextureType.CurrentActive;
         }
 
         #region Sub-pixel Morphological Anti-aliasing
 
-        // TODO: XR isn't working with SMAA
         void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             var camera = cameraData.camera;
@@ -384,8 +395,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Intermediate targets
-            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, m_Descriptor.width, m_Descriptor.height, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
-            cmd.GetTemporaryRT(ShaderConstants._BlendTexture, m_Descriptor.width, m_Descriptor.height, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
+            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
+            cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
 
             // Prepare for manual blit
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
@@ -395,19 +406,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetRenderTarget(ShaderConstants._EdgeTexture, m_Depth.Identifier());
             cmd.ClearRenderTarget(true, true, Color.clear); // TODO: Explicitly clearing depth/stencil here but we shouldn't have to, FIXME /!\
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+            //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+            cmd.Blit(source, ShaderConstants._EdgeTexture, material, 0);
 
             // Pass 2: Blend weights
             cmd.SetRenderTarget(ShaderConstants._BlendTexture, m_Depth.Identifier());
             cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+            //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+            cmd.Blit(source, ShaderConstants._BlendTexture, material, 1);
 
             // Pass 3: Neighborhood blending
             cmd.SetRenderTarget(destination);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
+            //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
+            cmd.Blit(source, destination, material, 2);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
@@ -461,12 +475,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MRT2[0] = ShaderConstants._HalfCoCTexture;
             m_MRT2[1] = ShaderConstants._PingTexture;
 
+
+
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.SetViewport(camera.pixelRect);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
-            cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
+            cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture, 0, CubemapFace.Unknown, -1);
+            //cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+
+            //cmd.Blit(source, ShaderConstants._PingTexture, material, 1);
+
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
@@ -966,7 +986,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             SetupGrain(cameraData.camera, material);
             SetupDithering(ref cameraData, material);
-			
+
 			if (Display.main.requiresSrgbBlitToBackbuffer)
 				material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 

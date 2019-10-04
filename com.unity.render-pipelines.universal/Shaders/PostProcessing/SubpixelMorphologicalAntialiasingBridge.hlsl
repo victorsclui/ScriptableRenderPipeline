@@ -90,7 +90,8 @@ VaryingsBlend VertBlend(Attributes input)
 float4 FragBlend(VaryingsBlend input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return SMAABlendingWeightCalculationPS(input.uv, input.pixcoord, input.offsets, _ColorTexture, _AreaTexture, _SearchTexture, 0);
+    float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+    return SMAABlendingWeightCalculationPS(uv, input.pixcoord, input.offsets, _ColorTexture, _AreaTexture, _SearchTexture, 0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -118,7 +119,8 @@ VaryingsNeighbor VertNeighbor(Attributes input)
 float4 FragNeighbor(VaryingsNeighbor input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return SMAANeighborhoodBlendingPS(input.uv, input.offset, _ColorTexture, _BlendTexture);
+    float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+    return SMAANeighborhoodBlendingPS(uv, input.offset, _ColorTexture, _BlendTexture);
 }
 
 #endif // UNIVERSAL_POSTPROCESSING_SMAA_BRIDGE
