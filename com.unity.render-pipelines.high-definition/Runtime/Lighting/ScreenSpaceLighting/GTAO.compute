@@ -28,8 +28,6 @@
 #define NORMAL_FROM_GBUFFER 1
 #define NORMAL_COMPUTATION NORMAL_FROM_GBUFFER
 
-#define WEIGHT_WITH_PROJ_N_LENGTH 0
-
 // --------------------------------------------
 // Integration functions
 // --------------------------------------------
@@ -51,7 +49,7 @@ float UpdateHorizon(float maxH, float candidateH, float distSq)
 {
     float falloff = saturate((1.0 - (distSq * _AOInvRadiusSq)));
 
-    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : maxH;        // TODO_FCC: Thickness heuristic here.
+    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : maxH;        // TODO: Thickness heuristic here.
 }
 
 // --------------------------------------------
@@ -160,7 +158,7 @@ float3 GetNormalVS(float4 normalBufferData)
 
 float HorizonLoop(float3 positionVS, float3 V, float2 rayStart, float2 rayDir, float rayOffset, float rayStep, int mipModifier)
 {
-    float maxHorizon = -1;
+    float maxHorizon = -1.0f;  // cos(pi), but 
     float t = rayOffset * rayStep + rayStep;
 
     const uint startWithLowerRes = min(max(0, _AOStepCount / 2 - 2), 3);
@@ -215,6 +213,9 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float fovCorrectedradiusSS = clamp(_AORadius * _AOFOVCorrection * rcp(positionVS.z), _AOStepCount, _AOMaxRadiusInPixels);
     float step = fovCorrectedradiusSS * _AOInvStepCountPlusOne;
 
+#ifdef TEMPORAL
+    [unroll]
+#endif
     for (int i = 0; i < dirCount; ++i)
     {
         float2 dir = GetDirection(dispatchThreadId.xy, i);
@@ -246,8 +247,7 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
         maxHorizons.y = GTAOFastAcos(maxHorizons.y);
         maxHorizons.x = N + max(maxHorizons.x - N, -HALF_PI);
         maxHorizons.y = N + min(maxHorizons.y - N, HALF_PI);
-
-        integral += IntegrateArcCosWeighted(maxHorizons.x, maxHorizons.y, N, cosN);
+        integral += any(isnan(maxHorizons)) ? 1 : IntegrateArcCosWeighted(maxHorizons.x, maxHorizons.y, N, cosN);
     }
 
     integral /= dirCount;

@@ -12,13 +12,7 @@
 // Author:  James Stanard 
 //
 
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
-
-#define _BlurTolerance _AOParams3.x
-#define _UpsampleTolerance _AOParams3.y
-#define _NoiseFilterStrength _AOParams3.z
-#define _StepSize _AOParams3.w
 
 #pragma kernel BlurUpsample
 
@@ -165,7 +159,8 @@ void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : 
     //
     // Load 4 pixels per thread into LDS to fill the 16x16 LDS cache with depth and AO
     //
-    PrefetchData(GTid.x << 1 | GTid.y << 5, int2(DTid.xy + GTid.xy - 2) * _AOBufferSize.zw);
+    float2 UV = ClampAndScaleUVForBilinear(int2(DTid.xy + GTid.xy - 2) * _AOBufferSize.zw, _AOBufferSize.zw);
+    PrefetchData(GTid.x << 1 | GTid.y << 5, UV);
     GroupMemoryBarrierWithGroupSync();
 
     // Goal:  End up with a 9x9 patch that is blurred so we can upsample.  Blur radius is 2 pixels, so start with 13x13 area.

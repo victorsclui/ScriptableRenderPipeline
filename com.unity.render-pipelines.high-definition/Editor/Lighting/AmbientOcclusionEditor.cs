@@ -14,14 +14,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FullResolution;
         SerializedDataParameter m_MaximumRadiusInPixels;
         SerializedDataParameter m_DirectLightingStrength;
-        //public ClampedFloatParameter noiseFilterTolerance = new ClampedFloatParameter(-1f, -8f, 0f);
-        //public ClampedFloatParameter blurTolerance = new ClampedFloatParameter(-4.6f, -8f, 1f);
-        //public ClampedFloatParameter upsampleTolerance = new ClampedFloatParameter(-12f, -12f, -1f);
-        SerializedDataParameter blurTolerance;
-        SerializedDataParameter upsampleTolerance;
         SerializedDataParameter m_TemporalAccumulation;
+        SerializedDataParameter m_GhostingAdjustement;
 
         SerializedDataParameter m_DirectionCount;
+        SerializedDataParameter m_BlurSharpness;
 
         // Ray Tracing parameters
         SerializedDataParameter m_RayTracing;
@@ -42,10 +39,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_TemporalAccumulation = Unpack(o.Find(x => x.temporalAccumulation));
             m_DirectionCount = Unpack(o.Find(x => x.directionCount));
-            blurTolerance = Unpack(o.Find(x => x.blurTolerance));
-            upsampleTolerance = Unpack(o.Find(x => x.upsampleTolerance));
-
+            m_BlurSharpness = Unpack(o.Find(x => x.blurSharpness));
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
+            m_GhostingAdjustement = Unpack(o.Find(x => x.ghostingReduction));
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
@@ -95,10 +91,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_TemporalAccumulation, EditorGUIUtility.TrTextContent("Temporal Accumulation", "Whether the results are accumulated over time or not. This can get better results cheaper, but it can lead to temporal artifacts."));
                 if(!m_TemporalAccumulation.value.boolValue)
+                {
                     PropertyField(m_DirectionCount, EditorGUIUtility.TrTextContent("Direction Count", "Number of directions searched for occlusion at each each pixel."));
-
-                PropertyField(blurTolerance, EditorGUIUtility.TrTextContent("blurTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
-                PropertyField(upsampleTolerance, EditorGUIUtility.TrTextContent("upsampleTolerance", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+                    PropertyField(m_BlurSharpness, EditorGUIUtility.TrTextContent("Blur sharpness", "Modify the non-temporal blur to change how sharp features are preserved. Lower values blurrier/softer, higher values sharper but with risk of noise."));
+                }
+                else
+                {
+                    PropertyField(m_GhostingAdjustement, EditorGUIUtility.TrTextContent("Ghosting reduction", "Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise."));
+                }
 
             }
         }

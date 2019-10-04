@@ -18,9 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ClampedIntParameter directionCount = new ClampedIntParameter(1, 1, 8);
 
-        public ClampedFloatParameter blurTolerance = new ClampedFloatParameter(-4.6f, -5f, 0.25f);
-        public ClampedFloatParameter upsampleTolerance = new ClampedFloatParameter(-7.0f, -12.0f, -0.25f);
-
+        public ClampedFloatParameter ghostingReduction = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
         public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
@@ -227,9 +226,16 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             float stepSize = m_RunningFullRes ? 1 : 0.5f;
-            float bTolerance = 1f - Mathf.Pow(10f, settings.blurTolerance.value) * stepSize;
+
+            float blurTolerance = 1.0f - settings.blurSharpness.value;
+            float maxBlurTolerance = 0.25f;
+            float minBlurTolerance = -2.5f;
+            blurTolerance = minBlurTolerance + (blurTolerance * (maxBlurTolerance - minBlurTolerance));
+
+            float bTolerance = 1f - Mathf.Pow(10f, blurTolerance) * stepSize;
             bTolerance *= bTolerance;
-            float uTolerance = Mathf.Pow(10f, settings.upsampleTolerance.value);
+            const float upsampleTolerance = -7.0f; // TODO: Expose?
+            float uTolerance = Mathf.Pow(10f, upsampleTolerance);
             float noiseFilterWeight = 1f / (Mathf.Pow(10f, 0.0f) + uTolerance);
 
             parameters.aoParams3 = new Vector4(
@@ -239,10 +245,14 @@ namespace UnityEngine.Rendering.HighDefinition
                  stepSize
             );
 
+            float upperNudgeFactor = 1.0f - settings.ghostingReduction.value;
+            const float maxUpperNudgeLimit = 5.0f;
+            const float minUpperNudgeLimit = 0.25f;
+            upperNudgeFactor = minUpperNudgeLimit + (upperNudgeFactor * (maxUpperNudgeLimit - minUpperNudgeLimit));
             parameters.aoParams4 = new Vector4(
                 settings.directionCount.value,
-                0,
-                0,
+                upperNudgeFactor,
+                minUpperNudgeLimit,
                 0
                 );
 
@@ -336,6 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams0, parameters.aoParams0);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams3, parameters.aoParams3);
+                cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams4, parameters.aoParams4);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
 
                 // Blur and upsample

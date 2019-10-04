@@ -26,6 +26,15 @@ CBUFFER_END
 #define _AORTHandleSize _AOParams2.xy
 #define _AODirectionCount _AOParams4.x
 
+// For denoising, whether temporal or not
+#define _BlurTolerance _AOParams3.x
+#define _UpsampleTolerance _AOParams3.y
+#define _NoiseFilterStrength _AOParams3.z
+#define _StepSize _AOParams3.w
+#define _AOTemporalUpperNudgeLimit _AOParams4.y
+#define _AOTemporalLowerNudgeLimit _AOParams4.z
+
+
 // If this is set to 0 best quality is achieved when full res, but performance is significantly lower.
 // If set to 1, when full res, it may lead to extra aliasing and loss of detail, but still significant higher quality than half res.
 #define HALF_RES_DEPTH_WHEN_FULL_RES 1 // Make this an option.

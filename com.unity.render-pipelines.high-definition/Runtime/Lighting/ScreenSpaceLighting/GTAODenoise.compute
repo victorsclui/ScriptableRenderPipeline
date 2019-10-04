@@ -186,23 +186,25 @@ RW_TEXTURE2D_X(uint, _OcclusionTexture);
 RW_TEXTURE2D_X(float, _OcclusionTexture);
 #endif
 
-float2 FindMinMaxAO(float2 centralPos)
+float3 FindMinMaxAvgAO(float2 centralPos)
 {
-    float minAO = 0.0;
-    float maxAO = 0.0;
-    for (int i = -1; i < 1; ++i)
+    float minAO = 2.0f;
+    float maxAO = -2.0f;
+    float avg = 0;
+    for (int i = -1; i <= 1; ++i)
     {
-        for (int j = -1; j < 1; ++j)
+        for (int j = -1; j <= 1; ++j)
         {
             uint data = LOAD_TEXTURE2D_X(_AOPackedBlurred, (uint2)centralPos + uint2(i, j));
-            float currAO, off;
-            UnpackData(data, currAO, off);
+            float currAO, ignored;
+            UnpackData(data, currAO, ignored);
+            avg += currAO;
             minAO = min(minAO, currAO);
             maxAO = max(maxAO, currAO);
         }
     }
 
-    return float2(minAO, maxAO);
+    return float3(minAO, maxAO, avg/9);
 }
 
 [numthreads(8, 8, 1)]
@@ -233,38 +235,32 @@ void TEMPORAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float prevMotionVecLen, prevAO, prevDepth;
     UnpackHistoryData(prevData, prevAO, prevDepth, prevMotionVecLen);
 
-    uint4 currDatas = GATHER_TEXTURE2D_X(_AOPackedBlurred, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, _AOBufferSize.zw));
-    float4 currAOs, currDepths;
-    UnpackGatheredData(currDatas, currAOs, currDepths);
-
     float motionVecWeighting = saturate(motionVecLength * 100.0);
-    float velWeight = 1.0f - abs(prevMotionVecLen - motionVecWeighting);
+    float velWeight = 1.0f - saturate((abs(prevMotionVecLen - motionVecWeighting)) * 3.0f);
 
-    float2 minMax = FindMinMaxAO(float2(dispatchThreadId.xy));
-    float minAO = min(Min3(currAOs.x, currAOs.y, currAOs.z), currAOs.w);
-    float maxAO = max(Max3(currAOs.x, currAOs.y, currAOs.z), currAOs.w);
-
-    // TODO: This require a better investigation. Values in this are pretty much set without too much thought. 
-    float nudge = lerp(10, 2, motionVecWeighting) * abs(dot(currAOs, 0.25) - currAO);
-    nudge *= velWeight;
+    float3 minMax = FindMinMaxAvgAO(float2(dispatchThreadId.xy));
+    float minAO = minMax.x;
+    float maxAO = minMax.y;
+    float avg = minMax.z;
+    float nudge = lerp(_AOTemporalUpperNudgeLimit, _AOTemporalLowerNudgeLimit, motionVecWeighting) * abs(avg - currAO);
     minAO -= nudge;
     maxAO += nudge;
 
-    float diff = abs(currAOs.y - prevAO) / Max3(prevAO, currAO, 0.2);
+    float diff = abs(currAO - prevAO) / Max3(prevAO, currAO, 0.1f);
     float weight = 1.0 - diff;
     float feedback = lerp(0.85, 0.95, weight * weight);
 
     prevAO = clamp(prevAO, minAO, maxAO);
 
-    float depth_similarity = saturate(pow(prevDepth / currDepths.y, 1) + 0.01);
+    float depth_similarity = saturate(pow(prevDepth / currDepth, 1) + 0.01);
 
     float newAO = (lerp(currAO, prevAO, feedback * depth_similarity * velWeight));
 
-    _AOOutputHistory[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackHistoryData(newAO, currDepths.y, motionVecWeighting);
+    _AOOutputHistory[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackHistoryData(newAO, currDepth, motionVecWeighting);
 
 #ifdef HALF_RES
     // The conversion and the pow happens in upsample phase.
-    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(newAO, currDepths.y);
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(newAO, currDepth);
 #else
     _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = OutputFinalAO(newAO);
 #endif
