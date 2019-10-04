@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ray tracing support for VR single-pass
 - Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
 - Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
+- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
 - Add check in wizard on SRP Batcher enabled.
 - Added custom pass fade radius
 - Added after post process injection point for custom passes
@@ -68,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed moving objects not rendered in custom passes
 - Fixed abstract classes listed in the + menu of the custom pass list
 - Fixed custom pass that was rendered in previews
+- Fixed issues with decals htile buffer causing artefecat of decal
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
