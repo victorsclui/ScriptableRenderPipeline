@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                      // Reset keywords
                     if (material.shader.name == shader.name)
-                        HDShaderUtils.ResetMaterialKeywords(material);
+                        HDEditorUtils.ResetMaterialKeywords(material);
                 }
             }
             finally
