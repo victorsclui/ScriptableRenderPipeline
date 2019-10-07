@@ -24,7 +24,6 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
-        public bool killAlphaInFinalBlit;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct LightData
@@ -108,7 +107,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
-        public static readonly string KillAlpha = "_KILL_ALPHA";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
