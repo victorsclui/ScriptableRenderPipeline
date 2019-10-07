@@ -52,28 +52,8 @@ float UpdateHorizon(float maxH, float candidateH, float distSq)
 }
 
 // --------------------------------------------
-// Noisy functions
+// Direction functions
 // --------------------------------------------
-
-float2 GetDirection(uint2 positionSS)
-{
-    // Spatial distribution 
-    float noise = (1.0 / 16.0) * ((((positionSS.x + positionSS.y) & 0x3) << 2) +
-        // Note: in the original presentation, this has a bug as the following needs to be positionSS.y and not positionSS.x
-        (positionSS.y & 0x3)) * PI;
-
-#if TEMPORAL_ROTATION
-    // Temporal rotations
-    float rotations[] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
-    float rotation = (rotations[_AOTemporalRotationIdx] / 360.0);
-
-    noise += rotation; 
-#endif
-
-    float2 dir = float2(cos(noise), sin(noise));
-
-    return dir;
-}
 
 float2 GetDirection(uint2 positionSS, int offset)
 {
@@ -109,22 +89,6 @@ float GetOffset(uint2 positionSS)
     return frac(offset);
 }
 
-float GetOffset(uint2 positionSS, uint iteration)
-{
-    // Spatial offset
-    float offset = 0.25 * ((positionSS.y - positionSS.x) & 0x3);
-
-    float offsets[] = { 0.0, 0.5, 0.25, 0.75 };
-    // Temporal offset
-#if ENABLE_TEMPORAL_OFFSET
-    offset += offsets[_AOTemporalOffsetIdx];
-#else
-    offset += offsets[iteration];
-#endif
-    return frac(offset);
-}
-
-
 // --------------------------------------------
 // Input generation functions
 // --------------------------------------------
@@ -155,7 +119,7 @@ float3 GetNormalVS(float4 normalBufferData)
 
 float HorizonLoop(float3 positionVS, float3 V, float2 rayStart, float2 rayDir, float rayOffset, float rayStep, int mipModifier)
 {
-    float maxHorizon = -1.0f;  // cos(pi), but 
+    float maxHorizon = -1.0f;  // cos(pi) 
     float t = rayOffset * rayStep + rayStep;
 
     const uint startWithLowerRes = min(max(0, _AOStepCount / 2 - 2), 3);
@@ -208,7 +172,7 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 V = normalize(-positionVS);
     float fovCorrectedradiusSS = clamp(_AORadius * _AOFOVCorrection * rcp(positionVS.z), _AOStepCount, _AOMaxRadiusInPixels);
-    float step = fovCorrectedradiusSS * _AOInvStepCountPlusOne;
+    float step = max(1, fovCorrectedradiusSS * _AOInvStepCountPlusOne);
 
 #ifdef TEMPORAL
     [unroll]

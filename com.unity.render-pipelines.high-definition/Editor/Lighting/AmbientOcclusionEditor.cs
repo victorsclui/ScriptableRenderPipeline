@@ -14,9 +14,13 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FullResolution;
         SerializedDataParameter m_MaximumRadiusInPixels;
         SerializedDataParameter m_DirectLightingStrength;
+
+        // Temporal only parameters
         SerializedDataParameter m_TemporalAccumulation;
         SerializedDataParameter m_GhostingAdjustement;
+        SerializedDataParameter m_BilateralUpsample;
 
+        // Non-temporal only parameters
         SerializedDataParameter m_DirectionCount;
         SerializedDataParameter m_BlurSharpness;
 
@@ -26,6 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
+
+        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
@@ -42,10 +48,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BlurSharpness = Unpack(o.Find(x => x.blurSharpness));
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
             m_GhostingAdjustement = Unpack(o.Find(x => x.ghostingReduction));
+            m_BilateralUpsample = Unpack(o.Find(x => x.bilateralUpsample));
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
-
             m_Denoise = Unpack(o.Find(x => x.denoise));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
@@ -104,6 +110,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     PropertyField(m_GhostingAdjustement, EditorGUIUtility.TrTextContent("Ghosting reduction", "Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise."));
+                    if(isInAdvancedMode && !m_FullResolution.value.boolValue)
+                        PropertyField(m_BilateralUpsample, EditorGUIUtility.TrTextContent("Bilateral Upsample", "This upsample method preserves sharp edges better, however can result in visible aliasing and it is slightly more expensive."));
                 }
 
             }

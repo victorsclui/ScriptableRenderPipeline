@@ -16,14 +16,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter fullResolution = new BoolParameter(false);
         public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
 
-        public BoolParameter otherBlur = new BoolParameter(false);
+        // Temporal only parameters
+        public ClampedFloatParameter ghostingReduction = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public BoolParameter bilateralUpsample = new BoolParameter(true);
 
-
-        public ClampedIntParameter directionCount = new ClampedIntParameter(1, 1, 8);
-
-        public ClampedFloatParameter ghostingReduction = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        // Non-temporal only parameters
+        public ClampedIntParameter directionCount = new ClampedIntParameter(2, 1, 8);
         public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
+        // Ray tracing parameters    
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
         public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
         public BoolParameter denoise = new BoolParameter(false);
@@ -148,17 +149,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader    gtaoCS;
             public int              gtaoKernel;
             public ComputeShader    denoiseAOCS;
-            public ComputeShader    upsampleAndBlurAOCS;
             public int              denoiseKernelSpatial;
-
-            public int denoiseKernelSpatialTEST;
-
 
             public int              denoiseKernelTemporal;
             public int              denoiseKernelCopyHistory;
+            public ComputeShader    upsampleAndBlurAOCS;
             public int              upsampleAndBlurKernel;
-            public ComputeShader    upsampleAOCS;
             public int              upsampleAOKernel;
+
             public Vector4          aoParams0;
             public Vector4          aoParams1;
             public Vector4          aoParams2;
@@ -174,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             fullResolution;
             public bool             runAsync;
             public bool             temporalAccumulation;
-            public bool otherBlur;
+            public bool             bilateralUpsample;
 
         }
 
@@ -207,6 +205,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 settings.stepCount.value
                 );
 
+            float[] rotations = { 60.0f, 300.0f, 180.0f, 240.0f, 120.0f, 0.0f };
+            float[] offsets = { 0.0f, 0.5f, 0.25f, 0.75f };
 
             parameters.aoParams1 = new Vector4(
                 settings.intensity.value,
@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 0
                 );
 
-            parameters.otherBlur = settings.otherBlur.value;
+            parameters.bilateralUpsample = settings.bilateralUpsample.value;
             parameters.gtaoCS = m_Resources.shaders.GTAOCS;
             parameters.temporalAccumulation = settings.temporalAccumulation.value;
 
@@ -293,21 +293,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.upsampleAndBlurAOCS = m_Resources.shaders.GTAOBlurAndUpsample;
 
-            parameters.denoiseKernelSpatialTEST = parameters.upsampleAndBlurAOCS.FindKernel("Blur");
-
-
             parameters.denoiseAOCS = m_Resources.shaders.GTAODenoiseCS;
             parameters.denoiseKernelSpatial = parameters.denoiseAOCS.FindKernel(parameters.temporalAccumulation ? "GTAODenoise_Spatial_To_Temporal" : "GTAODenoise_Spatial");
-
-
-
+            
             parameters.denoiseKernelTemporal = parameters.denoiseAOCS.FindKernel(parameters.fullResolution ? "GTAODenoise_Temporal_FullRes" : "GTAODenoise_Temporal");
             parameters.denoiseKernelCopyHistory = parameters.denoiseAOCS.FindKernel("GTAODenoise_CopyHistory");
 
             parameters.upsampleAndBlurKernel = parameters.upsampleAndBlurAOCS.FindKernel("BlurUpsample");
+            parameters.upsampleAOKernel = parameters.upsampleAndBlurAOCS.FindKernel(settings.bilateralUpsample.value ? "BilateralUpsampling" : "BoxUpsampling");
 
-            parameters.upsampleAOCS = m_Resources.shaders.GTAOUpsampleCS;
-            parameters.upsampleAOKernel = parameters.upsampleAOCS.FindKernel("AOUpsample");
             parameters.outputWidth = camera.actualWidth;
             parameters.outputHeight = camera.actualHeight;
 
@@ -332,9 +326,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOParams2, parameters.aoParams2);
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOParams4, parameters.aoParams4);
 
-            BlueNoise bn = new BlueNoise(resources);
-            bn.BindDitheredRNGData1SPP(cmd);
-
             cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._AOPackedData, packedDataTexture);
 
             const int groupSizeX = 8;
@@ -357,61 +348,29 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 
                 var blurCS = parameters.denoiseAOCS;
-                cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams0, parameters.aoParams0);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams3, parameters.aoParams3);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams4, parameters.aoParams4);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
 
-                bool otherBlur = parameters.otherBlur ;
-
-                if (otherBlur)
+                // Spatial
+                using (new ProfilingSample(cmd, "Spatial Denoise GTAO", CustomSamplerId.ResolveSSAO.GetSampler()))
                 {
-                    cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams0, parameters.aoParams0);
-                    cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
-                    cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams2, parameters.aoParams2);
-                    cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams3, parameters.aoParams3);
-                    cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams4, parameters.aoParams4);
-                    cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
-
-                    using (new ProfilingSample(cmd, "Spatial Denoise GTAO", CustomSamplerId.ResolveSSAO.GetSampler()))
+                    cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedData, packedDataTex);
+                    if (parameters.temporalAccumulation)
                     {
-                        cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.denoiseKernelSpatialTEST, HDShaderIDs._AOPackedData, packedDataTex);
-                        {
-                            cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.denoiseKernelSpatialTEST, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
-                        }
-
-
-                        const int groupSizeX = 8;
-                        const int groupSizeY = 8;
-                        int threadGroupX = ((int)( parameters.runningRes.x) + (groupSizeX - 1)) / groupSizeX;
-                        int threadGroupY = ((int)( parameters.runningRes.y) + (groupSizeY - 1)) / groupSizeY;
-                        cmd.DispatchCompute(parameters.upsampleAndBlurAOCS, parameters.denoiseKernelSpatialTEST, threadGroupX, threadGroupY, parameters.viewCount);
+                        cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
+                    }
+                    else
+                    {
+                        cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._OcclusionTexture, aoOutputTex);
                     }
 
-                }
-                else
-                {
-                    // Blur and upsample
-                    // Spatial
-                    using (new ProfilingSample(cmd, "Spatial Denoise GTAO", CustomSamplerId.ResolveSSAO.GetSampler()))
-                    {
-                        cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedData, packedDataTex);
-                        if (parameters.temporalAccumulation)
-                        {
-                            cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
-                        }
-                        else
-                        {
-                            cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._OcclusionTexture, aoOutputTex);
-                        }
-
-                        const int groupSizeX = 8;
-                        const int groupSizeY = 8;
-                        int threadGroupX = ((int)parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
-                        int threadGroupY = ((int)parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
-                        cmd.DispatchCompute(blurCS, parameters.denoiseKernelSpatial, threadGroupX, threadGroupY, parameters.viewCount);
-                    }
+                    const int groupSizeX = 8;
+                    const int groupSizeY = 8;
+                    int threadGroupX = ((int)parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
+                    int threadGroupY = ((int)parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
+                    cmd.DispatchCompute(blurCS, parameters.denoiseKernelSpatial, threadGroupX, threadGroupY, parameters.viewCount);
                 }
             }
 
@@ -452,14 +411,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 RTHandle                output,
                                 CommandBuffer           cmd)
         {
-            if (!parameters.temporalAccumulation)
-            {
-                cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
-                cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams0, parameters.aoParams0);
-                cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
-                cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams2, parameters.aoParams2);
-                cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams3, parameters.aoParams3);
+            bool blurAndUpsample = !parameters.temporalAccumulation;
 
+            cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
+            cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
+            cmd.SetComputeVectorParam(parameters.upsampleAndBlurAOCS, HDShaderIDs._AOParams3, parameters.aoParams3);
+
+            if (blurAndUpsample)
+            {
                 cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAndBlurKernel, HDShaderIDs._AOPackedData, input);
                 cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAndBlurKernel, HDShaderIDs._OcclusionTexture, output);
 
@@ -472,16 +431,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                cmd.SetComputeVectorParam(parameters.upsampleAOCS, HDShaderIDs._AOParams0, parameters.aoParams0);
-                cmd.SetComputeVectorParam(parameters.upsampleAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
-                cmd.SetComputeVectorParam(parameters.upsampleAOCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
-                cmd.SetComputeTextureParam(parameters.upsampleAOCS, parameters.upsampleAOKernel, HDShaderIDs._AOPackedData, input);
-                cmd.SetComputeTextureParam(parameters.upsampleAOCS, parameters.upsampleAOKernel, HDShaderIDs._OcclusionTexture, output);
+                cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAOKernel, HDShaderIDs._AOPackedData, input);
+                cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAOKernel, HDShaderIDs._OcclusionTexture, output);
+
                 const int groupSizeX = 8;
                 const int groupSizeY = 8;
-                int threadGroupX = ((int)parameters.outputWidth + (groupSizeX - 1)) / groupSizeX;
-                int threadGroupY = ((int)parameters.outputHeight + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(parameters.upsampleAOCS, parameters.upsampleAOKernel, threadGroupX, threadGroupY, parameters.viewCount);
+                int threadGroupX = ((int)parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
+                int threadGroupY = ((int)parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
+                cmd.DispatchCompute(parameters.upsampleAndBlurAOCS, parameters.upsampleAOKernel, threadGroupX, threadGroupY, parameters.viewCount);
             }
         }
 
