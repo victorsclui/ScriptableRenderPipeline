@@ -231,7 +231,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             Name "Gaussian Depth Of Field Prefilter"
 
             HLSLPROGRAM
-                #pragma vertex VertMesh
+                #pragma vertex VertFullscreenMesh
                 #pragma fragment FragPrefilter
                 #pragma multi_compile_local _ _HIGH_QUALITY_SAMPLING
             ENDHLSL

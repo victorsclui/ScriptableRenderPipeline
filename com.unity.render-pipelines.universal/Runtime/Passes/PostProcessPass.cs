@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             void Swap() => CoreUtils.Swap(ref source, ref destination);
 
             // Setup projection matrix for cmd.DrawMesh()
-            cmd.SetGlobalMatrix("_PostProcessingProjMatrix", GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
+            cmd.SetGlobalMatrix(ShaderConstants._FullscreenProjMat, GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
 
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
@@ -870,10 +870,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var color = m_Vignette.color.value;
             var center = m_Vignette.center.value;
+            var aspectRatio = m_Descriptor.width / (float)m_Descriptor.height;
+
+            if (m_IsStereo && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
+                aspectRatio *= 0.5f;
 
             var v1 = new Vector4(
                 color.r, color.g, color.b,
-                m_Vignette.rounded.value ? m_Descriptor.width / (float)m_Descriptor.height : 1f
+                m_Vignette.rounded.value ? aspectRatio : 1f
             );
             var v2 = new Vector4(
                 center.x, center.y,
@@ -1083,6 +1087,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _UserLut_Params     = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
+
+            public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;

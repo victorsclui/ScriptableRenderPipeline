@@ -6,8 +6,6 @@
 // ----------------------------------------------------------------------------------
 // Common shader data used in most post-processing passes
 
-half4x4 _PostProcessingProjMatrix;
-
 struct Attributes
 {
     float4 positionOS   : POSITION;
@@ -32,12 +30,23 @@ Varyings Vert(Attributes input)
     return output;
 }
 
-Varyings VertMesh(Attributes input)
+// ----------------------------------------------------------------------------------
+// Render fullscreen mesh by using a matrix set directly by the pipeline instead of
+// relying on the matrix set by the C++ engine to avoid issues with XR
+
+half4x4 _FullscreenProjMat;
+
+half4 TransformFullscreenMesh(half3 positionOS)
+{
+    return mul(_FullscreenProjMat, half4(positionOS, 1));
+}
+
+Varyings VertFullscreenMesh(Attributes input)
 {
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = mul(_PostProcessingProjMatrix, float4(input.positionOS.xyz, 1));
+    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = input.uv;
     return output;
 }
@@ -68,12 +77,13 @@ half GetLuminance(half3 colorLinear)
 
 half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, float roundness, float smoothness, half3 color)
 {
-#if defined(UNITY_SINGLE_PASS_STEREO)
     center = UnityStereoTransformScreenSpaceTex(center);
-    intensity /= unity_StereoScaleOffset[unity_StereoEyeIndex].x;
+    float2 dist = abs(uv - center) * intensity;
+
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    dist.x /= unity_StereoScaleOffset[unity_StereoEyeIndex].x;
 #endif
 
-    float2 dist = abs(uv - center) * intensity;
     dist.x *= roundness;
     float vfactor = pow(saturate(1.0 - dot(dist, dist)), smoothness);
     return input * lerp(color, (1.0).xxx, vfactor);
