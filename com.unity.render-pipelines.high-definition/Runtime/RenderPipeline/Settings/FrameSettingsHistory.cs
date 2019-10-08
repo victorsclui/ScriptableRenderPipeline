@@ -133,9 +133,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="supportedFeatures">Currently supported feature for the sanitazation pass.</param>
         public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, IFrameSettingsHistoryContainer historyContainer, ref FrameSettings defaultFrameSettings, RenderPipelineSettings supportedFeatures)
         {
-
-            if (historyContainer == null)
-                return;
             FrameSettingsHistory history = historyContainer.frameSettingsHistory;
             aggregatedFrameSettings = defaultFrameSettings;
             bool updatedComponent = false;
