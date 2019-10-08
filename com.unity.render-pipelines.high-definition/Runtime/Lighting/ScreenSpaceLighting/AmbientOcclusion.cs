@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 #endif
 
-        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && settings.intensity.value > 0f;
+        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
         public void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
         {
@@ -171,6 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              outputHeight;
             public bool             fullResolution;
             public bool             runAsync;
+            public bool             motionVectorDisabled;
             public bool             temporalAccumulation;
             public bool             bilateralUpsample;
 
@@ -230,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 rtHandleProperties.currentRenderTargetSize.x,
                 rtHandleProperties.currentRenderTargetSize.y,
                 1.0f / (settings.stepCount.value + 1.0f),
-                 radInPixels
+                radInPixels
             );
 
             float stepSize = m_RunningFullRes ? 1 : 0.5f;
@@ -250,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bTolerance,
                 uTolerance,
                 noiseFilterWeight,
-                 stepSize
+                stepSize
             );
 
             float upperNudgeFactor = 1.0f - settings.ghostingReduction.value;
@@ -262,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 upperNudgeFactor,
                 minUpperNudgeLimit,
                 0
-                );
+            );
 
             parameters.bilateralUpsample = settings.bilateralUpsample.value;
             parameters.gtaoCS = m_Resources.shaders.GTAOCS;
@@ -310,6 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HistoryReady = true; // assumes that if this is called, then render is done as well.
 
             parameters.runAsync = camera.frameSettings.SSAORunsAsync();
+            parameters.motionVectorDisabled = !camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
 
             return parameters;
         }
@@ -319,6 +321,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                 RenderPipelineResources resources,
                                 CommandBuffer       cmd)
         {
+            if(parameters.motionVectorDisabled && parameters.temporalAccumulation)
+            {
+                Debug.LogWarning("Motion Vectors are disabled, please disable the temporal accumulation in the Ambient Occlusion settings.");
+            }
+
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AODepthToViewParams, parameters.toViewSpaceProj);
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOParams0, parameters.aoParams0);
