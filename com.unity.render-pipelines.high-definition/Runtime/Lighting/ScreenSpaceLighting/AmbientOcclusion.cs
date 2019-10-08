@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
         public BoolParameter fullResolution = new BoolParameter(false);
         public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
-        public BoolParameter temporalAccumulation = new BoolParameter(false);
+        public BoolParameter temporalAccumulation = new BoolParameter(true);
 
         // Temporal only parameters
         public ClampedFloatParameter ghostingReduction = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
