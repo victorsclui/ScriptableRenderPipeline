@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Ray tracing support for VR single-pass
 - Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
+- Added non temporal version of SSAO.
 
 ### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
@@ -53,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
+- Improved quality of SSAO. 
 
 ## [7.1.1] - 2019-09-05
 
