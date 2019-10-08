@@ -2035,6 +2035,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         switch(lightCategory)
                         {
                             case LightCategory.Punctual:
+                                if (gpuLightType == GPULightType.Directional) // Our directional lights are "punctual"...
+                                {
+                                    if (directionalLightcount >= m_MaxDirectionalLightsOnScreen) continue;
+                                    directionalLightcount++;
+                                    break;
+                                }
                                 if (punctualLightcount >= m_MaxPunctualLightsOnScreen) continue;
                                 punctualLightcount++;
                                 break;
@@ -2043,11 +2049,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 areaLightCount++;
                                 break;
                             default:
-                                if (gpuLightType == GPULightType.Directional)
-                                {
-                                    if (directionalLightcount >= m_MaxDirectionalLightsOnScreen) continue;
-                                    directionalLightcount++;
-                                }
                                 break;
                         }
 
@@ -2111,6 +2112,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         switch(lightCategory)
                         {
                             case LightCategory.Punctual:
+                                if (gpuLightType == GPULightType.Directional) // Our directional lights are "punctual"...
+                                {
+                                    if (directionalLightcount >= m_MaxDirectionalLightsOnScreen) continue;
+                                }
                                 if (punctualLightcount >= m_MaxPunctualLightsOnScreen)
                                     continue;
                                 break;
