@@ -2024,6 +2024,33 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (ShaderConfig.s_AreaLights == 0 && (additionalData.lightTypeExtent == LightTypeExtent.Rectangle || additionalData.lightTypeExtent == LightTypeExtent.Tube))
                             continue;
 
+                        // Evaluate the types that define the current light
+                        LightCategory lightCategory = LightCategory.Count;
+                        GPULightType gpuLightType = GPULightType.Point;
+                        LightVolumeType lightVolumeType = LightVolumeType.Count;
+                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape,
+                                                              ref lightCategory, ref gpuLightType, ref lightVolumeType);
+
+                        // Do NOT process lights beyond the specified limit!
+                        switch(lightCategory)
+                        {
+                            case LightCategory.Punctual:
+                                if (punctualLightcount >= m_MaxPunctualLightsOnScreen) continue;
+                                punctualLightcount++;
+                                break;
+                            case LightCategory.Area:
+                                if (areaLightCount >= m_MaxAreaLightsOnScreen) continue;
+                                areaLightCount++;
+                                break;
+                            default:
+                                if (gpuLightType == GPULightType.Directional)
+                                {
+                                    if (directionalLightcount >= m_MaxDirectionalLightsOnScreen) continue;
+                                    directionalLightcount++;
+                                }
+                                break;
+                        }
+
                         // First we should evaluate the shadow information for this frame
                         additionalData.EvaluateShadowState(hdCamera, cullResults, hdCamera.frameSettings, lightIndex);
 
@@ -2033,13 +2060,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters, light.screenRect);
                         }
 
-                        // Evaluate the types that define the current light
-                        LightCategory lightCategory = LightCategory.Count;
-                        GPULightType gpuLightType = GPULightType.Point;
-                        LightVolumeType lightVolumeType = LightVolumeType.Count;
-                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape, 
-                                                                ref lightCategory, ref gpuLightType, ref lightVolumeType);
-
                         if (hasDebugLightFilter
                             && !debugLightFilter.IsEnabledFor(gpuLightType, additionalData.spotLightShape))
                             continue;
@@ -2047,6 +2067,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
                         m_SortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | (uint)lightIndex;
                     }
+
+                    // Code below will count the lights again, so reset all counters to 0.
+                    directionalLightcount = punctualLightcount = areaLightCount = 0;
 
                     CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
