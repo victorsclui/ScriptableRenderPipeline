@@ -192,13 +192,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         RenderTextureDescriptor GetStereoCompatibleDescriptor()
-            => GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat);
+            => GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat, m_Descriptor.depthBufferBits);
 
-        RenderTextureDescriptor GetStereoCompatibleDescriptor(int width, int height, GraphicsFormat format)
+        RenderTextureDescriptor GetStereoCompatibleDescriptor(int width, int height, GraphicsFormat format, int depthBufferBits = 0)
         {
             // Inherit the VR setup from the camera descriptor
             var desc = m_Descriptor;
-            desc.depthBufferBits = 0;
+            desc.depthBufferBits = depthBufferBits;
             desc.msaaSamples = 1;
             desc.width = width;
             desc.height = height;
@@ -213,6 +213,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
+            bool tempTargetUsed = false;
+            bool tempTarget2Used = false;
             int source = m_Source.id;
             int destination = -1;
 
@@ -225,6 +227,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     cmd.GetTemporaryRT(ShaderConstants._TempTarget, GetStereoCompatibleDescriptor(), FilterMode.Bilinear);
                     destination = ShaderConstants._TempTarget;
+                    tempTargetUsed = true;
+                }
+                else if (destination == m_Source.id && m_Descriptor.msaaSamples > 1)
+                {
+                    // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
+                    cmd.GetTemporaryRT(ShaderConstants._TempTarget2, GetStereoCompatibleDescriptor(), FilterMode.Bilinear);
+                    destination = ShaderConstants._TempTarget2;
+                    tempTarget2Used = true; 
                 }
 
                 return destination;
@@ -346,23 +356,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (bloomActive)
                     cmd.ReleaseTemporaryRT(ShaderConstants._BloomMipUp[0]);
 
-                if (destination != -1)
+                if (tempTargetUsed)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget);
+
+                if (tempTarget2Used)
+                    cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget2);
             }
         }
 
         private BuiltinRenderTextureType BlitDstDiscardContent(CommandBuffer cmd, RenderTargetIdentifier rt)
         {
-            if (m_IsStereo)
-            {
-                // TODO: XR requires new method to set load/store actions AND depth slice to -1
-                cmd.SetRenderTarget(rt, 0, CubemapFace.Unknown, -1);
-            }
-            else
-            {
-                cmd.SetRenderTarget(rt, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            }
-
+            // We set depth to DontCare because rt might be the source of PostProcessing used as a temporary target
+            // Source typically comes with a depth buffer and right now we don't have a way to only bind the color attachment of a RenderTargetIdentifier
+            cmd.SetRenderTarget(new RenderTargetIdentifier(rt, 0, CubemapFace.Unknown, -1),
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             return BuiltinRenderTextureType.CurrentActive;
         }
 
@@ -395,7 +403,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Intermediate targets
-            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
+            RenderTargetIdentifier stencil; // We would only need stencil, no depth. But Unity doesn't support that.
+            int tempDepthBits;
+            if (m_Depth == RenderTargetHandle.CameraTarget || m_Descriptor.msaaSamples > 1)
+            {
+                // In case m_Depth is CameraTarget it may refer to the backbuffer and we can't use that as an attachment on all platforms
+                stencil = ShaderConstants._EdgeTexture;
+                tempDepthBits = 24;
+            }
+            else
+            {
+                stencil = m_Depth.Identifier();
+                tempDepthBits = 0;
+            }
+            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm, tempDepthBits), FilterMode.Point);
             cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
 
             // Prepare for manual blit
@@ -403,19 +424,25 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetViewport(camera.pixelRect);
 
             // Pass 1: Edge detection
-            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, m_Depth.Identifier(), 0, CubemapFace.Unknown, -1);
-            cmd.ClearRenderTarget(true, true, Color.clear); // TODO: Explicitly clearing depth/stencil here but we shouldn't have to, FIXME /!\
+            cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._EdgeTexture, 0, CubemapFace.Unknown, -1),
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, stencil,
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            cmd.ClearRenderTarget(true, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
 
             // Pass 2: Blend weights
-            cmd.SetRenderTarget(ShaderConstants._BlendTexture, m_Depth.Identifier(), 0, CubemapFace.Unknown, -1);
+            cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._BlendTexture, 0, CubemapFace.Unknown, -1),
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, stencil,
+                RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
             cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
 
             // Pass 3: Neighborhood blending
-            cmd.SetRenderTarget(destination, 0, CubemapFace.Unknown, -1);
+            cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
@@ -1051,6 +1078,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         static class ShaderConstants
         {
             public static readonly int _TempTarget         = Shader.PropertyToID("_TempTarget");
+            public static readonly int _TempTarget2        = Shader.PropertyToID("_TempTarget2");
 
             public static readonly int _StencilRef         = Shader.PropertyToID("_StencilRef");
             public static readonly int _StencilMask        = Shader.PropertyToID("_StencilMask");
