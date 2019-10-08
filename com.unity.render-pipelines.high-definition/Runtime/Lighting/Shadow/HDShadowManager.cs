@@ -599,6 +599,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Create all HDShadowDatas and update them with shadow request datas
             for (int i = 0; i < m_ShadowRequestCount; i++)
             {
+                // This can be null if we limit the number of lights on screen.
+                // But why doesn't this reduce the m_ShadowRequestCount?
+                if (m_ShadowRequests[i] == null) continue;
+            
                 HDShadowAtlas atlas = m_Atlas;
                 if (m_ShadowRequests[i].shadowMapType == ShadowMapType.CascadedDirectional)
                 {
