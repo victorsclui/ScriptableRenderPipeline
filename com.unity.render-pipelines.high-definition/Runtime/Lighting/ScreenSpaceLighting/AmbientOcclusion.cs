@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
         public BoolParameter fullResolution = new BoolParameter(false);
         public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
+        public BoolParameter temporalAccumulation = new BoolParameter(false);
 
         // Temporal only parameters
         public ClampedFloatParameter ghostingReduction = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
@@ -25,19 +26,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         // Ray tracing parameters    
+        public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
         public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
         public BoolParameter denoise = new BoolParameter(false);
         public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
-        public BoolParameter temporalAccumulation = new BoolParameter(false);
     }
 
     partial class AmbientOcclusionSystem
     {
         RenderPipelineResources m_Resources;
-#if ENABLE_RAYTRACING
-        HDRenderPipelineRayTracingResources m_RTResources;
-#endif
         RenderPipelineSettings m_Settings;
 
         private bool m_HistoryReady = false;
@@ -49,7 +47,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_RunningFullRes = false;
 
 #if ENABLE_RAYTRACING
-        public HDRaytracingManager m_RayTracingManager;
         readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
 #endif
 
@@ -89,9 +86,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = defaultResources;
-#if ENABLE_RAYTRACING
-            m_RTResources = hdAsset.renderPipelineRayTracingResources;
-#endif
 
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
@@ -109,10 +103,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_RAYTRACING
-        public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
+        public void InitRaytracing(HDRenderPipeline renderPipeline)
         {
-            m_RayTracingManager = raytracingManager;
-            m_RaytracingAmbientOcclusion.Init(m_Resources, m_RTResources, m_Settings, m_RayTracingManager, sharedRTManager);
+            m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
 #endif
 
@@ -132,8 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
 #if ENABLE_RAYTRACING
-                HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-                if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.rayTracing.value)
+                if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
                 else
 #endif

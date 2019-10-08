@@ -67,8 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
 
-        public bool sceneLightingWasDisabledForCamera = false;
-
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
         public XRPass xr { get { return m_XRPass; } }
@@ -463,7 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         combinedViewMatrix.SetColumn(3, combinedOrigin);
                     }
 
-                    projMatrix = combinedProjMatrix;
+                    projMatrix = GL.GetGPUProjectionMatrix(combinedProjMatrix, true);
                     invProjMatrix = projMatrix.inverse;
                     viewProjMatrix = projMatrix * combinedViewMatrix;
                 }
@@ -798,8 +796,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camera.camera != null && camera.camera.cameraType == CameraType.SceneView)
                     continue;
 
+                bool hasPersistentHistory = camera.m_AdditionalCameraData != null && camera.m_AdditionalCameraData.hasPersistentHistory;
                 // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
-                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview))
+                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && !hasPersistentHistory))
                     s_Cleanup.Add(key);
             }
 
