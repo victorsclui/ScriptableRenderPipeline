@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); });
             }
-            
+
             if (evt.target is GraphView || evt.target is Node)
             {
                 InitializeViewSubMenu(evt);
@@ -92,31 +92,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Convert To/Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
                 evt.menu.AppendAction("Convert To/Property", ConvertToProperty, ConvertToPropertyStatus);
                 evt.menu.AppendSeparator();
-
-                evt.menu.AppendAction("Group Selection", _ => GroupSelection(), (a) =>
-                {
-                    List<ISelectable> filteredSelection = new List<ISelectable>();
-
-                    foreach (ISelectable selectedObject in selection)
-                    {
-                        if (selectedObject is Group)
-                            return DropdownMenuAction.Status.Disabled;
-                        VisualElement ve = selectedObject as VisualElement;
-                        if (ve.userData is AbstractMaterialNode)
-                        {
-                            var selectedNode = selectedObject as Node;
-                            if (selectedNode.GetContainingScope() is Group)
-                                return DropdownMenuAction.Status.Disabled;
-
-                            filteredSelection.Add(selectedObject);
-                        }
-                    }
-
-                    if (filteredSelection.Count > 0)
-                        return DropdownMenuAction.Status.Normal;
-
-                    return DropdownMenuAction.Status.Disabled;
-                });
 
                 var editorView = GetFirstAncestorOfType<GraphEditorView>();
                 if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
@@ -151,6 +126,32 @@ namespace UnityEditor.ShaderGraph.Drawing
                     evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, (a) => DropdownMenuAction.Status.Normal);
                 }
             }
+            evt.menu.AppendSeparator();
+            // This needs to work on nodes, groups and properties
+            evt.menu.AppendAction("Group Selection", _ => GroupSelection(), (a) =>
+            {
+                List<ISelectable> filteredSelection = new List<ISelectable>();
+
+                foreach (ISelectable selectedObject in selection)
+                {
+                    if (selectedObject is Group)
+                        return DropdownMenuAction.Status.Disabled;
+                    VisualElement ve = selectedObject as VisualElement;
+                    if (ve.userData is AbstractMaterialNode)
+                    {
+                        var selectedNode = selectedObject as Node;
+                        if (selectedNode.GetContainingScope() is Group)
+                            return DropdownMenuAction.Status.Disabled;
+
+                        filteredSelection.Add(selectedObject);
+                    }
+                }
+
+                if (filteredSelection.Count > 0)
+                    return DropdownMenuAction.Status.Normal;
+
+                return DropdownMenuAction.Status.Disabled;
+            });
 
             evt.menu.AppendAction("Ungroup Selection", RemoveFromGroupNode, (a) =>
             {
