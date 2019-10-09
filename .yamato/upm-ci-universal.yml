@@ -113,7 +113,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published
 
-    - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }}Windows64 --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200 --player-load-path=players --player-connection-ip=$$BOKKEN_HOST_IP"
+    - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }}Windows64 --artifacts_path=upm-ci~/test-results --timeout=1200 --player-load-path=players --player-connection-ip=$BOKKEN_HOST_IP"
   artifacts:
     logs:
       paths:
