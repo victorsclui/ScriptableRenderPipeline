@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: 19a26876029b
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
