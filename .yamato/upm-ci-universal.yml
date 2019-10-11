@@ -1,5 +1,6 @@
 editors:
   - version: 19a26876029b
+  - version: trunk
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
@@ -111,9 +112,9 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --pre
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published --fast
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli -u {{ editor.version }} -c editor --wait --published --fast
 
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=upm-ci~/test-results --timeout=1200 --player-load-path=upm-ci~/test-results/players --player-connection-ip=$BOKKEN_HOST_IP
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=upm-ci~/test-results --timeout=1200 --player-load-path=upm-ci~/test-results/players --player-connection-ip=%BOKKEN_HOST_IP%
   artifacts:
     logs:
       paths:
