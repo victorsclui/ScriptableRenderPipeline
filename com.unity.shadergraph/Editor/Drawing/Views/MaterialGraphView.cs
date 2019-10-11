@@ -85,6 +85,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (evt.target is GraphView || evt.target is Node)
             {
+                if (evt.target is Node node)
+                {
+                    if (!selection.Contains(node))
+                    {
+                       selection.Add(node);
+                    }
+                }
+
                 InitializeViewSubMenu(evt);
                 InitializePrecisionSubMenu(evt);
 
@@ -175,6 +183,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return DropdownMenuAction.Status.Disabled;
             });
 
+            if (evt.target is ShaderGroup shaderGroup)
+            {
+                if (!selection.Contains(shaderGroup))
+                {
+                    selection.Add(shaderGroup);
+                }
+
+                var data = shaderGroup.userData;
+                int count = evt.menu.MenuItems().Count;
+                evt.menu.InsertAction(count, "Delete Group and Contents", (e) => RemoveNodesInsideGroup(e, data), DropdownMenuAction.AlwaysEnabled);
+                //evt.menu.AppendAction("Delete Group", DeleteGroup, DropdownMenuAction.AlwaysEnabled);
+            }
+
             if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
@@ -191,6 +212,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendSeparator();
             }
         }
+
+        void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
+            var groupItems = graph.GetItemsInGroup(data);
+            graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] {}, new [] {data}, groupItems.OfType<StickyNoteData>().ToArray());
+        }
+
+//        void DeleteGroup(DropdownMenuAction action)
+//        {
+//            graph.owner.RegisterCompleteObjectUndo("Delete Group");
+//            graph.RemoveElements(new AbstractMaterialNode[] {}, new IEdge[] {}, selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(), new StickyNoteData[] {});
+//        }
 
         private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
         {

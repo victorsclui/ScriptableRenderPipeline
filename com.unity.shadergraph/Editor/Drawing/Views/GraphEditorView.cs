@@ -787,7 +787,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddGroup(GroupData groupData)
         {
-            ShaderGroup graphGroup = new ShaderGroup(m_Graph);
+            ShaderGroup graphGroup = new ShaderGroup();
 
             graphGroup.userData = groupData;
             graphGroup.title = groupData.title;
