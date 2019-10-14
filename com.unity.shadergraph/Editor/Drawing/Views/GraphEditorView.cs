@@ -326,11 +326,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (evt.ctrlKey && evt.keyCode == KeyCode.G)
+            if (evt.actionKey && evt.keyCode == KeyCode.G)
             {
                 if (m_GraphView.selection.OfType<GraphElement>().Any())
                 {
                     m_GraphView.GroupSelection();
+                }
+            }
+
+            if (evt.actionKey && evt.keyCode == KeyCode.U)
+            {
+                if (m_GraphView.selection.OfType<GraphElement>().Any())
+                {
+                    m_GraphView.RemoveFromGroupNode();
                 }
             }
         }

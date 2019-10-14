@@ -81,6 +81,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(evt.target is GraphView)
             {
                 evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); });
+
+                foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
+                {
+                    if (node.hasPreview && node.previewExpanded == true)
+                        evt.menu.InsertAction(2, "Collapse All Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
+                    if (node.hasPreview && node.previewExpanded == false)
+                        evt.menu.InsertAction(2, "Expand All Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
+                }
+                evt.menu.AppendSeparator();
             }
 
             if (evt.target is GraphView || evt.target is Node)
@@ -89,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (!selection.Contains(node))
                     {
-                       selection.Add(node);
+                        selection.Add(node);
                     }
                 }
 
@@ -125,18 +134,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (selection.OfType<IShaderNodeView>().Count() == 1)
                 {
                     evt.menu.AppendSeparator();
-                    evt.menu.AppendAction("Open Documentation", SeeDocumentation, SeeDocumentationStatus);
+                    evt.menu.AppendAction("Open Documentation _F1", SeeDocumentation, SeeDocumentationStatus);
                 }
                 if (selection.OfType<IShaderNodeView>().Count() == 1 && selection.OfType<IShaderNodeView>().First().node is SubGraphNode)
                 {
                     evt.menu.AppendSeparator();
-
                     evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, (a) => DropdownMenuAction.Status.Normal);
                 }
             }
             evt.menu.AppendSeparator();
             // This needs to work on nodes, groups and properties
-            evt.menu.AppendAction("Group Selection", _ => GroupSelection(), (a) =>
+            evt.menu.AppendAction("Group Selection %g", _ => GroupSelection(), (a) =>
             {
                 List<ISelectable> filteredSelection = new List<ISelectable>();
 
@@ -144,14 +152,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (selectedObject is Group)
                         return DropdownMenuAction.Status.Disabled;
-                    VisualElement ve = selectedObject as VisualElement;
-                    if (ve.userData is AbstractMaterialNode)
+                    GraphElement ge = selectedObject as GraphElement;
+                    if (ge.userData is IGroupItem)
                     {
-                        var selectedNode = selectedObject as Node;
-                        if (selectedNode.GetContainingScope() is Group)
-                            return DropdownMenuAction.Status.Disabled;
-
-                        filteredSelection.Add(selectedObject);
+                        filteredSelection.Add(ge);
                     }
                 }
 
@@ -161,7 +165,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return DropdownMenuAction.Status.Disabled;
             });
 
-            evt.menu.AppendAction("Ungroup Selection", RemoveFromGroupNode, (a) =>
+            evt.menu.AppendAction("Ungroup Selection %u", _ => RemoveFromGroupNode(), (a) =>
             {
                 List<ISelectable> filteredSelection = new List<ISelectable>();
 
@@ -193,23 +197,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var data = shaderGroup.userData;
                 int count = evt.menu.MenuItems().Count;
                 evt.menu.InsertAction(count, "Delete Group and Contents", (e) => RemoveNodesInsideGroup(e, data), DropdownMenuAction.AlwaysEnabled);
-                //evt.menu.AppendAction("Delete Group", DeleteGroup, DropdownMenuAction.AlwaysEnabled);
             }
 
             if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
-            }
-            if (evt.target is MaterialGraphView)
-            {
-                foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
-                {
-                    if (node.hasPreview && node.previewExpanded == true)
-                        evt.menu.AppendAction("Collapse All Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
-                    if (node.hasPreview && node.previewExpanded == false)
-                        evt.menu.AppendAction("Expand All Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
-                }
-                evt.menu.AppendSeparator();
             }
         }
 
@@ -219,12 +211,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             var groupItems = graph.GetItemsInGroup(data);
             graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] {}, new [] {data}, groupItems.OfType<StickyNoteData>().ToArray());
         }
-
-//        void DeleteGroup(DropdownMenuAction action)
-//        {
-//            graph.owner.RegisterCompleteObjectUndo("Delete Group");
-//            graph.RemoveElements(new AbstractMaterialNode[] {}, new IEdge[] {}, selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(), new StickyNoteData[] {});
-//        }
 
         private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
         {
@@ -368,8 +354,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.AddStickyNote(stickyNoteData);
         }
 
-
-        void RemoveFromGroupNode(DropdownMenuAction action)
+        public void RemoveFromGroupNode()
         {
             graph.owner.RegisterCompleteObjectUndo("Ungroup Node(s)");
             foreach (var element in selection.OfType<GraphElement>())
