@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph
         public ShaderGroup()
         {
             VisualElementExtensions.AddManipulator(this, new ContextualMenuManipulator(BuildContextualMenu));
+            style.backgroundColor = new StyleColor(new Color(25/255f, 25/255f, 25/255f, 25/255f));
         }
 
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
