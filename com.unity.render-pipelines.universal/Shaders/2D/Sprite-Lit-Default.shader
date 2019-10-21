@@ -63,6 +63,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_NormalMap);
             half4 _MainTex_ST;
             half4 _NormalMap_ST;
+            half  _UseSceneLighting;
 
             #if USE_SHAPE_LIGHT_TYPE_0
             SHAPE_LIGHT(0)
@@ -99,7 +100,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 half4 main = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
                 half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
 
-                return CombinedShapeLightShared(main, mask, i.lightingUV);
+                return CombinedShapeLightShared(main, mask, i.lightingUV) * _UseSceneLighting + (1-_UseSceneLighting)*main;
             }
             ENDHLSL
         }
