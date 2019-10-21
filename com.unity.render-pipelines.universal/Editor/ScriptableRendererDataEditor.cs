@@ -233,23 +233,17 @@ namespace UnityEditor.Rendering.Universal
         private void RemovePass(ReorderableList list)
         {
             var obj = m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue;
-            if (EditorUtility.DisplayDialog("Removing Render Pass Feature",
-                $"Are you sure you want to remove the pass {obj.name}?",
-                "Remove",
-                "Cancel"))
-            {
-                Undo.IncrementCurrentGroup();
-                Undo.SetCurrentGroupName($"Delete {obj.name}");
-                var groupIndex = Undo.GetCurrentGroup();
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
-                ReorderableList.defaultBehaviours.DoRemoveButton(list);
-                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
-                m_RenderPasses.serializedObject.ApplyModifiedProperties();
-                m_ElementSOs.Clear();
+            Undo.IncrementCurrentGroup();
+            Undo.SetCurrentGroupName($"Delete {obj.name}");
+            var groupIndex = Undo.GetCurrentGroup();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
+            ReorderableList.defaultBehaviours.DoRemoveButton(list);
+            m_RenderPasses.DeleteArrayElementAtIndex(list.index);
+            m_RenderPasses.serializedObject.ApplyModifiedProperties();
+            m_ElementSOs.Clear();
 
-                Undo.DestroyObjectImmediate(obj);
-                Undo.CollapseUndoOperations(groupIndex);
-            }
+            Undo.DestroyObjectImmediate(obj);
+            Undo.CollapseUndoOperations(groupIndex);
         }
 
         private void ReorderPass(ReorderableList list, int oldIndex, int newIndex)
