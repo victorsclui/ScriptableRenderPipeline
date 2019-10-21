@@ -22,10 +22,12 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent PassNameField =
                 new GUIContent("Name", "This is the name for the current pass.");
 
-            public static GUIStyle BoldLabelSimple = new GUIStyle(EditorStyles.label);
+            public static GUIStyle BoldLabelSimple;
 
             static Styles()
             {
+                BoldLabelSimple = new GUIStyle(EditorStyles.label);
+//                BoldLabelSimple.stretchWidth = true;
                 BoldLabelSimple.fontStyle = FontStyle.Bold;
             }
         }
@@ -92,8 +94,10 @@ namespace UnityEditor.Rendering.Universal
             m_PassesList.onRemoveCallback = RemovePass;
             m_PassesList.onReorderCallbackWithDetails += ReorderPass;
 
+            //Rect nrect = new Rect();
+
             m_PassesList.drawHeaderCallback = (Rect testHeaderRect) => {
-                EditorGUI.LabelField(testHeaderRect, Styles.RenderFeatures);
+                GUI.Label(testHeaderRect, Styles.RenderFeatures);
             };
         }
 
@@ -107,9 +111,9 @@ namespace UnityEditor.Rendering.Universal
                                     rect.y + EditorGUIUtility.standardVerticalSpacing,
                                     rect.width,
                                     EditorGUIUtility.singleLineHeight);
-            var headerRect = new Rect(rect.x + EditorUtils.Styles.defaultIndentWidth,
+            var headerRect = new Rect(rect.x,
                                         rect.y + EditorGUIUtility.standardVerticalSpacing,
-                                        rect.width - EditorUtils.Styles.defaultIndentWidth,
+                                        rect.width,
                                         EditorGUIUtility.singleLineHeight);
 
             if (element.objectReferenceValue != null)
@@ -122,9 +126,10 @@ namespace UnityEditor.Rendering.Universal
                 m_Foldouts[index].value =
                     EditorGUI.Foldout(headerRect,
                         m_Foldouts[index].value,
-                        header,
+                        GUIContent.none,
                         true,
                         Styles.BoldLabelSimple);
+                GUI.Label(headerRect, header, Styles.BoldLabelSimple);
                 if (m_Foldouts[index].value)
                 {
                     EditorGUI.indentLevel++;
@@ -229,16 +234,21 @@ namespace UnityEditor.Rendering.Universal
         {
             var obj = m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue;
             if (EditorUtility.DisplayDialog("Removing Render Pass Feature",
-                $"Are you sure you want to remove the pass {obj.name}, this operation cannot be undone",
+                $"Are you sure you want to remove the pass {obj.name}?",
                 "Remove",
                 "Cancel"))
             {
-                DestroyImmediate(obj, true);
+                Undo.IncrementCurrentGroup();
+                Undo.SetCurrentGroupName($"Delete {obj.name}");
+                var groupIndex = Undo.GetCurrentGroup();
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
                 ReorderableList.defaultBehaviours.DoRemoveButton(list);
                 m_RenderPasses.DeleteArrayElementAtIndex(list.index);
                 m_RenderPasses.serializedObject.ApplyModifiedProperties();
                 m_ElementSOs.Clear();
+
+                Undo.DestroyObjectImmediate(obj);
+                Undo.CollapseUndoOperations(groupIndex);
             }
         }
 
