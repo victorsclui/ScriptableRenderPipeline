@@ -30,7 +30,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool isLitView = true;
 
 #if UNITY_EDITOR
-            isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
+            if(renderingData.cameraData.isSceneViewCamera)
+                isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
 
             if (!Application.isPlaying)
                 s_SortingLayers = SortingLayer.layers;
