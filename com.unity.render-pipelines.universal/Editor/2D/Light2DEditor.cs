@@ -530,7 +530,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         Handles.color = Color.white;
 
 
-                        Vector3 falloffOffset = m_ShapeLightFalloffOffset.vector3Value;
+                        Vector3 falloffOffset = m_ShapeLightFalloffOffset.vector2Value;
 
                         for (int i = 0; i < falloffShape.Count - 1; ++i)
                         {
