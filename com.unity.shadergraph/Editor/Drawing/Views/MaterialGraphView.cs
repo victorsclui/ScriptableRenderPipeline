@@ -144,48 +144,51 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             evt.menu.AppendSeparator();
             // This needs to work on nodes, groups and properties
-            evt.menu.AppendAction("Group Selection %g", _ => GroupSelection(), (a) =>
+            if ((evt.target is Node) || (evt.target is StickyNote))
             {
-                List<ISelectable> filteredSelection = new List<ISelectable>();
-
-                foreach (ISelectable selectedObject in selection)
+                evt.menu.AppendAction("Group Selection %g", _ => GroupSelection(), (a) =>
                 {
-                    if (selectedObject is Group)
-                        return DropdownMenuAction.Status.Disabled;
-                    GraphElement ge = selectedObject as GraphElement;
-                    if (ge.userData is IGroupItem)
+                    List<ISelectable> filteredSelection = new List<ISelectable>();
+
+                    foreach (ISelectable selectedObject in selection)
                     {
-                        filteredSelection.Add(ge);
-                    }
-                }
-
-                if (filteredSelection.Count > 0)
-                    return DropdownMenuAction.Status.Normal;
-
-                return DropdownMenuAction.Status.Disabled;
-            });
-
-            evt.menu.AppendAction("Ungroup Selection %u", _ => RemoveFromGroupNode(), (a) =>
-            {
-                List<ISelectable> filteredSelection = new List<ISelectable>();
-
-                foreach (ISelectable selectedObject in selection)
-                {
-                    if (selectedObject is Group)
-                        return DropdownMenuAction.Status.Disabled;
-                    GraphElement ge = selectedObject as GraphElement;
-                    if (ge.userData is IGroupItem)
-                    {
-                        if (ge.GetContainingScope() is Group)
+                        if (selectedObject is Group)
+                            return DropdownMenuAction.Status.Disabled;
+                        GraphElement ge = selectedObject as GraphElement;
+                        if (ge.userData is IGroupItem)
+                        {
                             filteredSelection.Add(ge);
+                        }
                     }
-                }
 
-                if (filteredSelection.Count > 0)
-                    return DropdownMenuAction.Status.Normal;
+                    if (filteredSelection.Count > 0)
+                        return DropdownMenuAction.Status.Normal;
 
-                return DropdownMenuAction.Status.Disabled;
-            });
+                    return DropdownMenuAction.Status.Disabled;
+                });
+
+                evt.menu.AppendAction("Ungroup Selection %u", _ => RemoveFromGroupNode(), (a) =>
+                {
+                    List<ISelectable> filteredSelection = new List<ISelectable>();
+
+                    foreach (ISelectable selectedObject in selection)
+                    {
+                        if (selectedObject is Group)
+                            return DropdownMenuAction.Status.Disabled;
+                        GraphElement ge = selectedObject as GraphElement;
+                        if (ge.userData is IGroupItem)
+                        {
+                            if (ge.GetContainingScope() is Group)
+                                filteredSelection.Add(ge);
+                        }
+                    }
+
+                    if (filteredSelection.Count > 0)
+                        return DropdownMenuAction.Status.Normal;
+
+                    return DropdownMenuAction.Status.Disabled;
+                });
+            }
 
             if (evt.target is ShaderGroup shaderGroup)
             {
