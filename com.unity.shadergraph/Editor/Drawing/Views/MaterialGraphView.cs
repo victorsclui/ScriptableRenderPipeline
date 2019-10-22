@@ -98,6 +98,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (!selection.Contains(node))
                     {
+                        selection.Clear();
                         selection.Add(node);
                     }
                 }
