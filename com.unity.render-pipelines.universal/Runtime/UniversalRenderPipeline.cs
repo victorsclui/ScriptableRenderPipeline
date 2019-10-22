@@ -384,6 +384,10 @@ namespace UnityEngine.Rendering.Universal
             InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
+
+#pragma warning disable CS0612 // avoid warning because killAlphaInFinalBlit has attribute Obsolete
+            renderingData.killAlphaInFinalBlit = false;
+#pragma warning restore CS0612
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
