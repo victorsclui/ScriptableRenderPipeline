@@ -93,9 +93,7 @@ namespace UnityEditor.Rendering.Universal
             m_PassesList.onAddCallback += AddPass;
             m_PassesList.onRemoveCallback = RemovePass;
             m_PassesList.onReorderCallbackWithDetails += ReorderPass;
-
-            //Rect nrect = new Rect();
-
+            
             m_PassesList.drawHeaderCallback = (Rect testHeaderRect) => {
                 GUI.Label(testHeaderRect, Styles.RenderFeatures);
             };
