@@ -40,9 +40,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Shader m_BlitShader = null;
 
         [SerializeField]
-        Shader m_ShadowShader = null;
-
-        [SerializeField]
         Shader m_ShadowGroupShader = null;
 
         [SerializeField]
@@ -51,21 +48,41 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
+
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
 
 
-        internal Shader shapeLightShader => m_ShapeLightShader;
-        internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
-        internal Shader pointLightShader => m_PointLightShader;
-        internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
-        internal Shader blitShader => m_BlitShader;
-        internal Shader shadowShader => m_ShadowShader;
-        internal Shader shadowGroupShader => m_ShadowGroupShader;
-        internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
+        internal Shader shapeLightShader => GetShader(ref m_ShapeLightShader, "Hidden/Light2D-Shape");
+        internal Shader shapeLightVolumeShader => GetShader(ref m_ShapeLightVolumeShader, "Hidden/Light2D-Shape-Volumetric");
+        internal Shader pointLightShader => GetShader(ref  m_PointLightShader, "Hidden/Light2D-Point");
+        internal Shader pointLightVolumeShader => GetShader(ref m_PointLightVolumeShader, "Hidden/Light2D-Point-Volumetric");
+        internal Shader blitShader => GetShader(ref m_BlitShader, "Hidden/Universal Render Pipeline/Blit");
+        internal Shader shadowGroupShader => GetShader(ref m_ShadowGroupShader, "Hidden/ShadowGroup2D");
+        internal Shader removeSelfShadowShader => GetShader(ref m_RemoveSelfShadowShader, "Hidden/Shadow2DRemoveSelf");
         internal PostProcessData postProcessData => m_PostProcessData;
 
+
+        internal void UpgradeRenderer2DData()
+        {
+            AssetDatabase.Refresh();
+            EditorUtility.SetDirty(this);
+
+            m_ShadowGroupShader = Shader.Find("Hidden/ShadowGroup2D");
+            m_RemoveSelfShadowShader = Shader.Find("Hidden/Shadow2DRemoveSelf");
+
+            AssetDatabase.SaveAssets();
+        }
+
+        Shader GetShader(ref Shader shader, string shaderName)
+        {
+#if UNITY_EDITOR
+            if (shader == null)
+                UpgradeRenderer2DData();
+#endif
+            return shader;
+        }
 
         protected override ScriptableRenderer Create()
         {
@@ -124,7 +141,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_PointLightShader = Shader.Find("Hidden/Light2D-Point");
             m_PointLightVolumeShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
             m_BlitShader = Shader.Find("Hidden/Universal Render Pipeline/Blit");
-            m_ShadowShader = Shader.Find("Hidden/Shadow2D");
             m_ShadowGroupShader = Shader.Find("Hidden/ShadowGroup2D");
             m_RemoveSelfShadowShader = Shader.Find("Hidden/Shadow2DRemoveSelf");
         }
