@@ -34,9 +34,9 @@ Varyings Vert(Attributes input)
 // Render fullscreen mesh by using a matrix set directly by the pipeline instead of
 // relying on the matrix set by the C++ engine to avoid issues with XR
 
-half4x4 _FullscreenProjMat;
+float4x4 _FullscreenProjMat;
 
-half4 TransformFullscreenMesh(half3 positionOS)
+float4 TransformFullscreenMesh(half3 positionOS)
 {
     return mul(_FullscreenProjMat, half4(positionOS, 1));
 }
