@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Fullscreen pass settings
         public Material         fullscreenPassMaterial;
         public int              materialPassIndex;
+        public bool             fetchColorBuffer;
 
         int fadeValueId;
 
@@ -29,6 +30,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (fullscreenPassMaterial != null)
             {
+                if (fetchColorBuffer)
+                    ResolveMSAAColorBuffer(cmd, hdCamera);
+
                 fullscreenPassMaterial.SetFloat(fadeValueId, fadeValue);
                 CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: materialPassIndex);
             }

@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 			public static GUIContent targetDepthBuffer = new GUIContent("Target Depth Buffer");
 			public static GUIContent targetColorBuffer = new GUIContent("Target Color Buffer");
 			public static GUIContent clearFlags = new GUIContent("Clear Flags", "Clear Flags used when the render targets will are bound, before the pass renders.");
+			public static GUIContent fetchColorBuffer = new GUIContent("Fetch Color Buffer", "Tick this if you want to sample/fetch the camera color buffer in your custom pass");
 	    }
 
 		[Flags]
@@ -55,6 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
 		SerializedProperty      	m_TargetDepthBuffer;
 		SerializedProperty      	m_ClearFlags;
 		SerializedProperty      	m_PassFoldout;
+		SerializedProperty      	m_FetchColorBuffer;
 		List<SerializedProperty>	m_CustomPassUserProperties = new List<SerializedProperty>();
 		Type						m_PassType;
 
@@ -66,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
 			m_TargetDepthBuffer = property.FindPropertyRelative("targetDepthBuffer");
 			m_ClearFlags = property.FindPropertyRelative("clearFlags");
 			m_PassFoldout = property.FindPropertyRelative("passFoldout");
+			m_FetchColorBuffer = property.FindPropertyRelative("fetchColorBuffer");
 		}
 
 		void LoadUserProperties(SerializedProperty customPass)
