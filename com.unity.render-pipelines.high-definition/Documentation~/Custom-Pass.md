@@ -198,13 +198,14 @@ To code your custom pass, you have three entry point:
 In the `Setup` and `Execute` functions, we gives you access to the [ScriptableRenderContext](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.html) and a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html), these two classes contains everything you need to render pretty much everything but here we will focus on these two functions [ScriptableRenderContext.DrawRenderers](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.DrawRenderers.html) and [CommandBuffer.DrawProcedural](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.DrawProcedural.html).
 
 > **Pro Tips:**  
-> To allocate a render target buffer that works in every situation (VR, camera resize, ...), use the RTHandles system like so:
+> - To allocate a render target buffer that works in every situation (VR, camera resize, ...), use the RTHandles system like so:
 > ```CSharp
 > RTHandle myBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, useDynamicScale: true, name: "My Buffer");
 > ```
-> Don't forget release the buffer afterwards using `myBuffer.Release();`  
-> To create materials, you can use the `CoreUtils.CreateEngineMaterial` function and destroy it with `CoreUtils.Destroy`.  
-> When scripting your pass, the destination render target will be set to what is defined in the UI. It means that you don't need to set the render target if you only use one.
+> - Don't forget release the buffer afterwards using `myBuffer.Release();`  
+> - To create materials, you can use the `CoreUtils.CreateEngineMaterial` function and destroy it with `CoreUtils.Destroy`.  
+> - When scripting your pass, the destination render target will be set to what is defined in the UI. It means that you don't need to set the render target if you only use one.
+> - **MSAA**: when you enable MSAA and you want to render objects to the main camera color buffer and then in a second pass, sample this buffer, you'll need to resolve it first. To do so you have this function `CustomPass.ResolveMSAAColorBuffer` that will resolve the MSAA camera color buffer into the standard camera color buffer.
 
 Now that you have allocated your resources you're ready to start doing stuff in the `Execute` function.
 
