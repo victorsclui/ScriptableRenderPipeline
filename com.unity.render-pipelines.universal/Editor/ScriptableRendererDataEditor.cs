@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.Universal
             static Styles()
             {
                 BoldLabelSimple = new GUIStyle(EditorStyles.label);
-//                BoldLabelSimple.stretchWidth = true;
                 BoldLabelSimple.fontStyle = FontStyle.Bold;
             }
         }
@@ -93,7 +92,7 @@ namespace UnityEditor.Rendering.Universal
             m_PassesList.onAddCallback += AddPass;
             m_PassesList.onRemoveCallback = RemovePass;
             m_PassesList.onReorderCallbackWithDetails += ReorderPass;
-            
+
             m_PassesList.drawHeaderCallback = (Rect testHeaderRect) => {
                 GUI.Label(testHeaderRect, Styles.RenderFeatures);
             };
