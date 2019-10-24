@@ -41,7 +41,7 @@ Clear flags | When the render targets above are bound for rendering, how do you 
 
 > **Note:** by default the target buffers are set to the camera buffers but you can also select the custom buffer. It is another buffer allocated by HDRP where you can put everything you want, you can then sample it in custom pass shaders. You can choose the format of the custom buffer in the HDRP asset settings under the **Rendering** section.
 
-![](Images/CustomPass_BufferFormat_Asset.png)
+![CustomPass_BufferFormat_Asset](Images/CustomPass_BufferFormat_Asset.png)
 
 > In the HDRP asset you can also disable the the custom passes, that will disable the custom buffer allocation as well. Additionally, in the frame settings you can choose whether or not to render custom passes, note that it will not affect the custom buffer allocation.
 
@@ -79,6 +79,8 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 | **You can't read and write to the same render target**. i.e you can't sample the camera color, modify it and then write the result back to the camera color buffer, you have to do it in two passes with a secondary buffer. |
 | **The Depth buffer is not available everywhere and might not contains what you expect**. There is not depth buffer in before rendering, the depth buffer never contains transparent that writes depth and finally the depth buffer is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
 | **Sampling the camera color with lods is only available in after and before post process passes**. Calling `CustomPassSampleCameraColor` at before rendering will only return black. |
+| **DrawRenderers Pass chained with FullScreen Pass**: In multi-pass setups where you draw objects in the camera color buffer and then read it from a fullscreen custom pass, you'll not see the objects you've drawn in the passes before your fullscreen pass (unless you are in Before Transparent). |
+| **MSAA**: When dealing with MSAA, you must check that the `Fetch color buffer` boolean is correctly setup because it will determine whether or not you'll be able to fetch the color buffer in this pass or not. |
 
 ### DrawRenderers Custom Pass
 

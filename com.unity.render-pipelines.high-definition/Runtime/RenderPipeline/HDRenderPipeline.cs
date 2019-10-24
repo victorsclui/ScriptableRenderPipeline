@@ -3385,11 +3385,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             msaa &= injectionPoint == CustomPassInjectionPoint.BeforeTransparent;
-            var cameraColorBuffer = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
 
             var customPassTargets = new CustomPass.RenderTargets
             {
-                cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : cameraColorBuffer,
+                cameraColorMSAABuffer = m_CameraColorMSAABuffer,
+                cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : m_CameraColorBuffer,
                 cameraDepthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaa),
                 customColorBuffer = m_CustomPassColorBuffer,
                 customDepthBuffer = m_CustomPassDepthBuffer,
