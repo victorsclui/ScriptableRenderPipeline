@@ -6,7 +6,7 @@ editors:
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
-    image: slough-ops/gamecode-win10-nvidia436:latest
+    image: sdet/gamecode_win10:stable
     flavor: b1.large
   - name: OSX_Metal
     type: Unity::metal::macmini
