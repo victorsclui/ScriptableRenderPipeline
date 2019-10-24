@@ -31,7 +31,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (fullscreenPassMaterial != null)
             {
                 if (fetchColorBuffer)
+                {
                     ResolveMSAAColorBuffer(cmd, hdCamera);
+                    // reset the render target to the UI 
+                    SetRenderTargetAuto(cmd);
+                }
 
                 fullscreenPassMaterial.SetFloat(fadeValueId, fadeValue);
                 CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: materialPassIndex);
