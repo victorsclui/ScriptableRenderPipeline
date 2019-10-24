@@ -33,6 +33,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if(renderingData.cameraData.isSceneViewCamera)
                 isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
 
+            if(renderingData.cameraData.camera.cameraType == CameraType.Preview)
+                isLitView = false;
+
             if (!Application.isPlaying)
                 s_SortingLayers = SortingLayer.layers;
 #endif
