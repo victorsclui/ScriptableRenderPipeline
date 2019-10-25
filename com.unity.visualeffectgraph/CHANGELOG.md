@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [8.0.0] - 2019-XX-XX
+### Added
+- Custom Inspector for Spawn context, delay settings are more user friendly.
+- Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
+- Octagon & Triangle support for planar distortion output
+- Custom Z axis option for strip output
+- Custom Inspector for Update context, display update position/rotation instead of integration
+- Tooltips to blocks, nodes, contexts, and various menus and options
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
 - Correct VFXSettings display in Shader Graph compatible outputs
@@ -14,11 +21,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modifying a shader used by an output mesh context now automatically updates the currently edited VFX
 - Possible loss of shadergraph reference in unlit output
 - ui : toolbar item wrap instead of overlapping.
+- Copy/Paste not deserializing correctly for Particle Strip data
+- WorldPosition, AbsoluteWorldPosition & ScreenPos in shadergraph integration
+- Optimize VFXAssetEditor when externalize is activated
+- TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
+- Filter out motion vector output for lower resolution & after post-process render passes [Case 1192932] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192932/)
 - Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition RenderPipeline
-
-### Added
-- Custom Inspector for Spawn context, delay settings are more user friendly.
-- Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
 
 ## [7.1.1] - 2019-09-05
 ### Added
