@@ -341,10 +341,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 case HDLightType.Area:
                     EditorGUI.BeginChangeCheck();
-                    AreaLightShape areaLightShape = serialized.areaLightShape;
-                    EditorGUI.showMixedValue = areaLightShape == (AreaLightShape)(-1);
-                    int index = Array.FindIndex((AreaLightShape[])Enum.GetValues(typeof(AreaLightShape)), x => x == areaLightShape);
-                    AreaLightShape updatedAreaLightShape = (AreaLightShape)EditorGUILayout.Popup(s_Styles.areaLightShape, index, s_Styles.areaShapeNames);
+                    Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+                    AreaLightShape updatedAreaLightShape;
+                    
+                    //Partial support for prefab. There is no way to fully support it at the moment.
+                    //Missing support on the Apply and Revert contextual menu on Label for Prefab overrides. They need to be done two times.
+                    //(This will continue unless we have our own handling for Disc or remove AdditionalDatas)
+                    using (new SerializedHDLight.AreaLightShapeEditionScope(lineRect, s_Styles.shape, serialized))
+                    {
+                        AreaLightShape areaLightShape = serialized.areaLightShape;
+                        EditorGUI.showMixedValue = areaLightShape == (AreaLightShape)(-1);
+                        int index = Array.FindIndex((AreaLightShape[])Enum.GetValues(typeof(AreaLightShape)), x => x == areaLightShape);
+                        updatedAreaLightShape = (AreaLightShape)EditorGUI.Popup(lineRect, s_Styles.areaLightShape, index, s_Styles.areaShapeNames);
+                    }
+
                     if (EditorGUI.EndChangeCheck())
                     {
                         serialized.areaLightShape = updatedAreaLightShape; //also register undo
