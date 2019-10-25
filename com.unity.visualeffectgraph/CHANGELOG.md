@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimize VFXAssetEditor when externalize is activated
 - TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
 - Filter out motion vector output for lower resolution & after post-process render passes [Case 1192932] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192932/)
-- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition RenderPipeline
+- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
 
 ## [7.1.1] - 2019-09-05
 ### Added
