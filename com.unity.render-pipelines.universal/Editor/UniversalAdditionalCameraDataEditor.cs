@@ -13,9 +13,7 @@ namespace UnityEditor.Rendering.Universal
         [MenuItem("CONTEXT/UniversalAdditionalCameraData/Remove Component")]
         static void RemoveComponent(MenuCommand command)
         {
-            if (EditorUtility.DisplayDialog("Component Info", "You can not delete this component, you will have to remove the camera.", "OK"))
-            {
-            }
+            EditorUtility.DisplayDialog("Component Info", "You can not delete this component, you will have to remove the camera.", "OK");
         }
     }
 }
