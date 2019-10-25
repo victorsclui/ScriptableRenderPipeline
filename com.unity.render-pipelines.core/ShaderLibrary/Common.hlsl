@@ -213,6 +213,8 @@
 #define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
+
 #if !defined(SHADER_API_GLES)
 
 #ifndef INTRINSIC_BITFIELD_EXTRACT
