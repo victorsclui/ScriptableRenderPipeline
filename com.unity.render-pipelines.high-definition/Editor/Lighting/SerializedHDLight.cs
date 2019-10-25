@@ -1,7 +1,6 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -77,8 +76,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Bias control
         public SerializedProperty constantBias;
-
         public SerializedProperty normalBias;
+
+        private SerializedProperty pointLightHDType;
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
@@ -115,6 +115,22 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (value != (objects[index] as HDAdditionalLightData).type)
                         return true;
                 return false;
+            }
+        }
+
+        // This scope is here mainly to keep pointLightHDType isolated 
+        public struct LightTypeEditionScope : System.IDisposable
+        {
+            public LightTypeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
+            {
+                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
+                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
             }
         }
         
@@ -223,9 +239,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 shadowTint = o.Find("m_ShadowTint");
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
-
+                
                 constantBias = o.Find("m_ConstantBias");
                 normalBias = o.Find("m_NormalBias");
+
+                // private references for prefab handling
+                pointLightHDType = o.Find("m_PointlightHDType");
+                areaLightShapeProperty = o.Find("m_AreaLightShape");
             }
         }
 

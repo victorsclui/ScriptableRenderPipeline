@@ -171,10 +171,20 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
-            HDLightType lightType = serialized.type;
-            EditorGUI.showMixedValue = lightType == (HDLightType)(-1);
-            int index = Array.FindIndex((HDLightType[])Enum.GetValues(typeof(HDLightType)), x => x == lightType);
-            HDLightType updatedLightType = (HDLightType)EditorGUILayout.Popup(s_Styles.shape, index, s_Styles.shapeNames);
+            Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+            HDLightType updatedLightType;
+
+            //Partial support for prefab. There is no way to fully support it at the moment.
+            //Missing support on the Apply and Revert contextual menu on Label for Prefab overrides. They need to be done two times.
+            //(This will continue unless we remove AdditionalDatas)
+            using (new SerializedHDLight.LightTypeEditionScope(lineRect, s_Styles.shape, serialized))
+            {
+                HDLightType lightType = serialized.type;
+                EditorGUI.showMixedValue = lightType == (HDLightType)(-1);
+                int index = Array.FindIndex((HDLightType[])Enum.GetValues(typeof(HDLightType)), x => x == lightType);
+                updatedLightType = (HDLightType)EditorGUI.Popup(lineRect, s_Styles.shape, index, s_Styles.shapeNames);
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 serialized.type = updatedLightType; //also register undo
