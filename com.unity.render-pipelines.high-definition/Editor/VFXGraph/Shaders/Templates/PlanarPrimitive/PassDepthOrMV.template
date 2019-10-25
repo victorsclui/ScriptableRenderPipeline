@@ -74,7 +74,7 @@ ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 
 ${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
-#if IS_MOTION_VECTORS_PASS
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 ${VFXPassVelocityDefine}
 #else
 ${VFXPassDepthDefine}
