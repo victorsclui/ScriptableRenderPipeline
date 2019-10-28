@@ -1145,6 +1145,18 @@ namespace UnityEditor.Rendering.HighDefinition
             generator.AddShaderChunk(builder.ToString());
         }
 
+        public static void AddTags(ShaderGenerator generator, string pipeline)
+        {
+            ShaderStringBuilder builder = new ShaderStringBuilder();
+            builder.AppendLine("Tags");
+            using (builder.BlockScope())
+            {
+                builder.AppendLine("\"RenderPipeline\"=\"{0}\"", pipeline);
+            }
+
+            generator.AddShaderChunk(builder.ToString());
+        }
+
         // Utils property to add properties to the collector, all hidden because we use a custom UI to display them
         static void AddIntProperty(this PropertyCollector collector, string referenceName, int defaultValue)
         {
@@ -1291,10 +1303,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 case HDRenderQueue.RenderQueueType.AfterPostprocessTransparent:
                     return "After Post-process";
 
-#if ENABLE_RAYTRACING
-                case HDRenderQueue.RenderQueueType.RaytracingOpaque: return "Raytracing";
-                case HDRenderQueue.RenderQueueType.RaytracingTransparent: return "Raytracing";
-#endif
+                case HDRenderQueue.RenderQueueType.RaytracingOpaque:
+                {
+                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                        return "RayTracing";
+                    return "None";
+                }
+                case HDRenderQueue.RenderQueueType.RaytracingTransparent:
+                {
+                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                        return "RayTracing";
+                    return "None";
+                }
                 default:
                     return "None";
             }
@@ -1308,9 +1328,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 result.Add(HDRenderQueue.RenderQueueType.Opaque);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostProcessOpaque);
-#if ENABLE_RAYTRACING
-                result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
-#endif
+                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                    result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
             }
             else
             {
@@ -1319,9 +1338,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 result.Add(HDRenderQueue.RenderQueueType.LowTransparent);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
-#if ENABLE_RAYTRACING
-                result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
-#endif
+                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                    result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
             }
 
             return result;
