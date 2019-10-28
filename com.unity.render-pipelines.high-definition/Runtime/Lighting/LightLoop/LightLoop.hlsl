@@ -52,9 +52,9 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-                    if(light.screenSpaceShadowIndex >= 0)
+                    if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_FLAG) != INVALID_SCREEN_SPACE_SHADOW)
                     {
-                        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+                        shadow = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex);
                     }
                     else
 #endif
@@ -126,9 +126,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            if(light.screenSpaceShadowIndex >= 0)
+            if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_FLAG) != INVALID_SCREEN_SPACE_SHADOW)
             {
-                context.shadowValue = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+                context.shadowValue = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex);
             }
             else
 #endif

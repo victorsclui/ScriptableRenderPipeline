@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
             shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
             supportScreenSpaceShadows   = false,
-            maxScreenSpaceShadows       = 2,
+            maxScreenSpaceShadowSlots   = 4,
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Screen space shadow data
         public bool supportScreenSpaceShadows;
-        public int maxScreenSpaceShadows;
+        public int maxScreenSpaceShadowSlots;
     }
 
     class HDShadowResolutionRequest

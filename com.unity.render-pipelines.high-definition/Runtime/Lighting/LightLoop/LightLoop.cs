@@ -95,6 +95,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_LightFeatureMaskFlagsOpaque = 0xFFF000 & ~((uint)LightFeatureFlags.SSRefraction); // Opaque don't support screen space refraction
         public static uint s_LightFeatureMaskFlagsTransparent = 0xFFF000 & ~((uint)LightFeatureFlags.SSReflection); // Transparent don't support screen space reflection
         public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
+
+        // Screen space shadow flags
+        public static uint s_ScreenSpaceColorShadowFlag = 0x100;
+        public static uint s_InvalidScreenSpaceShadow = 0xff;
+        public static uint s_ScreenSpaceShadowIndexFlag = 0xff;
     }
 
     [GenerateHLSL]
@@ -602,6 +607,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         int m_ScreenSpaceShadowIndex = 0;
+        int m_ScreenSpaceShadowChannelSlot = 0;
         ScreenSpaceShadowData[] m_CurrentScreenSpaceShadowData;
         public ScreenSpaceShadowData GetScreenSpaceShadowData(int screenSpaceShadowIndex) { return m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex]; }
 
@@ -817,7 +823,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_lightVolumes.InitData(defaultResources);
 
             // Screen space shadow
-            int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, 1);
+            int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 4);
             m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
 
             m_CopyStencil = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
@@ -1075,7 +1081,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, GPULightType gpuLightType, VisibleLight light,
             Light lightComponent, HDAdditionalLightData additionalLightData, int lightIndex, int shadowIndex,
-            DebugDisplaySettings debugDisplaySettings, int sortedIndex, ref int screenSpaceShadowIndex, bool isPysicallyBasedSkyActive)
+            DebugDisplaySettings debugDisplaySettings, int sortedIndex, bool isPysicallyBasedSkyActive, ref int screenSpaceShadowIndex, ref int screenSpaceShadowslot)
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.directionalLights.Count >= m_MaxDirectionalLightsOnScreen)
@@ -1133,7 +1139,16 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (additionalLightData.WillRenderScreenSpaceShadow())
                 {
-                    lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                    lightData.screenSpaceShadowIndex = screenSpaceShadowslot;
+                    if (additionalLightData.colorShadow && additionalLightData.WillRenderRayTracedShadow())
+                    {
+                        screenSpaceShadowslot += 3;
+                        lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_ScreenSpaceColorShadowFlag;
+                    }
+                    else
+                    {
+                        screenSpaceShadowslot++;
+                    }
                     screenSpaceShadowIndex++;
                 }
                 m_CurrentSunLight = lightComponent;
@@ -1191,7 +1206,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData,
-            int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex)
+            int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot)
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
             if (m_lightList.lights.Count >= m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen)
@@ -1384,7 +1399,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
-                && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows
+                && screenSpaceChannelSlot < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots
                 && additionalLightData.WillRenderScreenSpaceShadow())
             {
                 // Keep track of the shadow map (for indirect lighting and transparents)
@@ -1392,11 +1407,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 additionalLightData.shadowIndex = shadowIndex;
 
                 // Keep track of the screen space shadow data
-                lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                lightData.screenSpaceShadowIndex = screenSpaceChannelSlot;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
                 screenSpaceShadowIndex++;
+                screenSpaceChannelSlot++;
             }
             else
             {
@@ -1989,8 +2005,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShadowManager.Clear();
 
                 m_ScreenSpaceShadowIndex = 0;
+                m_ScreenSpaceShadowChannelSlot = 0;
                 // Set all the light data to invalid
-                for (int i = 0; i < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows; ++i)
+                for (int i = 0; i < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots; ++i)
                 {
                     m_CurrentScreenSpaceShadowData[i].additionalLightData = null;
                     m_CurrentScreenSpaceShadowData[i].lightDataIndex = -1;
@@ -2134,7 +2151,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPbrSkyActive))
+                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, isPbrSkyActive, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot ))
                             {
                                 directionalLightcount++;
 
@@ -2155,7 +2172,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
                         // Punctual, area, projector lights - the rendering side.
-                        if (GetLightData(cmd, hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex))
+                        if (GetLightData(cmd, hdCamera, hdShadowSettings, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings, ref m_ScreenSpaceShadowIndex, ref m_ScreenSpaceShadowChannelSlot))
                         {
                             switch (lightCategory)
                             {
@@ -2933,7 +2950,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.lightData = m_LightLoopLightData;
             parameters.tileAndClusterData = m_TileAndClusterData;
             parameters.clusterScale = m_ClusterScale;
-            parameters.maxScreenSpaceShadows = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows;
+            parameters.maxScreenSpaceShadows = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots;
 
             HDAdditionalLightData sunLightData = m_CurrentSunLight != null ? m_CurrentSunLight.GetComponent<HDAdditionalLightData>() : null;
             bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
