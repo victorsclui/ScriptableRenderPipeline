@@ -309,9 +309,11 @@ real ComputeMicroShadowing(real AO, real NdotL, real opacity)
 	return lerp(1.0, microshadow, opacity);
 }
 
-real3 ComputeShadowColor(real shadow, real3 shadowTint)
+real3 ComputeShadowColor(real shadow, real3 shadowTint, float penumbraFlag)
 {
-    return real3(1.0, 1.0, 1.0) - ((1.0 - shadow) * (real3(1.0, 1.0, 1.0) - shadowTint));
+    return lerp(real3(1.0, 1.0, 1.0) - ((1.0 - shadow) * (real3(1.0, 1.0, 1.0) - shadowTint))
+                , shadow * lerp(shadowTint, lerp(shadowTint, real3(1.0, 1.0, 1.0), shadow), shadow)
+                , penumbraFlag);
 }
 //-----------------------------------------------------------------------------
 // Helper functions
