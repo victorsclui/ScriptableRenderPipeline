@@ -903,9 +903,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [Range(0, 0.001f)]
+        [Range(0, 1.0f)]
         [SerializeField, FormerlySerializedAs("minFilterSize")]
-        float m_MinFilterSize = 0.00001f;
+        float m_MinFilterSize = 0.1f;
         /// <summary>
         /// Controls the minimum filter size of PCSS shadows.
         /// </summary>
@@ -917,7 +917,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_MinFilterSize == value)
                     return;
 
-                m_MinFilterSize = Mathf.Clamp(value, 0.0f, 0.001f);
+                m_MinFilterSize = Mathf.Clamp(value, 0.0f, 1.0f);
             }
         }
 
@@ -1728,7 +1728,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowRequest.shadowSoftness = softness;
             shadowRequest.blockerSampleCount = blockerSampleCount;
             shadowRequest.filterSampleCount = filterSampleCount;
-            shadowRequest.minFilterSize = minFilterSize;
+            shadowRequest.minFilterSize = minFilterSize * 0.001f;
 
             shadowRequest.kernelSize = (uint)kernelSize;
             shadowRequest.lightAngle = (lightAngle * Mathf.PI / 180.0f);
