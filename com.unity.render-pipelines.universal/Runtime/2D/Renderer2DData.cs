@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader removeSelfShadowShader => GetShader(ref m_RemoveSelfShadowShader, "Hidden/Shadow2DRemoveSelf");
         internal PostProcessData postProcessData => m_PostProcessData;
 
-
+#if UNITY_EDITOR
         internal void UpgradeRenderer2DData()
         {
             AssetDatabase.Refresh();
@@ -74,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             AssetDatabase.SaveAssets();
         }
+#endif
 
         Shader GetShader(ref Shader shader, string shaderName)
         {
