@@ -3,7 +3,6 @@ using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // Buffers used for the evaluation
@@ -126,6 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             deferredParameters.halfResolution = false;
             deferredParameters.rayCountFlag = m_RayCountManager.RayCountIsEnabled();
+            deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
             deferredParameters.preExpose = true;
 
             // Camera data
@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Prepare the components for the deferred lighting
                     DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera);
-                    DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(m_RaytracingDirectionBuffer, m_IDIntermediateBuffer0);
+                    DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(hdCamera, m_RaytracingDirectionBuffer, m_IDIntermediateBuffer0);
 
                     // Evaluate the deferred lighting
                     RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightCluster.BindLightClusterData(cmd);
 
             // Set the data for the ray miss
-            cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
+            cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
 
             // Set the number of bounces to 1
             cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
@@ -381,5 +381,4 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
     }
-#endif
 }

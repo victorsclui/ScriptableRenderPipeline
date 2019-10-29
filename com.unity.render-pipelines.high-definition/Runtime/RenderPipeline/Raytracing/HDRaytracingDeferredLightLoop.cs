@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // The set of parameters that define our ray tracing deferred lighting pass
@@ -20,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool diffuseLightingOnly;
             public bool halfResolution;
             public int rayCountFlag;
+            public int rayCountType;
             public bool preExpose;
 
             // Camera data
@@ -106,14 +106,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingGBufferManager.DestroyBuffers();
         }
 
-        DeferredLightingRTResources PrepareDeferredLightingRTResources(RTHandle directionBuffer, RTHandle ouputBuffer)
+        DeferredLightingRTResources PrepareDeferredLightingRTResources(HDCamera hdCamera, RTHandle directionBuffer, RTHandle ouputBuffer)
         {
             DeferredLightingRTResources deferredResources = new DeferredLightingRTResources();
 
             deferredResources.directionBuffer = directionBuffer;
             deferredResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             deferredResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            deferredResources.skyTexture = m_SkyManager.skyReflection;
+            deferredResources.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
 
             // Temporary buffers
             deferredResources.gbuffer0 = m_RaytracingGBufferManager.GetBuffer(0);
@@ -213,6 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set ray count tex
             cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountEnabled, parameters.rayCountFlag);
+            cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountType, parameters.rayCountType);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountTexture, buffers.rayCountTexture);
             
             // Bind all input parameter
@@ -298,5 +299,4 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.deferredRaytracingCS, currentKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
     }
-#endif
 }
