@@ -19,23 +19,22 @@ public class HDRP_TestSettings : GraphicsTestSettings
 	public UnityEngine.Events.UnityEvent doBeforeTest;
 	public int captureFramerate = 0;
 	public int waitFrames = 0;
-
-    [SerializeField]
-    internal XRLayoutOverride xrLayout = XRLayoutOverride.TestSinglePassOneEye;
+    public bool xrCompatible = true;
 
     public RenderPipelineAsset renderPipelineAsset;
 
     void Awake()
     {
-        if (XRSystem.testModeEnabled)
+        if (XRSystem.testModeEnabled && xrCompatible)
         {
-            XRSystem.layoutOverride = xrLayout;
-
-            if (xrLayout == XRLayoutOverride.None)
-                return;
+            XRLayoutTest.automatedTestRunning = true;
 
             // Built-in font shaders are incompatible with XR, replace them with a ShaderGraph version
             doBeforeTest.AddListener(ReplaceBuiltinFontShaders);
+        }
+        else
+        {
+            XRLayoutTest.automatedTestRunning = false;
         }
 
         if (renderPipelineAsset == null)

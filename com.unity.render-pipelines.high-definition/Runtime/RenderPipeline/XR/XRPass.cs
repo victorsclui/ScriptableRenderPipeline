@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material occlusionMeshMaterial = null;
 
         // Ability to override mirror view behavior for each pass
-        internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt);
+        internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt, Rect viewport);
         CustomMirrorView customMirrorView = null;
         internal void SetCustomMirrorView(CustomMirrorView callback) => customMirrorView = callback;
 
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Callback for custom mirror view
-            customMirrorView?.Invoke(this, cmd, hdCamera.camera.targetTexture);
+            customMirrorView?.Invoke(this, cmd, hdCamera.camera.targetTexture, hdCamera.finalViewport);
         }
 
         internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle depthBuffer)

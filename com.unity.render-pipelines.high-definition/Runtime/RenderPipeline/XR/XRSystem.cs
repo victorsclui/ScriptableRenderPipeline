@@ -103,8 +103,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
                     maxViews = 2;
 
-                if (testModeEnabled)
-                    maxViews = 2;
+                // not required anymore
+                //if (testModeEnabled)
+                //    maxViews = 2;
             }
 
             return maxViews;

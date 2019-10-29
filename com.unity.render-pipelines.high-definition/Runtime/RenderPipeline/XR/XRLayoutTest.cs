@@ -5,6 +5,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal class XRLayoutTest
     {
+        internal static bool automatedTestRunning = false;
+
         internal enum Mode
         {
             Default,            // Default camera layout
@@ -40,6 +42,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Update(Mode mode)
         {
+            if (automatedTestRunning)
+                mode = Mode.TestComposite;
+
             switch (mode)
             {
                 case Mode.Default:
@@ -59,6 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool LayoutComposite(XRSystem.FrameLayout frameLayout)
         {
             Camera camera = frameLayout.camera;
+
+            // skip RT ?
 
             if (camera != null && camera.cameraType == CameraType.Game && camera.TryGetCullingParameters(false, out var cullingParams))
             {
@@ -80,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     viewport = camera.pixelRect
                 };
 
-                // Pass 0 : multi-pass 1x directly to gameview target
+                // Pass 0 : multi-pass 1x directly to target texture
                 {
                     passInfo.multipassId = 0;
                     passInfo.renderTarget = camera.targetTexture;
@@ -141,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        void MirrorComposite(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt)
+        void MirrorComposite(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt, Rect viewport)
         {
             float oneOverViewCount = 1.0f / totalCompositeViews;
             var rtScaleSource = texArrayTarget.rtHandleProperties.rtHandleScale;
@@ -154,7 +161,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //for (int viewIndex = 0; viewIndex < pass.viewCount; ++viewIndex)
             int viewIndex = pass.viewCount - 1;
-            var viewport = pass.GetViewport(viewIndex);
+            //var viewport = pass.GetViewport(viewIndex);
+            //var xBias = (viewport.x + pass.multipassId * oneOverViewCount) / (viewport.x + viewport.width);
+
             var xBias = pass.multipassId * oneOverViewCount;
 
             var dyn = 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
@@ -171,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DrawProcedural(Matrix4x4.identity, blitMaterial, 3, MeshTopology.Quads, 4, 1, matBlock);
         }
 
-        void MirrorCompositeDoubleWide(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt)
+        void MirrorCompositeDoubleWide(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt, Rect viewport)
         {
             float oneOverViewCount = 1.0f / totalCompositeViews;
             var rtScaleSource = doubleWideTarget.rtHandleProperties.rtHandleScale;
@@ -185,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
             matBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
 
             int viewIndex = pass.viewCount - 1;
-            var viewport = pass.GetViewport(viewIndex);
+            //var viewport = pass.GetViewport(viewIndex);
             var xBias =  pass.multipassId * oneOverViewCount;
 
             var dyn = 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
@@ -259,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        void MirrorFFR(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt)
+        void MirrorFFR(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt, Rect viewport)
         {
             cmd.SetRenderTarget(rt);
 
@@ -275,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Full screen background view
             {
                 int viewIndex = 0;
-                var viewport = pass.GetViewport(viewIndex);
+                //var viewport = pass.GetViewport(viewIndex);
 
                 matBlock.SetInt(HDShaderIDs._BlitTexArraySlice, pass.GetTextureArraySlice(viewIndex));
                 matBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(dyn * rtScaleSource.x, dyn * rtScaleSource.y, 0.0f, 0.0f));
@@ -289,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // high res
             {
                 int viewIndex = 1;
-                var viewport = pass.GetViewport(viewIndex);
+                //var viewport = pass.GetViewport(viewIndex);
 
                 viewport.x += 0.5f * (viewport.width -  (viewport.width *  fixedFoveatedRatio));
                 viewport.y += 0.5f * (viewport.height - (viewport.height * fixedFoveatedRatio));
