@@ -1704,8 +1704,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
             }
 
+
+            float softness = shadowSoftness / 100.0f;
+            if (lightType == HDLightType.Directional)
+            {
+                var devProj = shadowRequest.deviceProjection;
+                Vector3 FrustumExtents = new Vector3(
+                    2.0f * (devProj.m00 * devProj.m33 - devProj.m03 * devProj.m30) /
+                         (devProj.m00 * devProj.m00 - devProj.m30 * devProj.m30),
+                    2.0f * (devProj.m11 * devProj.m33 - devProj.m13 * devProj.m31) /
+                         (devProj.m11 * devProj.m11 - devProj.m31 * devProj.m31),
+                    Vector4.Dot(new Vector4(devProj.m32, -devProj.m32, -devProj.m22, devProj.m22), new Vector4(devProj.m22, devProj.m32, devProj.m23, devProj.m33)) /
+                        (devProj.m22 * (devProj.m22 - devProj.m32))
+                );
+
+                float halfAngleTan = 0.5f * Mathf.Tan(0.5f * Mathf.Deg2Rad * m_AngularDiameter / 2);
+                float lightFactor1 = halfAngleTan * FrustumExtents.z / FrustumExtents.x;
+                float lightFactor2 = halfAngleTan * FrustumExtents.z / FrustumExtents.y;
+                softness = Mathf.Sqrt(lightFactor1 * lightFactor1 + lightFactor2 * lightFactor2);
+            }
+
             // Shadow algorithm parameters
-            shadowRequest.shadowSoftness = shadowSoftness / 100f;
+            shadowRequest.shadowSoftness = softness;
             shadowRequest.blockerSampleCount = blockerSampleCount;
             shadowRequest.filterSampleCount = filterSampleCount;
             shadowRequest.minFilterSize = minFilterSize;
