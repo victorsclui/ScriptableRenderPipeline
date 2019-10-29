@@ -1,8 +1,8 @@
 editors:
   - version: trunk
-    cmd: -u trunk
+    cmd: -u graphics/vfx/feature/compile-on-import
   - version: fast-trunk
-    cmd: -u trunk --fast
+    cmd: -u graphics/vfx/feature/compile-on-import --fast
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
@@ -188,4 +188,4 @@ All_{{ project.name }}:
   {% endfor %}
   {% endfor %}
 
-{% endfor %}    
+{% endfor %}
