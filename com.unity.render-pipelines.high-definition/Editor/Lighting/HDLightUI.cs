@@ -713,14 +713,20 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)
         {
             var hdrp = HDRenderPipeline.currentAsset;
+            Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+            bool newShadowsEnabled;
 
-            bool oldShadowEnabled = serialized.settings.shadowsType.GetEnumValue<LightShadows>() != LightShadows.None;
-            bool newShadowsEnabled = EditorGUILayout.Toggle(s_Styles.enableShadowMap, oldShadowEnabled);
-            if (oldShadowEnabled ^ newShadowsEnabled)
+            EditorGUI.BeginProperty(lineRect, s_Styles.enableShadowMap, serialized.settings.shadowsType);
             {
-                serialized.settings.shadowsType.SetEnumValue(newShadowsEnabled ? LightShadows.Hard : LightShadows.None);
+                bool oldShadowEnabled = serialized.settings.shadowsType.GetEnumValue<LightShadows>() != LightShadows.None;
+                newShadowsEnabled = EditorGUI.Toggle(lineRect, s_Styles.enableShadowMap, oldShadowEnabled);
+                if (oldShadowEnabled ^ newShadowsEnabled)
+                {
+                    serialized.settings.shadowsType.SetEnumValue(newShadowsEnabled ? LightShadows.Hard : LightShadows.None);
+                }
             }
-
+            EditorGUI.EndProperty();
+            
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
                 if (!serialized.settings.isCompletelyBaked)
