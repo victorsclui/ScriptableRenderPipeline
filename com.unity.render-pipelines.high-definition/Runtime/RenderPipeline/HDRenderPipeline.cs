@@ -1910,6 +1910,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // We can now bind the normal buffer to be use by any effect
             m_SharedRTManager.BindNormalBuffer(cmd);
 
+            // After Depth and Normals/roughness including decals
+            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults ?? cullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
             // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
@@ -2137,6 +2140,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     RaytracingRecursiveRender(hdCamera, cmd, renderContext, cullingResults);
                 }
+
+                RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults ?? cullingResults, CustomPassInjectionPoint.BeforePreRefraction);
 
                 // Render pre refraction objects
                 RenderForwardTransparent(cullingResults, hdCamera, true, renderContext, cmd);
@@ -3395,14 +3400,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (customPass == null)
                 return false;
 
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            msaa &= injectionPoint == CustomPassInjectionPoint.BeforeTransparent;
-
             var customPassTargets = new CustomPass.RenderTargets
             {
                 cameraColorMSAABuffer = m_CameraColorMSAABuffer,
                 cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : m_CameraColorBuffer,
-                cameraDepthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaa),
                 customColorBuffer = m_CustomPassColorBuffer,
                 customDepthBuffer = m_CustomPassDepthBuffer,
             };

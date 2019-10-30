@@ -89,7 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public RTHandle cameraColorMSAABuffer;
             public RTHandle cameraColorBuffer;
-            public RTHandle cameraDepthBuffer;
             public RTHandle customColorBuffer;
             public RTHandle customDepthBuffer;
         }
@@ -107,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 isSetup = true;
             }
 
-            SetCustomPassTarget(cmd, targets);
+            SetCustomPassTarget(cmd);
 
             isExecuting = true;
             Execute(renderContext, cmd, hdCamera, cullingResult);
@@ -137,17 +136,20 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // if MSAA is enabled and the current injection point is before transparent.
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            msaa &= injectionPoint == CustomPassInjectionPoint.BeforeTransparent;
+            msaa &= injectionPoint == CustomPassInjectionPoint.BeforeTransparent || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;
 
             return msaa;
         }
 
-        void SetCustomPassTarget(CommandBuffer cmd, RenderTargets targets)
+        // This function must be only called from the ExecuteInternal method (requires current render target and current RT manager)
+        void SetCustomPassTarget(CommandBuffer cmd)
         {
-            var cameraColorBuffer = IsMSAAEnabled(currentHDCamera) ? targets.cameraColorMSAABuffer : targets.cameraColorBuffer;
+            bool msaa = IsMSAAEnabled(currentHDCamera);
+            var cameraColorBuffer = msaa ? currentRenderTarget.cameraColorMSAABuffer : currentRenderTarget.cameraColorBuffer;
+            var cameraDepthBuffer = currentRTManager.GetDepthStencilBuffer(msaa);
 
-            RTHandle colorBuffer = (targetColorBuffer == TargetBuffer.Custom) ? targets.customColorBuffer : cameraColorBuffer;
-            RTHandle depthBuffer = (targetDepthBuffer == TargetBuffer.Custom) ? targets.customDepthBuffer : targets.cameraDepthBuffer;
+            RTHandle colorBuffer = (targetColorBuffer == TargetBuffer.Custom) ? currentRenderTarget.customColorBuffer : cameraColorBuffer;
+            RTHandle depthBuffer = (targetDepthBuffer == TargetBuffer.Custom) ? currentRenderTarget.customDepthBuffer : cameraDepthBuffer;
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlags);
         }
         
@@ -194,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 throw new Exception("SetCameraRenderTarget can only be called inside the CustomPass.Execute function");
 
             if (bindDepth)
-                CoreUtils.SetRenderTarget(cmd, currentRenderTarget.cameraColorBuffer, currentRenderTarget.cameraDepthBuffer, clearFlags);
+                CoreUtils.SetRenderTarget(cmd, currentRenderTarget.cameraColorBuffer, currentRTManager.GetDepthStencilBuffer(IsMSAAEnabled(currentHDCamera)), clearFlags);
             else
                 CoreUtils.SetRenderTarget(cmd, currentRenderTarget.cameraColorBuffer, clearFlags);
         }
@@ -220,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Bind the render targets according to the parameters of the UI (targetColorBuffer, targetDepthBuffer and clearFlags)
         /// </summary>
         /// <param name="cmd"></param>
-        protected void SetRenderTargetAuto(CommandBuffer cmd) => SetCustomPassTarget(cmd, currentRenderTarget);
+        protected void SetRenderTargetAuto(CommandBuffer cmd) => SetCustomPassTarget(cmd);
 
         /// <summary>
         /// Resolve the camera color buffer only if the MSAA is enabled and the pass is executed in before transparent.
@@ -248,8 +250,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!isExecuting)
                 throw new Exception("GetCameraBuffers can only be called inside the CustomPass.Execute function");
 
-            colorBuffer = IsMSAAEnabled(currentHDCamera) ? currentRenderTarget.cameraColorMSAABuffer : currentRenderTarget.cameraColorBuffer;
-            depthBuffer = currentRenderTarget.cameraDepthBuffer;
+            bool msaa = IsMSAAEnabled(currentHDCamera);
+            colorBuffer = msaa ? currentRenderTarget.cameraColorMSAABuffer : currentRenderTarget.cameraColorBuffer;
+            depthBuffer = currentRTManager.GetDepthStencilBuffer(msaa);
         }
 
         /// <summary>

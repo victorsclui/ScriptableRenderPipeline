@@ -51,6 +51,17 @@ namespace UnityEngine.Rendering.HighDefinition
         List<Collider>          m_Colliders = new List<Collider>();
         List<Collider>          m_OverlappingColliders = new List<Collider>();
 
+        static List<CustomPassInjectionPoint> m_InjectionPoints;
+        static List<CustomPassInjectionPoint> injectionPoints
+        {
+            get
+            {
+                if (m_InjectionPoints == null)
+                    m_InjectionPoints = Enum.GetValues(typeof(CustomPassInjectionPoint)).Cast<CustomPassInjectionPoint>().ToList();
+                return m_InjectionPoints;
+            }
+        }
+
         void OnEnable()
         {
             // Remove null passes in case of something happens during the deserialization of the passes
@@ -190,10 +201,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cullingParameters.cullingMask = 0;
             cullingParameters.cullingOptions &= CullingOptions.Stereo; // We just keep stereo if enabled and clear the other flags
 
-            GetActivePassVolume(CustomPassInjectionPoint.BeforeRendering)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
-            GetActivePassVolume(CustomPassInjectionPoint.BeforeTransparent)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
-            GetActivePassVolume(CustomPassInjectionPoint.BeforePostProcess)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
-            GetActivePassVolume(CustomPassInjectionPoint.AfterPostProcess)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
+            foreach (var injectionPoint in injectionPoints)
+                GetActivePassVolume(injectionPoint)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
 
             // If we don't have anything to cull or the pass have the same culling mask than the camera, we don't have to re-do the culling
             if (cullingParameters.cullingMask != 0 || cullingParameters.cullingMask == hdCamera.camera.cullingMask)
