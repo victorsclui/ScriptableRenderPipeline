@@ -269,7 +269,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Callback for custom mirror view
-            customMirrorView?.Invoke(this, cmd, hdCamera.camera.targetTexture, hdCamera.finalViewport);
+            if (customMirrorView != null)
+            {
+                using (new ProfilingSample(cmd, "XR Custom Mirror View"))
+                {
+                    customMirrorView(this, cmd, hdCamera.camera.targetTexture, hdCamera.finalViewport);
+                }
+            }
         }
 
         internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle depthBuffer)
