@@ -116,6 +116,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when upgrading a Standard transparent material (case 1186874)
 - Fixed area light cookies not working properly with stack lit
 - Fixed material render queue not updated when the shader is changed in the material inspector.
+- Fixed decals with no normal affecting material normals for some pixels
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
