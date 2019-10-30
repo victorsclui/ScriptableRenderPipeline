@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material occlusionMeshMaterial = null;
 
         // Ability to override mirror view behavior for each pass
-        internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt, Rect viewport);
+        internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport);
         CustomMirrorView customMirrorView = null;
         internal void SetCustomMirrorView(CustomMirrorView callback) => customMirrorView = callback;
 
