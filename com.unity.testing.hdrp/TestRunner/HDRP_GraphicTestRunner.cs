@@ -37,6 +37,8 @@ public class HDRP_GraphicTestRunner
         {
             if (settings.xrCompatible)
             {
+                XRLayoutTest.automatedTestRunning = true;
+
                 // Increase tolerance to account for slight changes due to float precision
                 settings.ImageComparisonSettings.AverageCorrectnessThreshold *= 1.5f;
             }
@@ -136,6 +138,12 @@ public class HDRP_GraphicTestRunner
     public void DumpImagesInEditor()
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+    }
+
+    [TearDown]
+    public void ResetSystemState()
+    {
+        XRLayoutTest.automatedTestRunning = false;
     }
 #endif
 

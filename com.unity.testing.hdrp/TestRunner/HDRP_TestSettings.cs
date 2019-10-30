@@ -25,17 +25,9 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
     void Awake()
     {
+        // Built-in font shaders are incompatible with XR, replace them with a ShaderGraph version
         if (XRSystem.testModeEnabled && xrCompatible)
-        {
-            XRLayoutTest.automatedTestRunning = true;
-
-            // Built-in font shaders are incompatible with XR, replace them with a ShaderGraph version
             doBeforeTest.AddListener(ReplaceBuiltinFontShaders);
-        }
-        else
-        {
-            XRLayoutTest.automatedTestRunning = false;
-        }
 
         if (renderPipelineAsset == null)
         {
@@ -51,11 +43,6 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
             GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
         }
-    }
-
-    private void OnDestroy()
-    {
-        XRLayoutTest.automatedTestRunning = false;
     }
 
     static StringBuilder quitDebug = new StringBuilder();
