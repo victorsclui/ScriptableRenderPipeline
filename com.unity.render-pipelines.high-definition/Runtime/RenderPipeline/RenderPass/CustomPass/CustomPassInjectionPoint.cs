@@ -14,8 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Important: don't touch the value of the injection points for the serialization.
         BeforeRendering             = 0,
         AfterOpaqueDepthAndNormal   = 5,
-        BeforeTransparent           = 1,
         BeforePreRefraction         = 4,
+        BeforeTransparent           = 1,
         BeforePostProcess           = 2,
         AfterPostProcess            = 3,
     }
