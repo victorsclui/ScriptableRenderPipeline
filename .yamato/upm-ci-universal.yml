@@ -59,9 +59,9 @@ linux_apis:
 {{ project.name }}_Windows64_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : Test {{ project.name }} on Windows64_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-    type: {{ platform.type }}
-    image: {{ platform.image }}      
-    flavor: {{ platform.flavor }}
+    flavor: b1.large
+    type: Unity::VM::GPU
+    image: sdet/gamecode_win10:stable
 
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
@@ -79,10 +79,10 @@ linux_apis:
 Build_{{ project.name }}_Windows64_{{ win_api.name }}_Player_{{ editor.version }}:
   name : Build {{ project.name }} on Windows64_{{ win_api.name }}_Player on version {{ editor.version }}
   agent:
-  # larger CPU-only VM for building
     flavor: b1.xlarge
     type: Unity::VM
     image: sdet/gamecode_win10:stable
+
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --pre
@@ -105,10 +105,10 @@ Build_{{ project.name }}_Windows64_{{ win_api.name }}_Player_{{ editor.version }
     {% if testplatform.name == "editmode" %}
     type: Unity::VM
     {% else %}
-    type: {{ platform.type }}
+    type: Unity::VM::GPU
     {% endif %} 
-    image: {{ platform.image }}      
-    flavor: {{ platform.flavor }}
+    image: sdet/gamecode_win10:stable      
+    flavor: b1.large
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
@@ -133,9 +133,9 @@ Build_{{ project.name }}_Windows64_{{ win_api.name }}_Player_{{ editor.version }
 Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
   name : Build {{ project.name }} on OSX_OpenGLCore_Player on version {{ editor.version }}
   agent:
-    type: {{ platform.type }}
-    image: {{ platform.image }}      
-    flavor: {{ platform.flavor }}
+    type: Unity::VM::osx
+    image: buildfarm/mac:stable
+    flavor: m1.mac
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
@@ -153,9 +153,9 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
 {{ project.name }}_OSX_OpenGLCore_Standalone_{{ editor.version }}:
   name: Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-      type: {{ platform.type }}
-    image: {{ platform.image }}      
-    flavor: {{ platform.flavor }}
+      type: Unity::VM::osx
+      image: buildfarm/mac:stable
+      flavor: m1.mac
   commands:
       - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
       - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
@@ -173,9 +173,9 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
 {{ project.name }}_OSX_OpenGLCore_{{ testplatform.name }}_{{ editor.version }}:
   name : Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-    type: {{ platform.type }}
-    image: {{ platform.image }}      
-    flavor: {{ platform.flavor }}
+    type: Unity::VM::osx
+    image: buildfarm/mac:stable
+    flavor: m1.mac
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git -b staging TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --pre
