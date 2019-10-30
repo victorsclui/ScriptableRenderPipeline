@@ -28,7 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty displayAreaLightEmissiveMesh;
         public SerializedProperty renderingLayerMask;
         public SerializedProperty shadowNearPlane;
-        public SerializedProperty shadowSoftness;
         public SerializedProperty blockerSampleCount;
         public SerializedProperty filterSampleCount;
         public SerializedProperty minFilterSize;
@@ -177,7 +176,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 maxSmoothness = o.Find("m_MaxSmoothness");
                 applyRangeAttenuation = o.Find("m_ApplyRangeAttenuation");
                 shadowNearPlane = o.Find("m_ShadowNearPlane");
-                shadowSoftness = o.Find("m_ShadowSoftness");
                 blockerSampleCount = o.Find("m_BlockerSampleCount");
                 filterSampleCount = o.Find("m_FilterSampleCount");
                 minFilterSize = o.Find("m_MinFilterSize");

@@ -849,24 +849,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // PCSS settings
-        [Range(0, 1.0f)]
-        [SerializeField, FormerlySerializedAs("shadowSoftness")]
-        float    m_ShadowSoftness = .5f;
-        /// <summary>
-        /// Controls how much softness you want for PCSS shadows.
-        /// </summary>
-        public float shadowSoftness
-        {
-            get => m_ShadowSoftness;
-            set
-            {
-                if (m_ShadowSoftness == value)
-                    return;
-
-                m_ShadowSoftness = Mathf.Clamp01(value);
-            }
-        }
-
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("blockerSampleCount")]
         int      m_BlockerSampleCount = 24;
@@ -1705,7 +1687,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 
-            float softness = shadowSoftness / 100.0f;
+            float softness = 0.0f;
             if (lightType == HDLightType.Directional)
             {
                 var devProj = shadowRequest.deviceProjection;
@@ -1723,12 +1705,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 float lightFactor2 = halfAngleTan * FrustumExtents.z / FrustumExtents.y;
                 softness = Mathf.Sqrt(lightFactor1 * lightFactor1 + lightFactor2 * lightFactor2);
             }
+            else
+            {
+                // This derivation has been fitted with quartic regression checking against raytracing reference and with a resolution of 512
+                float x = m_ShapeRadius;
+                float x2 = x * x;
+                softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
+                softness = Mathf.Clamp(softness, 0.0f, 4.0f);
+                softness *= (shadowRequest.atlasViewport.width / 512);  // Make it resolution independent whereas the baseline is 512
+                softness /= 100.0f;
+            }
 
             // Shadow algorithm parameters
             shadowRequest.shadowSoftness = softness;
             shadowRequest.blockerSampleCount = blockerSampleCount;
             shadowRequest.filterSampleCount = filterSampleCount;
-            shadowRequest.minFilterSize = minFilterSize * 0.001f;
+            shadowRequest.minFilterSize = minFilterSize * 0.001f; // This divide by 1000 is here to have a range [0...1] exposed to user
 
             shadowRequest.kernelSize = (uint)kernelSize;
             shadowRequest.lightAngle = (lightAngle * Mathf.PI / 180.0f);
@@ -2415,13 +2407,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set parameters for PCSS shadows.
         /// </summary>
-        /// <param name="softness">How soft the shadow will be, between 0 and 1</param>
         /// <param name="blockerSampleCount">Number of samples used to detect blockers</param>
         /// <param name="filterSampleCount">Number of samples used to filter the shadow map</param>
         /// <param name="minFilterSize">Minimum filter size</param>
-        public void SetPCSSParams(float softness, int blockerSampleCount = 16, int filterSampleCount = 24, float minFilterSize = 0.00001f)
+        public void SetPCSSParams(int blockerSampleCount = 16, int filterSampleCount = 24, float minFilterSize = 0.00001f)
         {
-            this.shadowSoftness = softness;
             this.blockerSampleCount = blockerSampleCount;
             this.filterSampleCount = filterSampleCount;
             this.minFilterSize = minFilterSize;

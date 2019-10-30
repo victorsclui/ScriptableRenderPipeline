@@ -921,7 +921,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.shadowSoftness, s_Styles.shadowSoftness);
             EditorGUILayout.PropertyField(serialized.blockerSampleCount, s_Styles.blockerSampleCount);
             EditorGUILayout.PropertyField(serialized.filterSampleCount, s_Styles.filterSampleCount);
             EditorGUILayout.PropertyField(serialized.minFilterSize, s_Styles.minFilterSize);
