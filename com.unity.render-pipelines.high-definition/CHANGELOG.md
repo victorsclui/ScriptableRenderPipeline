@@ -123,6 +123,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved RequestShadowMapRendering() back to public API.
 - Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
 - Added SceneSelection pass for TerrainLit shader.
+- Tweak test asset to be compatible with XR: unlit SG material for canvas and double-side font material
 
 ## [7.1.1] - 2019-09-05
 
