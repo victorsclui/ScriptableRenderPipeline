@@ -36,13 +36,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal readonly int textureArraySlice;
         internal readonly Camera.StereoscopicEye legacyStereoEye;
 
-        internal XRView(Camera camera, Camera.StereoscopicEye eye)
+        internal XRView(Camera camera, Camera.StereoscopicEye eye, int dstSlice)
         {
             projMatrix = camera.GetStereoProjectionMatrix(eye);
             viewMatrix = camera.GetStereoViewMatrix(eye);
             viewport = camera.pixelRect;
             occlusionMesh = null;
-            textureArraySlice = -1;
+            textureArraySlice = dstSlice;
             legacyStereoEye = eye;
         }
 
@@ -143,9 +143,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return passInfo;
         }
 
-        internal void AddView(Camera camera, Camera.StereoscopicEye eye)
+        internal void AddView(Camera camera, Camera.StereoscopicEye eye, int textureArraySlice = -1)
         {
-            AddViewInternal(new XRView(camera, eye));
+            AddViewInternal(new XRView(camera, eye, textureArraySlice));
         }
 
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)

@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
                 {
-                    pass.AddView(camera, (Camera.StereoscopicEye)viewIndex);
+                    pass.AddView(camera, (Camera.StereoscopicEye)viewIndex, viewIndex);
                 }
 
                AddPassToFrame(camera, pass);
