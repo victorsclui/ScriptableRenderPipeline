@@ -2385,18 +2385,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
             }
 
-            // dea with this
-            //cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
-            //cmd.SetInstanceMultiplier(1);
-
-            //for (int viewIndex = 0; viewIndex < camera.viewCount; ++viewIndex)
-            {
-                //if (HDUtils.PostProcessIsFinalPass() && camera.xr.singlePassEnabled)
-                //    backBufferRect = camera.xr.GetViewport(viewIndex);
-
-                // handle tex array, etc
-                HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
-            }
+            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
         }
 
         #endregion
