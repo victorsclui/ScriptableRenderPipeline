@@ -33,9 +33,19 @@ public class HDRP_GraphicTestRunner
 
         Time.captureFramerate = settings.captureFramerate;
 
-        // Skip incompatible XR tests
-        if (XRSystem.testModeEnabled && !settings.xrCompatible)
-            yield break;
+        if (XRSystem.testModeEnabled)
+        {
+            if (settings.xrCompatible)
+            {
+                // Increase tolerance to account for slight changes due to float precision
+                settings.ImageComparisonSettings.AverageCorrectnessThreshold *= 1.5f;
+            }
+            else
+            {
+                // Skip incompatible XR tests
+                yield break;
+            }
+        }
 
         if (settings.doBeforeTest != null)
         {
