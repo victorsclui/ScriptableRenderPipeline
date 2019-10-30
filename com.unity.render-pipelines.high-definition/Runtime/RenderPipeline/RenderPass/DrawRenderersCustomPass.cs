@@ -67,6 +67,11 @@ namespace UnityEngine.Rendering.HighDefinition
             fadeValueId = Shader.PropertyToID("_FadeValue");
         }
 
+        protected override void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
+        {
+            cullingParameters.cullingMask |= (uint)(int)layerMask;
+        }
+
         /// <summary>
         /// Execute the DrawRenderers with parameters setup from the editor
         /// </summary>

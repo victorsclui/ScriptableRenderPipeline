@@ -166,6 +166,42 @@ namespace UnityEngine.Rendering.HighDefinition
             });
         }
 
+        internal void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
+        {
+            foreach (var pass in customPasses)
+            {
+                if (pass != null && pass.enabled)
+                    pass.InternalAggregateCullingParameters(ref cullingParameters, hdCamera);
+            }
+        }
+
+        internal static CullingResults? Cull(ScriptableRenderContext renderContext, HDCamera hdCamera)
+        {
+            CullingResults?  result = null;
+
+            // We need to sort the volumes first to know which one will be executed
+            // TODO: cache the results per camera in the HDRenderPipeline so it's not executed twice per camera
+            Update(hdCamera.camera.transform);
+            
+            // For each injection points, we gather the culling results for 
+            hdCamera.camera.TryGetCullingParameters(out var cullingParameters);
+
+            // By default we don't want the culling to return any objects
+            cullingParameters.cullingMask = 0;
+            cullingParameters.cullingOptions &= CullingOptions.Stereo; // We just keep stereo if enabled and clear the other flags
+
+            GetActivePassVolume(CustomPassInjectionPoint.BeforeRendering)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
+            GetActivePassVolume(CustomPassInjectionPoint.BeforeTransparent)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
+            GetActivePassVolume(CustomPassInjectionPoint.BeforePostProcess)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
+            GetActivePassVolume(CustomPassInjectionPoint.AfterPostProcess)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
+
+            // If we don't have anything to cull or the pass have the same culling mask than the camera, we don't have to re-do the culling
+            if (cullingParameters.cullingMask != 0 || cullingParameters.cullingMask == hdCamera.camera.cullingMask)
+                result = renderContext.Cull(ref cullingParameters);
+
+            return result;
+        }
+
         internal static void Cleanup()
         {
             foreach (var pass in m_ActivePassVolumes)
@@ -176,7 +212,10 @@ namespace UnityEngine.Rendering.HighDefinition
         
         public static CustomPassVolume GetActivePassVolume(CustomPassInjectionPoint injectionPoint)
         {
-            return m_OverlappingPassVolumes.FirstOrDefault(v => v.injectionPoint == injectionPoint);
+            foreach (var passVolume in m_OverlappingPassVolumes)
+                if (passVolume.injectionPoint == injectionPoint)
+                    return passVolume;
+            return null;
         }
 
         /// <summary>

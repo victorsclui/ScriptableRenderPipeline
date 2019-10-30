@@ -118,6 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
         }
 
+        internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
+
         // Hack to cleanup the custom pass when it is unexpectedly destroyed, which happens every time you edit
         // the UI because of a bug with the SerializeReference attribute.
         ~CustomPass() { CleanupPassInternal(); }
@@ -148,6 +150,14 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle depthBuffer = (targetDepthBuffer == TargetBuffer.Custom) ? targets.customDepthBuffer : targets.cameraDepthBuffer;
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlags);
         }
+        
+        /// <summary>
+        /// Use this method if you want to draw objects that are not visible in the camera.
+        /// For example if you disable a layer in the camera and add it in the culling parameters, then the culling result will contains your layer.
+        /// </summary>
+        /// <param name="cullingParameters">Aggregate the parameters in this property (use |= for masks fields, etc.)</param>
+        /// <param name="hdCamera">The camera where the culling is being done</param>
+        protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera camera) {}
 
         /// <summary>
         /// Called when your pass needs to be executed by a camera
