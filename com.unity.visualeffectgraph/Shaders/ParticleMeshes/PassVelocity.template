@@ -9,9 +9,6 @@ Pass
 	
 	HLSLPROGRAM
 	#define VFX_PASSDEPTH VFX_PASSDEPTH_MOTION_VECTOR
-	#if !USE_ALPHA_TEST //alpha treshold is always customizable in shadow pass or velocity pass
-	#define USE_ALPHA_TEST 1
-	#endif
 	${VFXInclude("Shaders/ParticleMeshes/PassDepthOrMV.template")}
 	ENDHLSL
 }

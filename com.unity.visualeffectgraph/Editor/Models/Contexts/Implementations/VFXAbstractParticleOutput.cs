@@ -146,8 +146,8 @@ namespace UnityEditor.VFX
             {
                 if (useAlphaClipping)
                     return true;
-                //Fore Motion & Shadow, always use a alpha clipping and it shares the same value as color clipping
-                if (hasMotionVector || hasShadowCasting)
+                //For Motion & Shadow, allow use a alpha clipping and it shares the same value as color clipping for transparent particles
+                if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting))
                     return true;
                 return false;
             }
