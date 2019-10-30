@@ -135,7 +135,7 @@ Pass
 #if WRITE_MOTION_VECTOR_IN_FORWARD
 		${VFXComputeOutputMotionVector}
 		o.outMotionVector = encodedMotionVector;
-		o.outMotionVector.a = o.color.a > i.VFX_VARYING_ALPHATHRESHOLD ? 1.0f : 0.0f; //Independant clipping for motion vector pass
+		o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
 #endif
 		return o;
 	}
