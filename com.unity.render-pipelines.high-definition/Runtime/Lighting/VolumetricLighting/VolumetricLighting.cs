@@ -117,9 +117,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return HDUtils.ComputeUvScaleAndLimit(new Vector2Int(viewportSize.x, viewportSize.y), bufferSize);
         }
 
-        public float ComputeLastSliceDistance(int singlePassViewCount)
+        public float ComputeLastSliceDistance(int sliceCount)
         {
-            float d = 1.0f - 0.5f / (viewportSize.z / singlePassViewCount);
+            float d = 1.0f - 0.5f / sliceCount;
             float ln2 = 0.69314718f;
 
             // DecodeLogarithmicDepthGeneralized(1 - 0.5 / sliceCount)
@@ -472,16 +472,16 @@ namespace UnityEngine.Rendering.HighDefinition
             var cvp = currFrameParams.viewportSize;
             var pvp = prevFrameParams.viewportSize;
 
-            //int xrAdjustedDepth = hdCamera.viewCount * cvp.z / TextureXR.slices;
-            int xrAdjustedDepth = cvp.z / hdCamera.viewCount;
+            // Adjust slices for XR rendering: VBuffer is shared for all single-pass views
+            int sliceCount = cvp.z / hdCamera.viewCount;
 
             cmd.SetGlobalVector(HDShaderIDs._VBufferResolution,              new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y));
-            cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,              xrAdjustedDepth);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,           1.0f / xrAdjustedDepth);
+            cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,              sliceCount);
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,           1.0f / sliceCount);
             cmd.SetGlobalVector(HDShaderIDs._VBufferUvScaleAndLimit,         currFrameParams.ComputeUvScaleAndLimit(bufferSize));
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,  currFrameParams.depthEncodingParams);
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,  currFrameParams.depthDecodingParams);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,           currFrameParams.ComputeLastSliceDistance(hdCamera.viewCount));
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,           currFrameParams.ComputeLastSliceDistance(sliceCount));
             cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,   1.0f / hdCamera.viewCount);
 
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevResolution,          new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
