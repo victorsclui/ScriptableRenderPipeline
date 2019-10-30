@@ -423,7 +423,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (serialized.type == HDLightType.Directional)
             {
-                serialized.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, serialized.interactsWithSky.boolValue);
+                EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
 
                 using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
                 {
