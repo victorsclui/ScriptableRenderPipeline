@@ -3,6 +3,33 @@ editors:
     cmd: -u 2019.3/staging
   - version: fast-2019.3
     cmd: -u 2019.3/staging --fast
+  - version: 1-handle-mouse-enter-leave-events
+    cmd: -u 19546d5d443a
+  - version: 2-assetpipeline-v2-upgrade-dialog
+    cmd: -u 9162673e398a
+  - version: 3-assetpipeline-fix-api-access
+    cmd: -u f41ba5cd9ca4
+  - version: 4-assetpipeline-v2-ondemand-prefab-and-serialization-fixes
+    cmd: -u 7d34c874662e
+  - version: 5-fix-coverage-crash2
+    cmd: -u 5dfb35436ffe
+  - version: 6-timeline
+    cmd: -u fc61a2053f7f
+  - version: 7-fix-scenevis-icons
+    cmd: -u ec4518201c1d
+  - version: 8-scripting-plugin-importer-fix-compatible-plugins
+    cmd: -u d004c36529dd
+  - version: 9-android-bugfixes
+    cmd: -u eae4cf8bc156
+  - version: 10-physics-backport-pr93742
+    cmd: -u c68f1abbbc3a
+  - version: 11-android-bugfix-case1177292
+    cmd: -u 6c358d8ac77c
+  - version: 12-dcc-serialized-reference-multiselect
+    cmd: -u 8def5949629e
+  - version: 13-uielements-fix-1160619-window-resizing
+    cmd: -u b0869978088f 
+  
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
