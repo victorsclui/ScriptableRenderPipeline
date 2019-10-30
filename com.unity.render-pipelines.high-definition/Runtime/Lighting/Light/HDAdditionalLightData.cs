@@ -1604,8 +1604,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             break;
                     }
-					
-					shadowRequest.slopeBias = HDShadowUtils.GetSlopeBias(slopeBias);
 
                     // Assign all setting common to every lights
                     SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
@@ -1715,6 +1713,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 softness *= (shadowRequest.atlasViewport.width / 512);  // Make it resolution independent whereas the baseline is 512
                 softness /= 100.0f;
             }
+
+            // Bias
+            // This base bias is a good value if we expose a [0..1] since values within [0..5] are empirically shown to be sensible for the slope-scale bias with the width of our PCF.
+            float baseBias = 5.0f;
+            // If we are PCSS, the blur radius can be quite big, hence we need to tweak up the slope bias
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality == HDShadowFilteringQuality.High)
+            {
+                if(softness > 0.01f)
+                {
+                    // 15.0f is an empirically set value, also the lerp stops at a shadow softness of 0.05, then is clamped.
+                    float maxBaseBias = 15.0f;
+                    baseBias = Mathf.Lerp(baseBias, maxBaseBias, Mathf.Min(1.0f, (softness * 100) / 5));
+                }
+            }
+
+            shadowRequest.slopeBias = HDShadowUtils.GetSlopeBias(baseBias, slopeBias);
 
             // Shadow algorithm parameters
             shadowRequest.shadowSoftness = softness;
