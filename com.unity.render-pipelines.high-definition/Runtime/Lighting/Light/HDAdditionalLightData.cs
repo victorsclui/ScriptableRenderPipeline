@@ -1723,7 +1723,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if(softness > 0.01f)
                 {
                     // 15.0f is an empirically set value, also the lerp stops at a shadow softness of 0.05, then is clamped.
-                    float maxBaseBias = 15.0f;
+                    float maxBaseBias = 18.0f;
                     baseBias = Mathf.Lerp(baseBias, maxBaseBias, Mathf.Min(1.0f, (softness * 100) / 5));
                 }
             }
