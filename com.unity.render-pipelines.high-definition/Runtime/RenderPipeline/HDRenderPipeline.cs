@@ -2211,9 +2211,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid || hasAfterPostProcessCustomPass)
             {
                 hdCamera.ExecuteCaptureActions(m_IntermediateAfterPostProcessBuffer, cmd);
+                RenderDebug(hdCamera, cmd, cullingResults);
                 hdCamera.xr.StopSinglePass(cmd, hdCamera.camera, renderContext);
 
-                RenderDebug(hdCamera, cmd, cullingResults);
                 using (new ProfilingSample(cmd, "Final Blit (Dev Build Only)"))
                 {
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
