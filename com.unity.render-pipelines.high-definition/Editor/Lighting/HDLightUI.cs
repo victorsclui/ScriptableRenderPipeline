@@ -455,31 +455,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.lightUnit.SetEnumValue(LightUnit.Lumen);
         }
 
-        static void DrawLightIntensityUnitPopup(SerializedHDLight serialized, Editor owner)
+        static void DrawLightIntensityUnitPopup(Rect rect, SerializedHDLight serialized, Editor owner)
         {
             LightUnit selectedLightUnit;
             LightUnit oldLigthUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
 
             EditorGUI.showMixedValue = serialized.lightUnit.hasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
+
+            EditorGUI.BeginProperty(rect, GUIContent.none, serialized.lightUnit);
             switch (serialized.type)
             {
                 case HDLightType.Directional:
-                    selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((LightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
                     break;
                 case HDLightType.Point:
-                    selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((LightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
                     break;
                 case HDLightType.Spot:
                     if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box)
-                        selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((LightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
+                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
                     else
-                        selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((LightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
+                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
                     break;
                 default:
-                    selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((LightUnit)serialized.lightUnit.GetEnumValue<AreaLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<AreaLightUnit>());
                     break;
             }
+            EditorGUI.EndProperty();
 
             EditorGUI.showMixedValue = false;
 
@@ -559,6 +562,46 @@ namespace UnityEditor.Rendering.HighDefinition
             serialized.intensity.floatValue = intensity;
         }
 
+        static void DrawLightIntensityGUILayout(SerializedHDLight serialized, Editor owner)
+        {
+            const int kIndentPerLevel = 15;
+            const int kPrefixPaddingRight = 2;
+            const int kValueUnitSeparator = 2;
+            const int kUnitWidth = 100;
+
+            float indent = kIndentPerLevel * EditorGUI.indentLevel;
+
+            Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+            Rect valueRect = lineRect;
+            Rect labelRect = lineRect;
+            labelRect.width = EditorGUIUtility.labelWidth;
+            valueRect.x += labelRect.width - indent + kPrefixPaddingRight;
+            // We use PropertyField to draw the value to keep the handle at left of the field
+            // This will apply the indent again thus we need to remove it two time for alignment
+            valueRect.width -= labelRect.width + kUnitWidth - indent - indent + kPrefixPaddingRight + kValueUnitSeparator;
+            Rect unitRect = valueRect;
+            unitRect.x += valueRect.width - indent + kValueUnitSeparator;
+            unitRect.width = kUnitWidth + .5f;
+
+            //handling of prefab overrides in a parent label
+            GUIContent parentLabel = s_Styles.lightIntensity;
+            parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
+            parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.lightUnit);
+            {
+                EditorGUI.LabelField(labelRect, parentLabel);
+            }
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
+
+            EditorGUI.PropertyField(valueRect, serialized.intensity, GUIContent.none);
+            DrawLightIntensityUnitPopup(unitRect, serialized, owner);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                serialized.intensity.floatValue = Mathf.Max(serialized.intensity.floatValue, 0.0f);
+            }
+        }
+
         static void DrawEmissionContent(SerializedHDLight serialized, Editor owner)
         {
             using (var changes = new EditorGUI.ChangeCheckScope())
@@ -584,14 +627,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(serialized.intensity, s_Styles.lightIntensity);
-            DrawLightIntensityUnitPopup(serialized, owner);
-            EditorGUILayout.EndHorizontal();
-            if (EditorGUI.EndChangeCheck())
-            {
-                serialized.intensity.floatValue = Mathf.Max(serialized.intensity.floatValue, 0.0f);
-            }
+
+            DrawLightIntensityGUILayout(serialized, owner);
 
             HDLightType lightType = serialized.type;
             SpotLightShape spotLightShape = serialized.spotLightShape.GetEnumValue<SpotLightShape>();
