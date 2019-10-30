@@ -68,7 +68,7 @@ linux_apis:
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --pre
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published --fast
 
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=upm-ci~/test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
   artifacts:
     logs:
       paths:
