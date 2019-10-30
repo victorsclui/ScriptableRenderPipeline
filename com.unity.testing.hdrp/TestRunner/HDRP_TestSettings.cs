@@ -53,6 +53,11 @@ public class HDRP_TestSettings : GraphicsTestSettings
         }
     }
 
+    private void OnDestroy()
+    {
+        XRLayoutTest.automatedTestRunning = false;
+    }
+
     static StringBuilder quitDebug = new StringBuilder();
 
     void OnApplicationQuit()

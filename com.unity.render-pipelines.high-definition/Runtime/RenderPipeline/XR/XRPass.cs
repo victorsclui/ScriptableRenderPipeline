@@ -116,21 +116,20 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
         internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
 
-    // use createInfo instead?
-        internal static XRPass Create(int multipassId, int cullingPassId, ScriptableCullingParameters cullingParameters, RenderTexture rt = null, CustomMirrorView customMirrorView = null)
+        internal static XRPass Create(XRPassCreateInfo createInfo)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
-            passInfo.multipassId = multipassId;
-            passInfo.cullingPassId = cullingPassId;
-            passInfo.cullingParams = cullingParameters;
-            passInfo.customMirrorView = customMirrorView;
+            passInfo.multipassId = createInfo.multipassId;
+            passInfo.cullingPassId = createInfo.cullingPassId;
+            passInfo.cullingParams = createInfo.cullingParameters;
+            passInfo.customMirrorView = createInfo.customMirrorView;
             passInfo.views.Clear();
 
-            if (rt != null)
+            if (createInfo.renderTarget != null)
             {
-                passInfo.renderTarget = new RenderTargetIdentifier(rt);
-                passInfo.renderTargetDesc = rt.descriptor;
+                passInfo.renderTarget = new RenderTargetIdentifier(createInfo.renderTarget);
+                passInfo.renderTargetDesc = createInfo.renderTarget.descriptor;
             }
             else
             {

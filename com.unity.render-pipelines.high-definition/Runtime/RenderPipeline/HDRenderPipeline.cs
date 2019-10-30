@@ -1240,23 +1240,24 @@ namespace UnityEngine.Rendering.HighDefinition
                             out var hdCamera,
                             out var cullingParameters);
 
-                        // Note: In case of a custom render, we have false here and 'TryCull' is not executed
+                    // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                     if (!skipRequest)
                     {
                         var needCulling = true;
 
+                        // XRTODO: fix this code, culling results are discarded between each pass and decals won't show up
                         // In XR multipass, culling results can be shared if the pass has the same culling id
-                        if (xrPass.multipassId > 0)
-                        {
-                            foreach (var req in renderRequests)
-                            {
-                                if (req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
-                                {
-                                    cullingResults = req.cullingResults;
-                                    needCulling = false;
-                                }
-                            }
-                        }
+                        //if (xrPass.multipassId > 0)
+                        //{
+                        //    foreach (var req in renderRequests)
+                        //    {
+                        //        if (req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
+                        //        {
+                        //            cullingResults = req.cullingResults;
+                        //            needCulling = false;
+                        //        }
+                        //    }
+                        //}
 
                         if (needCulling)
                             skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);

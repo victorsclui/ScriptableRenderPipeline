@@ -421,8 +421,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (accountForXR)
             {
                 // With XR single-pass, the VBuffer size is increased and split into compartments for each eye
-                if (TextureXR.useTexArray)
-                    result = result * TextureXR.slices;
+                //if (TextureXR.useTexArray)
+                //    result = result * TextureXR.slices;
             }
 
             return result;

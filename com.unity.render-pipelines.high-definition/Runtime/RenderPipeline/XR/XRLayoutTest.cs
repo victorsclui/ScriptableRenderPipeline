@@ -1,4 +1,4 @@
-// Helper class to test different XR Layout
+// Helper class to test different XR layouts
 // Run Unity with -xr-tests to enable XR test mode
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle doubleWideTarget = null;
         MaterialPropertyBlock matBlock = null;
 
-        int totalCompositeViews = 1;
+        int totalCompositeViews = 2;
 
         // [0.0 ; 1.0]
         float fixedFoveatedRatio = 0.5f;
@@ -65,11 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Camera camera = frameLayout.camera;
 
-            // skip RT ? NOOO : because test always use render target
-
-            //if (camera?.targetTexture != null)
-            //    return false;
-
             if (camera != null && camera.cameraType == CameraType.Game && camera.TryGetCullingParameters(false, out var cullingParams))
             {
                 // XRTODO: scenes with multiple cameras
@@ -94,31 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     viewport = camera.pixelRect
                 };
 
-                //// Pass 0 : multi-pass 1x directly to target texture
-                //{
-                //    passInfo.multipassId = 0;
-                //    passInfo.renderTarget = camera.targetTexture;
-                //    passInfo.customMirrorView = null;
-
-                //    XRPass pass = frameLayout.CreatePass(passInfo);
-
-                //    viewInfo.textureArraySlice = -1;
-                //    frameLayout.AddViewToPass(viewInfo, pass);
-                //}
-
-                //// Pass 1 : multi-pass 1x to texture array with custom mirror view
-                //{
-                //    passInfo.multipassId = 1;
-                //    passInfo.renderTarget = texArrayTarget;
-                //    passInfo.customMirrorView = MirrorComposite;
-
-                //    XRPass pass = frameLayout.CreatePass(passInfo);
-
-                //    viewInfo.textureArraySlice = 1;
-                //    frameLayout.AddViewToPass(viewInfo, pass);
-                //}
-
-                // Pass 2 : single-pass rendering to intermediate targets with custom mirror view to final target
+                // Pass 0 : single-pass 2x rendering to intermediate texture array
                 {
                     passInfo.multipassId = 0;
                     passInfo.renderTarget = texArrayTarget;
@@ -133,21 +104,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                //// Pass 3 : single-pass rendering to double-wide target
-                //{
-                //    passInfo.multipassId = 3;
-                //    passInfo.renderTarget = doubleWideTarget;
-                //    passInfo.customMirrorView = MirrorCompositeDoubleWide;
+                // Pass 1 : multi-pass 1x rendering to double-wide target 
+                {
+                    passInfo.multipassId = 1;
+                    passInfo.renderTarget = doubleWideTarget;
+                    passInfo.customMirrorView = MirrorCompositeDoubleWide;
 
-                //    XRPass pass = frameLayout.CreatePass(passInfo);
+                    XRPass pass = frameLayout.CreatePass(passInfo);
 
-                //    for (int viewIndex = 0; viewIndex < TextureXR.slices; viewIndex++)
-                //    {
-                //        viewInfo.viewport.x = viewIndex * viewInfo.viewport.width;
-                //        viewInfo.textureArraySlice = -1;
-                //        frameLayout.AddViewToPass(viewInfo, pass);
-                //    }
-                //}
+                    viewInfo.viewport.x = viewInfo.viewport.width;
+                    viewInfo.textureArraySlice = -1;
+                    frameLayout.AddViewToPass(viewInfo, pass);
+                }
 
                 return true;
             }
@@ -167,30 +135,40 @@ namespace UnityEngine.Rendering.HighDefinition
             matBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
 
             //for (int viewIndex = 0; viewIndex < pass.viewCount; ++viewIndex)
-            int viewIndex = pass.viewCount - 1;
+            int viewIndex = 1;
+            {
+                float xBias = pass.multipassId * oneOverViewCount;
+                float yBias = viewIndex / (float)pass.viewCount;
+                //xBias = 0.0f;
+
+                yBias = 0.0f;
+
+                var dyn = 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
+
+                //viewport.x += viewport.width * xBias;
+                viewport.width  *= oneOverViewCount;
+                //viewport.height /= pass.viewCount;
+
+                //viewport.y += yBias;
+
+                matBlock.SetInt(HDShaderIDs._BlitTexArraySlice, pass.GetTextureArraySlice(viewIndex));
+                matBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(dyn * rtScaleSource.x * oneOverViewCount, dyn * rtScaleSource.y, dyn * rtScaleSource.x * xBias, dyn * rtScaleSource.y * yBias));
+                matBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+
+                cmd.SetViewport(viewport);
+                cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, texArrayTarget.rtHandleProperties.rtHandleScale);
+
+                // Point sampling with quad
+                cmd.DrawProcedural(Matrix4x4.identity, blitMaterial, 2, MeshTopology.Quads, 4, 1, matBlock);
+            }
+            //int viewIndex = pass.viewCount - 1;
 
             // TEMP
             //viewIndex = 0;
             //var viewport = pass.GetViewport(viewIndex);
             //var xBias = (viewport.x + pass.multipassId * oneOverViewCount) / (viewport.x + viewport.width);
 
-            var xBias = pass.multipassId * oneOverViewCount;
-            xBias = 0.0f;
-
-            var dyn = 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
-
-            //viewport.x += viewport.width * xBias;
-            //viewport.width *= oneOverViewCount;
-
-            matBlock.SetInt(HDShaderIDs._BlitTexArraySlice, pass.GetTextureArraySlice(viewIndex));
-            matBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(dyn * rtScaleSource.x * oneOverViewCount, dyn * rtScaleSource.y, dyn * rtScaleSource.x * xBias, 0.0f));
-            matBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-
-            cmd.SetViewport(viewport);
-            cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, texArrayTarget.rtHandleProperties.rtHandleScale);
-
-            // Point sampling with quad
-            cmd.DrawProcedural(Matrix4x4.identity, blitMaterial, 2, MeshTopology.Quads, 4, 1, matBlock);
+            
         }
 
         void MirrorCompositeDoubleWide(XRPass pass, CommandBuffer cmd, RenderTargetIdentifier rt, Rect viewport)
@@ -206,21 +184,24 @@ namespace UnityEngine.Rendering.HighDefinition
             matBlock.SetTexture(HDShaderIDs._BlitTexture, doubleWideTarget);
             matBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
 
+            // copy last view
             int viewIndex = pass.viewCount - 1;
             //var viewport = pass.GetViewport(viewIndex);
-            var xBias =  pass.multipassId * oneOverViewCount;
+            float biasX =  pass.multipassId * oneOverViewCount;
 
-            var dyn = 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
+            float dyn = 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
 
-            viewport.x = viewport.width * xBias;
+            viewport.x = viewport.width * biasX;
             viewport.width *= oneOverViewCount;
 
-            matBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(0.5f * dyn * rtScaleSource.x * oneOverViewCount, dyn * rtScaleSource.y, 0.5f * dyn * rtScaleSource.x * xBias, 0.0f));
+            float scaleX = 0.5f * oneOverViewCount;
+
+            matBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(scaleX * dyn * rtScaleSource.x, dyn * rtScaleSource.y, (dyn * rtScaleSource.x) * (scaleX + biasX), 0.0f));
             matBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
 
             cmd.SetViewport(viewport);
             cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, doubleWideTarget.rtHandleProperties.rtHandleScale);
-            cmd.DrawProcedural(Matrix4x4.identity, blitMaterial, 3, MeshTopology.Quads, 4, 1, matBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, blitMaterial, 2, MeshTopology.Quads, 4, 1, matBlock);
         }
 
         bool LayoutFFR(XRSystem.FrameLayout frameLayout)

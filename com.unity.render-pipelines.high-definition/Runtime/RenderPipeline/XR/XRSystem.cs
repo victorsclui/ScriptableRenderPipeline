@@ -8,9 +8,6 @@ using UnityEngine.XR;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    // 1. replace enum in test settings by bool 'XR Compatible'
-    // 2. use custom layout for test
-
     internal partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
@@ -28,9 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Camera camera;
             public XRSystem xrSystem;
 
-            public XRPass CreatePass(XRPassCreateInfo info)
+            public XRPass CreatePass(XRPassCreateInfo createInfo)
             {
-                XRPass pass = XRPass.Create(info.multipassId, info.cullingPassId, info.cullingParameters, info.renderTarget, info.customMirrorView);
+                XRPass pass = XRPass.Create(createInfo);
                 xrSystem.AddPassToFrame(camera, pass);
                 return pass;
             }
@@ -69,9 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             // XRTODO: replace by dynamic render graph
             TextureXR.maxViews = GetMaxViews();
-
-            // TODO ...
-            //TextureXR.maxViews = 2;
         }
 
 #if ENABLE_XR_MODULE
@@ -102,10 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
                     maxViews = 2;
-
-                // not required anymore
-                //if (testModeEnabled)
-                //    maxViews = 2;
             }
 
             return maxViews;
@@ -204,26 +194,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            var passCreateInfo = new XRPassCreateInfo
+            {
+                cullingPassId = 0,
+                cullingParameters = cullingParams,
+                renderTarget = camera.targetTexture,
+                customMirrorView = null
+            };
+
             if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.MultiPass)
             {
                 for (int passIndex = 0; passIndex < 2; ++passIndex)
                 {
-                    var xrPass = XRPass.Create(multipassId: passIndex, cullingPassId: 0, cullingParams);
-                    xrPass.AddView(camera, (Camera.StereoscopicEye)passIndex);
+                    passCreateInfo.multipassId = passIndex;
+                    var pass = XRPass.Create(passCreateInfo);
+                    pass.AddView(camera, (Camera.StereoscopicEye)passIndex);
 
-                    AddPassToFrame(camera, xrPass);
+                    AddPassToFrame(camera, pass);
                 }
             }
             else
             {
-                var xrPass = XRPass.Create(multipassId: 0, cullingPassId: 0, cullingParams);
+                passCreateInfo.multipassId = 0;
+                var pass = XRPass.Create(passCreateInfo);
 
                 for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
                 {
-                    xrPass.AddView(camera, (Camera.StereoscopicEye)viewIndex);
+                    pass.AddView(camera, (Camera.StereoscopicEye)viewIndex);
                 }
 
-               AddPassToFrame(camera, xrPass);
+               AddPassToFrame(camera, pass);
             }
         }
 
@@ -306,7 +306,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "XR Mirror View"))
             {
-                // XRTODO: also support renderTexture set on Camera
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
               
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
