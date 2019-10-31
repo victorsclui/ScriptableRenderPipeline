@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 legacyLight.lightShadowCasterMode = value ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
             }
         }
-        
+
         // Only for Rectangle/Line/box projector lights.
         [SerializeField, FormerlySerializedAs("shapeWidth")]
         float m_ShapeWidth = 0.5f;
@@ -1300,7 +1300,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int GetShadowRequestCount()
         {
-            HDLightType lightType = type; 
+            HDLightType lightType = type;
             return lightType == HDLightType.Point
                 ? 6
                 : lightType == HDLightType.Directional
@@ -1604,6 +1604,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             break;
                     }
+
 
                     // Assign all setting common to every lights
                     SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
@@ -1969,9 +1970,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnValidate()
         {
-            //can be called before Awake() at script loading time in Editor
-            Migrate();
-
             UpdateBounds();
             DisableCachedShadowSlot();
             m_ShadowMapRenderedSinceLastRequest = false;
@@ -2315,7 +2313,7 @@ namespace UnityEngine.Rendering.HighDefinition
             luxAtDistance = distance;
             intensity = luxIntensity;
         }
-        
+
         /// <summary>
         /// Set light cookie.
         /// </summary>
@@ -2562,7 +2560,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
             => (byte)renderingLayerMask;
-        
+
         ShadowMapType shadowMapType
             => (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle)
             ? ShadowMapType.AreaLightAtlas
