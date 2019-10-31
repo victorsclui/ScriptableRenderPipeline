@@ -100,11 +100,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
-                    (serialized, owner) => GetAdvanced(AdvancedMode.Shape, serialized, owner),
-                    (serialized, owner) => SwitchAdvanced(AdvancedMode.Shape, serialized, owner),
-                    DrawShapeContent,
-                    DrawShapeAdvancedContent
+                CED.TernaryConditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
+                    CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
+                        (serialized, owner) => GetAdvanced(AdvancedMode.Shape, serialized, owner),
+                        (serialized, owner) => SwitchAdvanced(AdvancedMode.Shape, serialized, owner),
+                        DrawShapeContent,
+                        DrawShapeAdvancedContent
+                        ),
+                    CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
+                        DrawShapeContent
+                        )
                     ),
                 CED.AdvancedFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
                     (serialized, owner) => GetAdvanced(AdvancedMode.Emission, serialized, owner),
@@ -112,35 +117,39 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawEmissionContent,
                     DrawEmissionAdvancedContent
                     ),
-                CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area,
+                CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area && !serialized.settings.isCompletelyBaked,
                     CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric)),
                 CED.Conditional((serialized, owner) =>
                     {
                         HDLightType type = serialized.type;
                         return type != HDLightType.Area || type == HDLightType.Area && serialized.areaLightShape != AreaLightShape.Tube;
                     },
-                    CED.AdvancedFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
-                        (serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner),
-                        (serialized, owner) => SwitchAdvanced(AdvancedMode.Shadow, serialized, owner),
-                        CED.Group(
-                            CED.FoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawShadowMapContent),
-                            CED.Conditional((serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
-                                CED.Group(GroupOption.Indent, DrawShadowMapAdvancedContent)),
-                            CED.space,
-                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
-                                CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
-                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
-                                CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
-                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
-                                CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
+                    CED.TernaryConditional((serialized, owner) => !serialized.settings.isCompletelyBaked,
+                        CED.AdvancedFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
+                            (serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner),
+                            (serialized, owner) => SwitchAdvanced(AdvancedMode.Shadow, serialized, owner),
+                            CED.Group(
+                                CED.FoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawShadowMapContent),
+                                CED.Conditional((serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
+                                    CED.Group(GroupOption.Indent, DrawShadowMapAdvancedContent)),
+                                CED.space,
+                                CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
+                                    CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
+                                CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
+                                    CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
+                                CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
+                                    CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
 
-                            CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area,
-                                CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
-                            )
+                                CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area,
+                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
+                                )
+                            ),
+                            CED.noop //will only add parameter in first sub header
                         ),
-                        CED.noop //will only add parameter in first sub header
-                        )
+                        CED.FoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
+                            CED.FoldoutGroup(s_Styles.bakedShadowsSubHeader, Expandable.BakedShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawBakedShadowsContent))
                     )
+                )
             );
 
             //quicker than standard reflection as it is compiled
@@ -712,15 +721,18 @@ namespace UnityEditor.Rendering.HighDefinition
             HDLightType lightType = serialized.type;
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
 
-            EditorGUILayout.PropertyField(serialized.affectDiffuse, s_Styles.affectDiffuse);
-            EditorGUILayout.PropertyField(serialized.affectSpecular, s_Styles.affectSpecular);
-            if (lightType != HDLightType.Directional)
+            if (!serialized.settings.isCompletelyBaked)
             {
-                if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() != SpotLightShape.Box)
-                    EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
-                EditorGUILayout.PropertyField(serialized.fadeDistance, s_Styles.fadeDistance);
+                EditorGUILayout.PropertyField(serialized.affectDiffuse, s_Styles.affectDiffuse);
+                EditorGUILayout.PropertyField(serialized.affectSpecular, s_Styles.affectSpecular);
+                if (lightType != HDLightType.Directional)
+                {
+                    if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() != SpotLightShape.Box)
+                        EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
+                    EditorGUILayout.PropertyField(serialized.fadeDistance, s_Styles.fadeDistance);
+                }
+                EditorGUILayout.PropertyField(serialized.lightDimmer, s_Styles.lightDimmer);
             }
-            EditorGUILayout.PropertyField(serialized.lightDimmer, s_Styles.lightDimmer);
 
             // Emissive mesh for area light only
             if (lightType == HDLightType.Area)
@@ -749,9 +761,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)
+        static bool DrawEnableShadowMap(SerializedHDLight serialized, Editor owne)
         {
-            var hdrp = HDRenderPipeline.currentAsset;
             Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
             bool newShadowsEnabled;
 
@@ -765,13 +776,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             EditorGUI.EndProperty();
-            
+
+            return newShadowsEnabled;
+        }
+        
+        static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)
+        {
+            var hdrp = HDRenderPipeline.currentAsset;
+            bool newShadowsEnabled = DrawEnableShadowMap(serialized, owner);
+
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
-                if (!serialized.settings.isCompletelyBaked)
-                {
-                    EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);
-                }
+                EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);
 
                 HDLightType lightType = serialized.type;
 
@@ -953,6 +969,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
                 hdrp.name
             );
+        }
+
+        static void DrawBakedShadowsContent(SerializedHDLight serialized, Editor owner)
+        {
+            DrawEnableShadowMap(serialized, owner);
+            EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
         }
 
         static bool HasShadowQualitySettingsUI(HDShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)
