@@ -88,9 +88,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         const int k_RenderPassBlockCount = 3;
-        const string k_ExecuteRendererTag = "Execute Renderer";
-        const string k_PrepareRendering = "Prepare Rendering";
-        const string k_ExecuteRenderPasses = "Execute Render Pass Blocks";
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
@@ -196,10 +193,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            Profiling.Profiler.BeginSample(k_ExecuteRendererTag);
             Camera camera = renderingData.cameraData.camera;
 
-            Profiling.Profiler.BeginSample(k_PrepareRendering);
             SetCameraRenderState(context, ref renderingData.cameraData);
             SortStable(m_ActiveRenderPassQueue);
 
@@ -227,9 +222,7 @@ namespace UnityEngine.Rendering.Universal
             blockEventLimits.Dispose();
 
             SetupLights(context, ref renderingData);
-            Profiling.Profiler.EndSample();
 
-            Profiling.Profiler.BeginSample(k_ExecuteRenderPasses);
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
@@ -274,12 +267,10 @@ namespace UnityEngine.Rendering.Universal
                 EndXRRendering(context, camera);
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
-            Profiling.Profiler.EndSample();
 
             //if (renderingData.resolveFinalTarget)
                 InternalFinishRendering(context);
             blockRanges.Dispose();
-            Profiling.Profiler.EndSample();
         }
 
         /// <summary>
