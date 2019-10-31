@@ -721,7 +721,8 @@ namespace UnityEditor.Rendering.HighDefinition
             HDLightType lightType = serialized.type;
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
 
-            if (!serialized.settings.isCompletelyBaked)
+            bool bakedOnly = serialized.settings.isCompletelyBaked;
+            if (!bakedOnly)
             {
                 EditorGUILayout.PropertyField(serialized.affectDiffuse, s_Styles.affectDiffuse);
                 EditorGUILayout.PropertyField(serialized.affectSpecular, s_Styles.affectSpecular);
@@ -733,6 +734,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUILayout.PropertyField(serialized.lightDimmer, s_Styles.lightDimmer);
             }
+            else if (lightType == HDLightType.Point
+                    || lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() != SpotLightShape.Box)
+                EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
 
             // Emissive mesh for area light only
             if (lightType == HDLightType.Area)
