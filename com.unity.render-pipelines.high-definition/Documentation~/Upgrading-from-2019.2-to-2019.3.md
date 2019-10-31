@@ -25,7 +25,7 @@ HDRP has deprecated the Linear Fog, Exponential Fog, Volumetric Fog, and Volumet
 
 Before Unity 2019.3, each Light in HDRP exposed several options for the shadow map bias. From 2019.3, HDRP has replaced every option, except for **Normal Bias**, with **Slope-Scale Depth Bias**. Introducing this property makes the shadow map bias setup fairly different to what it was. This means that, if the default values lead to unexpected results, you may need a new setup for the bias on each Light. 
 
-Also, before Unity 2019.3, PCSS had a different parametrization. Since 2019.3, the shadow softness is controlled by angular diameter on directional lights and by shape radius for point and spot lights. Moreover, the *minimum filter size* option is now called *Minimum Blur Intensity*; this is functionally equivalent but simply remaps the previous range [0 ... 0.0001] to [0 ... 1]. 
+Also, before Unity 2019.3, PCSS had a different parametrization. Since 2019.3, the shadow softness is controlled by angular diameter on directional lights and by shape radius for point and spot lights. Moreover, the *Minimum filter size* option is now called *Minimum Blur Intensity*; this is functionally equivalent but simply remaps the previous range [0 ... 0.0001] to [0 ... 1]. 
 
 ## Area Lights
 
