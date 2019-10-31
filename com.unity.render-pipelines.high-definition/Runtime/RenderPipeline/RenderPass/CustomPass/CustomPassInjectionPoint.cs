@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum CustomPassInjectionPoint
     {
         // Important: don't touch the value of the injection points for the serialization.
+        // Ordered by injection point in the frame for the enum popup in the UI.
         BeforeRendering             = 0,
         AfterOpaqueDepthAndNormal   = 5,
         BeforePreRefraction         = 4,

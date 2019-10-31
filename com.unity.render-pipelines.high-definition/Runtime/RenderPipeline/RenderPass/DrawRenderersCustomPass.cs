@@ -30,21 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
     
         int fadeValueId;
 
-        Material m_DefaultOverrideMaterial;
-        Material defaultOverrideMaterial
-        {
-            get
-            {
-                if (m_DefaultOverrideMaterial == null)
-                {
-                    var res = HDRenderPipeline.defaultAsset.renderPipelineResources;
-                    m_DefaultOverrideMaterial = CoreUtils.CreateEngineMaterial(res.shaders.defaultRendererCustomPass);
-                }
-
-                return m_DefaultOverrideMaterial;
-            }
-        }
-        
         static List<ShaderTagId> m_HDRPShaderTags;
         static List<ShaderTagId> hdrpShaderTags
         {
@@ -106,19 +91,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderQueueRange = GetRenderQueueRange(renderQueueType),
                 sortingCriteria = sortingCriteria,
                 excludeObjectMotionVectors = false,
-                overrideMaterial = (overrideMaterial != null) ? overrideMaterial : defaultOverrideMaterial,
+                overrideMaterial = overrideMaterial,
                 overrideMaterialPassIndex = (overrideMaterial != null) ? overrideMaterialPassIndex : 0,
                 stateBlock = stateBlock,
                 layerMask = layerMask,
             };
 
             HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
-        }
-
-        protected override void Cleanup()
-        {
-            if (m_DefaultOverrideMaterial != null)
-                CoreUtils.Destroy(m_DefaultOverrideMaterial);
         }
     }
 }
