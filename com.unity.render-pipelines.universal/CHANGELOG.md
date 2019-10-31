@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Unlit and BakedLit shader compilations in the meta pass.
 - Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
 - Fixed an issue where the scene lighting button did not work when using the 2D Renderer
+- Fixed a performance regression when using the 2D Renderer
 - Fixed an issue where Freeform 2D Lights gizmo would not correctly show Falloff Offset
 - Fixed an issue where using shadow casting lights with incompatible Renderer2DData would cause the 2D Renderer to render nothing
 - Fixed an issue where prefab previews were incorrectly lit when using the 2D Renderer
