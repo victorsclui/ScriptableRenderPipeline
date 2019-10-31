@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering.Universal
         {
             if(index % 2 != 0)
                     EditorGUI.DrawRect(new Rect(rect.x - 19f, rect.y, rect.width + 23f, rect.height), new Color(0, 0, 0, 0.1f));
+
             EditorGUI.BeginChangeCheck();
             var element = m_PassesList.serializedProperty.GetArrayElementAtIndex(index);
             var propRect = new Rect(rect.x,
@@ -159,12 +160,12 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                //EditorGUI.ObjectField(propRect, element, GUIContent.none);
+                EditorGUI.ObjectField(propRect, element, GUIContent.none);
             }
 
             if (EditorGUI.EndChangeCheck())
             {
-                element.serializedObject.ApplyModifiedProperties();
+               element.serializedObject.ApplyModifiedProperties();
             }
         }
 
@@ -292,7 +293,6 @@ namespace UnityEditor.Rendering.Universal
 
                 var asset = AssetDatabase.GetAssetPath(target);
                 var obj = CreateInstance((string)pass);
-                //obj.hideFlags = HideFlags.HideInHierarchy;
                 obj.name = $"New{obj.GetType().Name}";
                 AssetDatabase.AddObjectToAsset(obj, asset);
                 Undo.RegisterCreatedObjectUndo(obj, obj.name);
