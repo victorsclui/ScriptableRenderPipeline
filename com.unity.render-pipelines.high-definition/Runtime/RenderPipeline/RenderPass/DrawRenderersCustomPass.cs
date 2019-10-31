@@ -53,11 +53,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDShaderPassNames.s_ForwardName,            // HD Lit shader
                 HDShaderPassNames.s_ForwardOnlyName,        // HD Unlit shader
                 HDShaderPassNames.s_SRPDefaultUnlitName,    // Cross SRP Unlit shader
+                HDShaderPassNames.s_EmptyName,              // Add an empty slot for the override material
             };
 
             depthShaderTags = new ShaderTagId[] {
                 HDShaderPassNames.s_DepthForwardOnlyName,
                 HDShaderPassNames.s_DepthOnlyName,
+                HDShaderPassNames.s_EmptyName,              // Add an empty slot for the override material
             };
         }
 
@@ -84,12 +86,11 @@ namespace UnityEngine.Rendering.HighDefinition
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {
             var shaderPasses = GetShaderTagIds();
-            // TODO
-            // if (overrideMaterial != null)
-            // {
-            //     shaderPasses[forwardShaderTags.Count] = new ShaderTagId(overrideMaterial.GetPassName(overrideMaterialPassIndex));
-            //     overrideMaterial.SetFloat(fadeValueId, fadeValue);
-            // }
+            if (overrideMaterial != null)
+            {
+                shaderPasses[forwardShaderTags.Length - 1] = new ShaderTagId(overrideMaterial.GetPassName(overrideMaterialPassIndex));
+                overrideMaterial.SetFloat(fadeValueId, fadeValue);
+            }
 
             if (shaderPasses.Length == 0)
             {
