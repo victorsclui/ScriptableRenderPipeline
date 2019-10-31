@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
 - Fixed Unlit and BakedLit shader compilations in the meta pass.
 - Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
+- Fixed an issue where the scene lighting button did not work when using the 2D Renderer
+- Fixed an issue where Freeform 2D Lights gizmo would not correctly show Falloff Offset
+- Fixed an issue where using shadow casting lights with incompatible Renderer2DData would cause the 2D Renderer to render nothing
+- Fixed an issue where prefab previews were incorrectly lit when using the 2D Renderer
+- Fixed an issue where deleting a sprite used by a Sprite 2D Light would not correctly update the light
 - Fixed an issue where 2D Lighting was broken for Perspective Cameras.
 - Fixed an issue where resetting a Freeform 2D Light would throw null reference exceptions. [case 1184536](https://issuetracker.unity3d.com/issues/lwrp-changing-light-type-to-freeform-after-clicking-on-reset-throws-multiple-arguementoutofrangeexception)
 - Fixed an issue where Freeform 2D Lights were not culled correctly when there was a Falloff Offset.
