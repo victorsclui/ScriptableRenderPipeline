@@ -92,7 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             public MSAASamples msaaSamples = MSAASamples.None;
             internal XRLayoutTest.Mode xrLayout = XRLayoutTest.Mode.Default;
-            public bool xrLayoutAnimate = false;
 
             public uint screenSpaceShadowIndex = 0;
             // Raytracing
@@ -409,6 +408,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 #endif
+            list.Add(new DebugUI.BoolField { displayName = "Debug XR Layout", getter = () => XRSystem.printDebugInfo, setter = value => XRSystem.printDebugInfo = value, onValueChanged = RefreshDisplayStatsDebug });
+            if (XRSystem.printDebugInfo)
+            {
+                Func<object> Bind<T>(Func<T, object> func, T arg) => () => func(arg);
+
+                for (int i = 0; i < XRSystem.passDebugInfos.Count; i++)
+                    list.Add(new DebugUI.Value { displayName = "", getter = Bind(XRSystem.ReadPassDebugInfo, i) });
+            }
+
             m_DebugDisplayStatsItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
             panel.flags = DebugUI.Flags.RuntimeOnly;
@@ -817,7 +825,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     new DebugUI.EnumField { displayName = "XR Layout", getter = () => (int)data.xrLayout, setter = value => data.xrLayout = (XRLayoutTest.Mode)value, enumNames = s_XrLayoutDebugStrings, enumValues = s_XrLayoutDebugValues, getIndex = () => data.xrLayoutDebugModeEnumIndex, setIndex = value => data.xrLayoutDebugModeEnumIndex = value },
                 });
             }
-            
+
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
             panel.children.Add(m_DebugRenderingItems);

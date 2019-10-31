@@ -19,6 +19,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        internal static bool printDebugInfo = false;
+        internal static List<string> passDebugInfos = new List<string>(8);
+        internal static string ReadPassDebugInfo(int i) => passDebugInfos[i];
+#endif
+
         //  rename? wip public API, move to file?
         internal struct FrameLayout
         {
@@ -147,6 +153,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     AddPassToFrame(camera, emptyPass);
                 }
             }
+
+            // TODO : move to function
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (printDebugInfo)
+            {
+                passDebugInfos.Clear();
+
+                for (int passIndex = 0; passIndex < framePasses.Count; passIndex++)
+                {
+                    var pass = framePasses[passIndex];
+                    for (int viewIndex = 0; viewIndex < pass.Item2.viewCount; viewIndex++)
+                    {
+                        var viewport = pass.Item2.GetViewport(viewIndex);
+                        passDebugInfos.Add(string.Format("Pass {0} Cull {1} View {2} Slice {3} : {4} x {5}",
+                            pass.Item2.multipassId, pass.Item2.cullingPassId, viewIndex, pass.Item2.GetTextureArraySlice(viewIndex), viewport.width, viewport.height));
+                    }
+                }
+            }
+
+            while (passDebugInfos.Count < passDebugInfos.Capacity)
+                passDebugInfos.Add("inactive");
+#endif
 
             return framePasses;
         }
