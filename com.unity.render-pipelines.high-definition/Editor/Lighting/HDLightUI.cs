@@ -127,8 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             CED.Conditional((serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
                                 CED.Group(GroupOption.Indent, DrawShadowMapAdvancedContent)),
                             CED.space,
-                            CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
-                                CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
                                 CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
@@ -803,12 +801,18 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-
+        static private bool m_ShowHighQualitySettings = false;
         static void DrawShadowMapAdvancedContent(SerializedHDLight serialized, Editor owner)
         {
             using (new EditorGUI.DisabledScope(serialized.settings.shadowsType.GetEnumValue<LightShadows>() == LightShadows.None))
             {
                 HDLightType lightType = serialized.type;
+
+                m_ShowHighQualitySettings = EditorGUILayout.Foldout(m_ShowHighQualitySettings, s_Styles.highShadowQualitySubHeader, true);
+                if (lightType != HDLightType.Area && m_ShowHighQualitySettings && HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner))
+                {
+                    DrawHighShadowSettingsContent(serialized, owner);
+                }
 
                 if (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle)
                 {
