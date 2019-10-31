@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingSample(cmd, "XR Custom Mirror View"))
                 {
-                    customMirrorView(this, cmd, hdCamera.camera.targetTexture, hdCamera.finalViewport);
+                    customMirrorView(this, cmd, hdCamera.camera.targetTexture, hdCamera.camera.pixelRect);
                 }
             }
         }
