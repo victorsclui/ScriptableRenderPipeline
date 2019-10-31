@@ -92,9 +92,7 @@ namespace UnityEditor.Rendering
         /// <param name="drawIfTrue">This will be draw if the <see cref="@switch"/> is true</param>
         /// <param name="drawIfFalse">This will be draw if the <see cref="@switch"/> is false</param>
         public static IDrawer TernaryConditional(Enabler @switch, IDrawer drawIfTrue, IDrawer drawIfFalse)
-        {
-            return new TernaryConditionalDrawerInternal(@switch, new ActionDrawer[] { drawIfTrue.Draw }, new ActionDrawer[] { drawIfFalse.Draw });
-        }
+            => new TernaryConditionalDrawerInternal(@switch, drawIfTrue.Draw, drawIfFalse.Draw);
 
         /// <summary>
         /// Conditioned drawer that will draw something depending of the return of the switch
@@ -103,17 +101,15 @@ namespace UnityEditor.Rendering
         /// <param name="drawIfTrue">This will be draw if the <see cref="@switch"/> is true</param>
         /// <param name="drawIfFalse">This will be draw if the <see cref="@switch"/> is false</param>
         public static IDrawer TernaryConditional(Enabler @switch, ActionDrawer drawIfTrue, ActionDrawer drawIfFalse)
-        {
-            return new TernaryConditionalDrawerInternal(@switch, new ActionDrawer[] { drawIfTrue }, new ActionDrawer[] { drawIfFalse });
-        }
+            => new TernaryConditionalDrawerInternal(@switch, drawIfTrue, drawIfFalse);
 
         class TernaryConditionalDrawerInternal : IDrawer
         {
-            ActionDrawer[] drawIfTrue;
-            ActionDrawer[] drawIfFalse;
+            ActionDrawer drawIfTrue;
+            ActionDrawer drawIfFalse;
             Enabler m_Switch;
 
-            public TernaryConditionalDrawerInternal(Enabler @switch, ActionDrawer[] drawIfTrue, ActionDrawer[] drawIfFalse)
+            public TernaryConditionalDrawerInternal(Enabler @switch, ActionDrawer drawIfTrue, ActionDrawer drawIfFalse)
             {
                 this.drawIfTrue = drawIfTrue;
                 this.drawIfFalse = drawIfFalse;
@@ -123,15 +119,9 @@ namespace UnityEditor.Rendering
             void IDrawer.Draw(TData data, Editor owner)
             {
                 if (m_Switch != null && !m_Switch(data, owner))
-                {
-                    for (var i = 0; i < drawIfFalse.Length; i++)
-                        drawIfFalse[i](data, owner);
-                }
+                    drawIfFalse?.Invoke(data, owner);
                 else
-                {
-                    for (var i = 0; i < drawIfTrue.Length; i++)
-                        drawIfTrue[i](data, owner);
-                }
+                    drawIfTrue?.Invoke(data, owner);
             }
         }
 
