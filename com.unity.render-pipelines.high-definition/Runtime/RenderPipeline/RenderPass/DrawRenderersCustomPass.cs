@@ -10,6 +10,13 @@ namespace UnityEngine.Rendering.HighDefinition
     [System.Serializable]
     public class DrawRenderersCustomPass : CustomPass
     {
+        public enum ShaderPass
+        {
+            // Ordered by frame time in HDRP
+            DepthPrepass    = 1,
+            Forward         = 0,
+        }
+
         // Used only for the UI to keep track of the toggle state
         public bool filterFoldout;
         public bool rendererFoldout;
@@ -27,34 +34,44 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool overrideDepthState = false;
         public CompareFunction depthCompareFunction = CompareFunction.LessEqual;
         public bool depthWrite = true;
+
+        public ShaderPass shaderPass = ShaderPass.Forward;
     
         int fadeValueId;
 
-        static List<ShaderTagId> m_HDRPShaderTags;
-        static List<ShaderTagId> hdrpShaderTags
-        {
-            get
-            {
-                if (m_HDRPShaderTags == null)
-                {
-                    m_HDRPShaderTags = new List<ShaderTagId>() {
-                        HDShaderPassNames.s_ForwardName,            // HD Lit shader
-                        HDShaderPassNames.s_ForwardOnlyName,        // HD Unlit shader
-                        HDShaderPassNames.s_SRPDefaultUnlitName,    // Cross SRP Unlit shader
-                    };
-                }
-                return m_HDRPShaderTags;
-            }
-        }
+        static ShaderTagId[] forwardShaderTags;
+        static ShaderTagId[] depthShaderTags;
+
+        // Cache the shaderTagIds so we don't allocate a new array each frame
+        ShaderTagId[]   cachedShaderTagIDs;
 
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             fadeValueId = Shader.PropertyToID("_FadeValue");
+
+            forwardShaderTags = new ShaderTagId[] {
+                HDShaderPassNames.s_ForwardName,            // HD Lit shader
+                HDShaderPassNames.s_ForwardOnlyName,        // HD Unlit shader
+                HDShaderPassNames.s_SRPDefaultUnlitName,    // Cross SRP Unlit shader
+            };
+
+            depthShaderTags = new ShaderTagId[] {
+                HDShaderPassNames.s_DepthForwardOnlyName,
+                HDShaderPassNames.s_DepthOnlyName,
+            };
         }
 
         protected override void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
         {
             cullingParameters.cullingMask |= (uint)(int)layerMask;
+        }
+
+        protected ShaderTagId[] GetShaderTagIds()
+        {
+            if (shaderPass == ShaderPass.DepthPrepass)
+                return depthShaderTags;
+            else
+                return forwardShaderTags;
         }
 
         /// <summary>
@@ -66,13 +83,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cullingResult"></param>
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {
-            ShaderTagId[] shaderPasses = new ShaderTagId[hdrpShaderTags.Count + ((overrideMaterial != null) ? 1 : 0)];
-            System.Array.Copy(hdrpShaderTags.ToArray(), shaderPasses, hdrpShaderTags.Count);
-            if (overrideMaterial != null)
-            {
-                shaderPasses[hdrpShaderTags.Count] = new ShaderTagId(overrideMaterial.GetPassName(overrideMaterialPassIndex));
-                overrideMaterial.SetFloat(fadeValueId, fadeValue);
-            }
+            var shaderPasses = GetShaderTagIds();
+            // TODO
+            // if (overrideMaterial != null)
+            // {
+            //     shaderPasses[forwardShaderTags.Count] = new ShaderTagId(overrideMaterial.GetPassName(overrideMaterialPassIndex));
+            //     overrideMaterial.SetFloat(fadeValueId, fadeValue);
+            // }
 
             if (shaderPasses.Length == 0)
             {
@@ -85,9 +102,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 depthState = new DepthState(depthWrite, depthCompareFunction),
             };
 
+            PerObjectData renderConfig = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
+
             var result = new RendererListDesc(shaderPasses, cullingResult, hdCamera.camera)
             {
-                rendererConfiguration = PerObjectData.None,
+                rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRange(renderQueueType),
                 sortingCriteria = sortingCriteria,
                 excludeObjectMotionVectors = false,
