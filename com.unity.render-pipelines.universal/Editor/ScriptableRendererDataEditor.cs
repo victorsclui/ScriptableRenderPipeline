@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System.Text.RegularExpressions;
 using UnityEngine.Scripting.APIUpdating;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -89,9 +90,9 @@ namespace UnityEditor.Rendering.Universal
                 return height;
             };
 
-            m_PassesList.onAddCallback += AddPass;
+            m_PassesList.onAddCallback = AddPass;
             m_PassesList.onRemoveCallback = RemovePass;
-            m_PassesList.onReorderCallbackWithDetails += ReorderPass;
+            m_PassesList.onReorderCallbackWithDetails = ReorderPass;
 
             m_PassesList.drawHeaderCallback = (Rect testHeaderRect) => {
                 GUI.Label(testHeaderRect, Styles.RenderFeatures);
@@ -158,7 +159,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                EditorGUI.ObjectField(propRect, element, GUIContent.none);
+                //EditorGUI.ObjectField(propRect, element, GUIContent.none);
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -173,6 +174,8 @@ namespace UnityEditor.Rendering.Universal
 
             if(m_PassesList == null)
                 OnValidate();
+            if(m_RenderPasses.arraySize != m_Foldouts.Length)
+                CreateFoldoutBools();
 
             m_PassesList.DoLayoutList();
 
@@ -230,17 +233,20 @@ namespace UnityEditor.Rendering.Universal
         private void RemovePass(ReorderableList list)
         {
             var obj = m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue;
-            Undo.IncrementCurrentGroup();
-            Undo.SetCurrentGroupName($"Delete {obj.name}");
-            var groupIndex = Undo.GetCurrentGroup();
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
-            ReorderableList.defaultBehaviours.DoRemoveButton(list);
-            m_RenderPasses.DeleteArrayElementAtIndex(list.index);
-            m_RenderPasses.serializedObject.ApplyModifiedProperties();
-            m_ElementSOs.Clear();
+            if (obj != null)
+            {
+                Undo.IncrementCurrentGroup();
+                Undo.SetCurrentGroupName($"Delete {obj.name}");
+                var groupIndex = Undo.GetCurrentGroup();
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
+                m_RenderPasses.serializedObject.ApplyModifiedProperties();
+                m_ElementSOs.Clear();
 
-            Undo.DestroyObjectImmediate(obj);
-            Undo.CollapseUndoOperations(groupIndex);
+                Undo.DestroyObjectImmediate(obj);
+                Undo.CollapseUndoOperations(groupIndex);
+            }
         }
 
         private void ReorderPass(ReorderableList list, int oldIndex, int newIndex)
@@ -281,11 +287,15 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_PassesList.serializedProperty != null)
             {
+                Undo.SetCurrentGroupName($"Adding {(string)pass}");
+                var groupIndex = Undo.GetCurrentGroup();
+
                 var asset = AssetDatabase.GetAssetPath(target);
                 var obj = CreateInstance((string)pass);
-                obj.hideFlags = HideFlags.HideInHierarchy;
+                //obj.hideFlags = HideFlags.HideInHierarchy;
                 obj.name = $"New{obj.GetType().Name}";
                 AssetDatabase.AddObjectToAsset(obj, asset);
+                Undo.RegisterCreatedObjectUndo(obj, obj.name);
 
                 ++m_PassesList.serializedProperty.arraySize;
                 m_PassesList.index = m_PassesList.serializedProperty.arraySize - 1;
@@ -293,6 +303,8 @@ namespace UnityEditor.Rendering.Universal
                 m_PassesList.serializedProperty.GetArrayElementAtIndex(m_PassesList.index).objectReferenceValue = obj;
                 m_PassesList.serializedProperty.serializedObject.ApplyModifiedProperties();
                 AssetDatabase.ImportAsset(asset);
+
+                Undo.CollapseUndoOperations(groupIndex);
             }
             m_ElementSOs.Clear();
             GetElementSO(m_PassesList.index);
