@@ -564,24 +564,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawLightIntensityGUILayout(SerializedHDLight serialized, Editor owner)
         {
-            const int kIndentPerLevel = 15;
-            const int kPrefixPaddingRight = 2;
-            const int kValueUnitSeparator = 2;
-            const int kUnitWidth = 100;
+            // Match const defined in EditorGUI.cs
+            const int k_IndentPerLevel = 15;
+            const int k_PrefixPaddingRight = 2;
 
-            float indent = kIndentPerLevel * EditorGUI.indentLevel;
+            const int k_ValueUnitSeparator = 2;
+            const int k_UnitWidth = 100;
+
+            float indent = k_IndentPerLevel * EditorGUI.indentLevel;
 
             Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
             Rect valueRect = lineRect;
             Rect labelRect = lineRect;
             labelRect.width = EditorGUIUtility.labelWidth;
-            valueRect.x += labelRect.width - indent + kPrefixPaddingRight;
+            valueRect.x += labelRect.width - indent + k_PrefixPaddingRight;
             // We use PropertyField to draw the value to keep the handle at left of the field
             // This will apply the indent again thus we need to remove it two time for alignment
-            valueRect.width -= labelRect.width + kUnitWidth - indent - indent + kPrefixPaddingRight + kValueUnitSeparator;
+            valueRect.width -= labelRect.width + k_UnitWidth - indent - indent + k_PrefixPaddingRight + k_ValueUnitSeparator;
             Rect unitRect = valueRect;
-            unitRect.x += valueRect.width - indent + kValueUnitSeparator;
-            unitRect.width = kUnitWidth + .5f;
+            unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
+            unitRect.width = k_UnitWidth + .5f;
 
             //handling of prefab overrides in a parent label
             GUIContent parentLabel = s_Styles.lightIntensity;
