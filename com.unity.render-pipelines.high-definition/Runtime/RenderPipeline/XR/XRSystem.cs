@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
             // XRTODO: replace by dynamic render graph
-            TextureXR.maxViews = GetMaxViews();
+            TextureXR.maxViews = Math.Max(TextureXR.slices, GetMaxViews());
         }
 
 #if ENABLE_XR_MODULE
