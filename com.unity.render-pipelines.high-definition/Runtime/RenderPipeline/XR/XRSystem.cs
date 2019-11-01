@@ -224,6 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var passCreateInfo = new XRPassCreateInfo
             {
+                multipassId = 0,
                 cullingPassId = 0,
                 cullingParameters = cullingParams,
                 renderTarget = camera.targetTexture,
@@ -232,24 +233,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.MultiPass)
             {
-                for (int passIndex = 0; passIndex < 2; ++passIndex)
+                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Left)
                 {
-                    passCreateInfo.multipassId = passIndex;
                     var pass = XRPass.Create(passCreateInfo);
-                    pass.AddView(camera, (Camera.StereoscopicEye)passIndex);
+                    pass.AddView(camera, Camera.StereoscopicEye.Left, 0);
+
+                    AddPassToFrame(camera, pass);
+                    passCreateInfo.multipassId++;
+                }
+                    
+
+                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Right)
+                {
+                    var pass = XRPass.Create(passCreateInfo);
+                    pass.AddView(camera, Camera.StereoscopicEye.Right, 1);
 
                     AddPassToFrame(camera, pass);
                 }
             }
             else
             {
-                passCreateInfo.multipassId = 0;
                 var pass = XRPass.Create(passCreateInfo);
 
-                for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
-                {
-                    pass.AddView(camera, (Camera.StereoscopicEye)viewIndex, viewIndex);
-                }
+                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Left)
+                    pass.AddView(camera, Camera.StereoscopicEye.Left, 0);
+
+                if (camera.stereoTargetEye == StereoTargetEyeMask.Both || camera.stereoTargetEye == StereoTargetEyeMask.Right)
+                    pass.AddView(camera, Camera.StereoscopicEye.Right, 1);
 
                AddPassToFrame(camera, pass);
             }
