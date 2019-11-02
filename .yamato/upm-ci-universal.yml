@@ -95,7 +95,7 @@ Build_{{ project.name }}_Windows64_{{ win_api.name }}_Player_{{ editor.version }
         - "**/test-results/**"
   players:
     paths:
-      - "players/**"
+        - "TestProjects/{{ project.folder }}/players/**"
   
 {% else %}
 
@@ -148,7 +148,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
         - "**/test-results/**"
     players:
       paths:
-        - "players/**"
+        - "TestProjects/{{ project.folder }/players/**"
 
 {{ project.name }}_OSX_OpenGLCore_Standalone_{{ editor.version }}:
   name: Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
