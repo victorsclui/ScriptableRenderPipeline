@@ -93,9 +93,9 @@ Build_{{ project.name }}_Windows64_{{ win_api.name }}_Player_{{ editor.version }
     logs:
       paths:
         - "**/test-results/**"
-  players:
-    paths:
-      - "players/**"
+    players:
+      paths:
+        - "players/**"
   
 {% else %}
 
