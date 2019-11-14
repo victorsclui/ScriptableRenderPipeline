@@ -1767,6 +1767,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
             aovRequest.SetupDebugData(ref m_CurrentDebugDisplaySettings);
 
+            // Frame setting may have changed at this point
+            // Need to make sure the new frame setting is respected so AOV output is correct
+            FrameSettings originalFrameSettings = hdCamera.frameSettings;
+            {
+                FrameSettings newFrameSettings = originalFrameSettings;
+                
+                if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                {
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess())
+                    {
+                        newFrameSettings.SetEnabled(FrameSettingsField.Postprocess, false);
+                    }
+
+                    // Disable exposure if required
+                    if (!m_CurrentDebugDisplaySettings.DebugNeedsExposure())
+                    {
+                        newFrameSettings.SetEnabled(FrameSettingsField.ExposureControl, false);
+                    }
+
+                    // Disable SSS if luxmeter is enabled
+                    if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                    {
+                        newFrameSettings.SetEnabled(FrameSettingsField.SubsurfaceScattering, false);
+                    }
+                }
+
+                hdCamera.Update(newFrameSettings, this, hdCamera.msaaSamples, hdCamera.xr);
+            }
+
 #if ENABLE_RAYTRACING
             // Must update after getting DebugDisplaySettings
             m_RayCountManager.ClearRayCount(cmd, hdCamera, m_CurrentDebugDisplaySettings.data.countRays);
@@ -2264,6 +2293,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                 aovRequest.Execute(cmd, aovBuffers, RenderOutputProperties.From(hdCamera));
+
+                // Recover the original frame setting which may have been overridden by aovRequst
+                {
+                    hdCamera.Update(originalFrameSettings, this, hdCamera.msaaSamples, hdCamera.xr);
+                }
         }
         }
 
