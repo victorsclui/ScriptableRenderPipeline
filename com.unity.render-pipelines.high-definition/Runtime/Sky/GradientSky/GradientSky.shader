@@ -51,19 +51,6 @@ Shader "Hidden/HDRP/Sky/GradientSky"
         return float4(color, 1.0);
     }
 
-    float4 FragBaking(Varyings input) : SV_Target
-    {
-        return RenderSky(input);
-    }
-
-    float4 FragRender(Varyings input) : SV_Target
-    {
-        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        float4 color = RenderSky(input);
-        color.rgb *= GetCurrentExposureMultiplier();
-        return color;
-    }
-
     ENDHLSL
 
     SubShader
@@ -76,7 +63,14 @@ Shader "Hidden/HDRP/Sky/GradientSky"
             Cull Off
 
             HLSLPROGRAM
+
+                float4 FragBaking(Varyings input) : SV_Target
+                {
+                    return RenderSky(input);
+                }
+
                 #pragma fragment FragBaking
+
             ENDHLSL
 
         }
@@ -89,7 +83,29 @@ Shader "Hidden/HDRP/Sky/GradientSky"
             Cull Off
 
             HLSLPROGRAM
+
+                #pragma multi_compile _ DEBUG_DISPLAY
+
+            #ifdef DEBUG_DISPLAY
+                #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+                #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyDebugUtils.hlsl" 
+            #endif               
+
+                float4 FragRender(Varyings input) : SV_Target
+                {
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                    float4 color = RenderSky(input);
+                    color.rgb *= GetCurrentExposureMultiplier();
+
+            #ifdef DEBUG_DISPLAY
+                    color = ModifySkyColorDebug(color);
+            #endif
+
+                    return color;
+                }
+
                 #pragma fragment FragRender
+
             ENDHLSL
         }
 

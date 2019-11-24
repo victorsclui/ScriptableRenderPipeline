@@ -8,10 +8,27 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum LightingProperty
     {
         None = 0,
-        /// <summary>Render only diffuse.</summary>
-        DiffuseOnly = 1 << 0,
-        /// <summary>Render only specular.</summary>
-        SpecularOnly = 1 << 1,
+
+        /// <summary>Render only direct diffuse.</summary>
+        DirectDiffuseOnly = 1 << 0,
+
+        /// <summary>Render only direct specular.</summary>
+        DirectSpecularOnly = 1 << 1,
+
+        /// <summary>Render only indirect diffuse.</summary>
+        IndirectDiffuseOnly = 1 << 2,
+
+        /// <summary>Render only reflection.</summary>
+        ReflectionOnly = 1 << 3,
+
+        /// <summary>Render only refraction.</summary>
+        RefractionOnly = 1 << 4,
+
+        /// <summary>Represent how much final diffuse is from refraction and how much from other diffuse lighting.</summary>
+        Transmittance = 1 << 5,
+
+        /// <summary>Render only emissive.</summary>
+        EmissiveOnly = 1 << 6,
     }
 
     /// <summary>Output a specific debug mode.</summary>
@@ -93,11 +110,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             switch (m_LightingProperty)
             {
-                case LightingProperty.DiffuseOnly:
-                    debug.SetDebugLightingMode(DebugLightingMode.DiffuseLighting);
+                case LightingProperty.DirectDiffuseOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.DirectDiffuse);
                     break;
-                case LightingProperty.SpecularOnly:
-                    debug.SetDebugLightingMode(DebugLightingMode.SpecularLighting);
+                case LightingProperty.DirectSpecularOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.DirectSpecular);
+                    break;
+                case LightingProperty.IndirectDiffuseOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.IndirectDiffuse);
+                    break;
+                case LightingProperty.ReflectionOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.Reflection);
+                    break;
+                case LightingProperty.RefractionOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.Refraction);
+                    break;
+                case LightingProperty.Transmittance:
+                    debug.SetDebugLightingMode(DebugLightingMode.Transmittance);
+                    break;
+                case LightingProperty.EmissiveOnly:
+                    debug.SetDebugLightingMode(DebugLightingMode.Emissive);
                     break;
                 default:
                 {

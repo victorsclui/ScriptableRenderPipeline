@@ -324,6 +324,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.materialDebugSettings.DisableMaterialDebug();
                 data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
             }
+
+            if (value == DebugLightingMode.Emissive || value == DebugLightingMode.IndirectDiffuse)
+            {
+                HDRenderPipelineAsset hdrpAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+                {
+                    Debug.LogWarning("Beware DebugLightingMode.Emissive/DebugLightingMode.IndirectDiffuse is only correct when in forward-only mode");
+                }
+            }
+
+            if (value == DebugLightingMode.Refraction || value == DebugLightingMode.Transmittance)
+            {
+                HDRenderPipelineAsset hdrpAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+                {
+                    Debug.LogWarning("Beware DebugLightingMode.Refraction/DebugLightingMode.Transmittance is only correct when in forward-only mode");
+                }
+            }
+
             data.lightingDebugSettings.debugLightingMode = value;
         }
 
@@ -363,6 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
             return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
+                (debugLighting == DebugLightingMode.DirectDiffuse || debugLighting == DebugLightingMode.DirectSpecular || debugLighting == DebugLightingMode.IndirectDiffuse || debugLighting == DebugLightingMode.Reflection || debugLighting == DebugLightingMode.Refraction || debugLighting == DebugLightingMode.Emissive) ||
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.RayTracedGlobalIllumination;

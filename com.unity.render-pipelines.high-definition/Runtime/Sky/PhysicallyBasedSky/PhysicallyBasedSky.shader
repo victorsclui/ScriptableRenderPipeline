@@ -182,19 +182,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return float4(skyColor, 1.0);
     }
 
-    float4 FragBaking(Varyings input) : SV_Target
-    {
-        return RenderSky(input); // The cube map is not pre-exposed
-    }
-
-    float4 FragRender(Varyings input) : SV_Target
-    {
-        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        float4 value = RenderSky(input);
-        value.rgb *= GetCurrentExposureMultiplier(); // Only the full-screen pass is pre-exposed
-        return value;
-    }
-
     float4 FragBlack(Varyings input) : SV_Target
     {
         return 0;
@@ -212,7 +199,14 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             Cull Off
 
             HLSLPROGRAM
+
+                float4 FragBaking(Varyings input) : SV_Target
+                {
+                    return RenderSky(input); // The cube map is not pre-exposed
+                }
+
                 #pragma fragment FragBaking
+
             ENDHLSL
         }
 
@@ -236,7 +230,29 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             Cull Off
 
             HLSLPROGRAM
+
+                #pragma multi_compile _ DEBUG_DISPLAY
+
+            #ifdef DEBUG_DISPLAY
+                #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+                #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyDebugUtils.hlsl" 
+            #endif
+
+                float4 FragRender(Varyings input) : SV_Target
+                {
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                    float4 value = RenderSky(input);
+                    value.rgb *= GetCurrentExposureMultiplier(); // Only the full-screen pass is pre-exposed
+
+#ifdef DEBUG_DISPLAY
+                    value = ModifySkyColorDebug(color);
+#endif
+
+                    return value;
+                }
+
                 #pragma fragment FragRender
+
             ENDHLSL
         }
 

@@ -116,6 +116,17 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
     lighting.direct.specular *= aoFactor.directSpecularOcclusion;
 }
 
+struct DecomposedLighting
+{
+    float3 directDiffuse;
+    float3 directSpecular;
+    float3 indirectDiffuse;
+    float3 reflection;
+    float3 refraction;
+    float transmittance;
+    float3 emissive;
+};
+
 #ifdef DEBUG_DISPLAY
 // mipmapColor is color use to store texture streaming information in XXXData.hlsl (look for DEBUGMIPMAPMODE_NONE)
 void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData builtinData, AggregateLighting lighting, float3 mipmapColor,
@@ -174,6 +185,83 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
     {
         diffuseLighting = mipmapColor;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+}
+
+void PostLightLoopDebugDisplay(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData,
+    DecomposedLighting decomposedLighting, inout float3 diffuseLightingOverride, inout float3 specularLightingOverride, inout float opacityOverride)
+{
+    if (_DebugLightingMode != 0)
+    {
+        // Caution: _DebugLightingMode is used in other part of the code, don't do anything outside of
+        // current cases
+        switch (_DebugLightingMode)
+        {
+        case DEBUGLIGHTINGMODE_DIRECT_DIFFUSE:
+            diffuseLightingOverride = decomposedLighting.directDiffuse;
+            specularLightingOverride = float3(0.0, 0.0, 0.0);
+            opacityOverride = 1;
+            break;
+
+        case DEBUGLIGHTINGMODE_DIRECT_SPECULAR:
+            diffuseLightingOverride = float3(0.0, 0.0, 0.0);
+            specularLightingOverride = decomposedLighting.directSpecular;
+            opacityOverride = 1;
+            break;
+
+        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE:
+            diffuseLightingOverride = decomposedLighting.indirectDiffuse;
+            specularLightingOverride = float3(0.0, 0.0, 0.0);
+            opacityOverride = 1;
+            break;
+
+        case DEBUGLIGHTINGMODE_REFLECTION:
+            diffuseLightingOverride = float3(0.0, 0.0, 0.0);
+            specularLightingOverride = decomposedLighting.reflection;
+            opacityOverride = 1;
+            break;
+
+        case DEBUGLIGHTINGMODE_REFRACTION:
+            if (decomposedLighting.transmittance > 0.0)
+            {
+                // Transparent object with refraction - output refraction value
+                diffuseLightingOverride = decomposedLighting.refraction;
+                specularLightingOverride = float3(0.0, 0.0, 0.0);
+                opacityOverride = 1;
+            }
+            else if (builtinData.opacity < 1.0)
+            {
+                // Transparent object without refraction - just pass through
+                diffuseLightingOverride = float3(0.0, 0.0, 0.0);
+                specularLightingOverride = float3(0.0, 0.0, 0.0);
+                opacityOverride = 0;
+            }
+            else
+            {
+                // Opaque object behind transparent object should still be properly lighted
+            }
+
+            // TODO: This is not exactly correct when there is transparent object behind transparent object
+            // The non-refraction lighting of the transparent object behind another transparent object will be missing
+            // To fix this, we need some kind of transparent depth prepass on a separate depth buffer
+            // Then when a transparent is drawn we can sample that depth RT to see if it is behind other transparent objects
+            // However, adding another depth render target is quite a big change to HDRP, so let's keep it simple for now
+
+            break;
+
+        case DEBUGLIGHTINGMODE_TRANSMITTANCE:
+            // Consider both refraction (opacity == 1) and transparent without refraction case (transmittance == 0)
+            diffuseLightingOverride = max(decomposedLighting.transmittance, (1 - builtinData.opacity));
+            specularLightingOverride = float3(0.0, 0.0, 0.0);
+            opacityOverride = 1;
+            break;
+
+        case DEBUGLIGHTINGMODE_EMISSIVE:
+            diffuseLightingOverride = decomposedLighting.emissive;
+            specularLightingOverride = float3(0.0, 0.0, 0.0);
+            opacityOverride = 1;
+            break;
+        }
     }
 }
 #endif

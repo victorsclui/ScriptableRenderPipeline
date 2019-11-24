@@ -182,8 +182,14 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
             float3 diffuseLighting;
             float3 specularLighting;
+            DecomposedLighting decomposedLighting;
 
-            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting, decomposedLighting);
+
+#ifdef DEBUG_DISPLAY
+            PostLightLoopDebugDisplay(V, posInput, preLightData, bsdfData, builtinData,
+                decomposedLighting, diffuseLighting, specularLighting, builtinData.opacity);
+#endif
 
             diffuseLighting *= GetCurrentExposureMultiplier();
             specularLighting *= GetCurrentExposureMultiplier();
