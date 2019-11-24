@@ -112,32 +112,32 @@ public class TestManager : MonoBehaviour
 
         RTHandle aovStoreBuffer = RTHandles.Alloc(width, height);
 
-        Texture2D screenShot = new Texture2D(width, height, TextureFormat.ARGB32, false);
-
         AOVRequestBufferAllocator allocateAovStoreBuffer = (bufferId) =>
         {
             return aovStoreBuffer;
         };
 
-        AOVBuffers[] requestColorBuffer = new[] { AOVBuffers.Color };
         AOVBuffers[] requestOutputBuffer = new[] { AOVBuffers.Output };
 
         FramePassCallback doNothing = (cmd, buffers, properties) =>
         {
         };
 
+        Texture2D screenShot = new Texture2D(width, height, TextureFormat.ARGB32, false);
+
         for (int II = 0; II < toggles.Length; II++)
         {
             if (toggles[II].toggle.isOn)
             {
-                AOVBuffers[] bufferToRequest = null;
                 AOVRequest aovRequest = new AOVRequest(AOVRequest.@default).SetLightFilter(DebugLightFilterMode.None);
 
                 switch (toggles[II].type)
                 {
                     case RP_TYPE.ALBEDO:
-                        bufferToRequest = requestOutputBuffer;
                         aovRequest = aovRequest.SetFullscreenOutput(MaterialSharedProperty.Albedo);
+                        break;
+                    case RP_TYPE.NORMAL:
+                        aovRequest = aovRequest.SetFullscreenOutput(MaterialSharedProperty.Normal);
                         break;
                     default:
                         break;
@@ -147,7 +147,7 @@ public class TestManager : MonoBehaviour
                     aovRequest,
                     allocateAovStoreBuffer,
                     null,
-                    bufferToRequest,
+                    requestOutputBuffer,
                     doNothing);
 
                 AOVRequestDataCollection totalAOVRequests = aovRequestBuilder.Build();
