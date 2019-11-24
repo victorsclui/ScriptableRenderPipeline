@@ -13,6 +13,7 @@ public enum RP_TYPE
 {
     ALBEDO = 0,
     NORMAL,
+    DEPTH,
     DIRECT_DIFFUSE,
     DIRECT_SPECULAR,
     INDIRECT_DIFFUSE,
@@ -143,6 +144,9 @@ public class TestManager : MonoBehaviour
                         break;
                     case RP_TYPE.NORMAL:
                         aovRequest = aovRequest.SetFullscreenOutput(MaterialSharedProperty.Normal);
+                        break;
+                    case RP_TYPE.DEPTH:
+                        aovRequest = aovRequest.SetFullscreenOutput(DebugFullScreen.Depth);
                         break;
                     case RP_TYPE.DIRECT_DIFFUSE:
                         aovRequest = aovRequest.SetFullscreenOutput(LightingProperty.DirectDiffuseOnly);
