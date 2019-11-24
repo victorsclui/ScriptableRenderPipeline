@@ -146,7 +146,7 @@ public class TestManager : MonoBehaviour
                         aovRequest = aovRequest.SetFullscreenOutput(MaterialSharedProperty.Normal);
                         break;
                     case RP_TYPE.DEPTH:
-                        aovRequest = aovRequest.SetFullscreenOutput(DebugFullScreen.Depth);
+                        aovRequest = aovRequest.SetFullscreenOutput(FragmentProperty.ViewSpaceDepth);
                         break;
                     case RP_TYPE.DIRECT_DIFFUSE:
                         aovRequest = aovRequest.SetFullscreenOutput(LightingProperty.DirectDiffuseOnly);

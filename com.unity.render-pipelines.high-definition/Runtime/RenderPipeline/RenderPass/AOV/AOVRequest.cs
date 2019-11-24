@@ -31,11 +31,21 @@ namespace UnityEngine.Rendering.HighDefinition
         EmissiveOnly = 1 << 6,
     }
 
+    public enum FragmentProperty
+    {
+        None = 0,
+
+        // Depth value in view space
+        // R G B channel has different scale:
+        // R: x1, G: x0.1, B: x0.01
+        ViewSpaceDepth = 1 << 0,
+    }
+
     /// <summary>Output a specific debug mode.</summary>
     public enum DebugFullScreen
     {
         None,
-        Depth,
+        DepthBuffer,
         ScreenSpaceAmbientOcclusion,
         MotionVectors
     }
@@ -48,12 +58,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_MaterialProperty = MaterialSharedProperty.None,
             m_LightingProperty = LightingProperty.None,
+            m_FragmentProperty = FragmentProperty.None,
             m_DebugFullScreen = DebugFullScreen.None,
             m_LightFilterProperty = DebugLightFilterMode.None
         };
 
         MaterialSharedProperty m_MaterialProperty;
         LightingProperty m_LightingProperty;
+        FragmentProperty m_FragmentProperty;
         DebugLightFilterMode m_LightFilterProperty;
         DebugFullScreen m_DebugFullScreen;
 
@@ -72,6 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_MaterialProperty = other.m_MaterialProperty;
             m_LightingProperty = other.m_LightingProperty;
+            m_FragmentProperty = other.m_FragmentProperty;
             m_DebugFullScreen = other.m_DebugFullScreen;
             m_LightFilterProperty = other.m_LightFilterProperty;
         }
@@ -87,6 +100,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref AOVRequest SetFullscreenOutput(LightingProperty lightingProperty)
         {
             m_LightingProperty = lightingProperty;
+            return ref *thisPtr;
+        }
+
+        /// <summary>State the property to render. In case of several SetFullscreenOutput chained call, only last will be used.</summary>
+        public ref AOVRequest SetFullscreenOutput(FragmentProperty fragmentProperty)
+        {
+            m_FragmentProperty = fragmentProperty;
             return ref *thisPtr;
         }
 
@@ -138,6 +158,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            switch (m_FragmentProperty)
+            {
+                case FragmentProperty.ViewSpaceDepth:
+                    debug.SetDebugViewVarying(DebugViewVarying.ViewSpaceDepth);
+                    break;
+                default:
+                    {
+                        debug.SetDebugViewVarying(DebugViewVarying.None);
+                        break;
+                    }
+            }
+
             debug.SetDebugLightFilterMode(m_LightFilterProperty);
 
             switch (m_DebugFullScreen)
@@ -145,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case DebugFullScreen.None:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.None);
                     break;
-                case DebugFullScreen.Depth:
+                case DebugFullScreen.DepthBuffer:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
                     break;
                 case DebugFullScreen.ScreenSpaceAmbientOcclusion:

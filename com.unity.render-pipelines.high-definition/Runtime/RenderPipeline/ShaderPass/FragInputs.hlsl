@@ -61,5 +61,11 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
     case DEBUGVIEWVARYING_VERTEX_COLOR_ALPHA:
         result = input.color.aaa;
         break;
+    case DEBUGVIEWVARYING_VIEW_SPACE_DEPTH:
+        float viewSpaceDepth = input.positionSS.w;
+
+        // Multiple scales at each color channel makes visualization easier than depth pyramid
+        result = float3(viewSpaceDepth, frac(viewSpaceDepth * 0.1), frac(viewSpaceDepth * 0.01));
+        break;
     }
 }

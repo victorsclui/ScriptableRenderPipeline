@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VertexNormalWS,
             VertexColor,
             VertexColorAlpha,
+            ViewSpaceDepth,
             // if you add more values here, fix the first entry of next enum
         };
 
@@ -28,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum DebugViewGbuffer
         {
             None = 0,
-            Depth = DebugViewVarying.VertexColorAlpha + 1,
+            Depth = DebugViewVarying.ViewSpaceDepth + 1,
             BakeDiffuseLightingWithAlbedoPlusEmissive,
             BakeShadowMask0,
             BakeShadowMask1,
